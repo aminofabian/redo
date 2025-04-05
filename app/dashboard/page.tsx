@@ -123,7 +123,7 @@ export default function Dashboard() {
   const [isQuickMenuOpen, setIsQuickMenuOpen] = useState(false);
   const { data: session } = useSession();
   
-  const firstName = session?.user?.firstName || session?.user?.name?.split(' ')[0] || 'Student';
+  const firstName = (session?.user as any)?.firstName || session?.user?.name?.split(' ')[0] || 'Student';
 
   const quickActions = [
     {
