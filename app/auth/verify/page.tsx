@@ -1,7 +1,13 @@
 import { verifyEmail } from "@/actions/verify-email";
+import { useSearchParams, useRouter } from "next/navigation";
+import { useEffect } from "react";
+import { toast } from "sonner";
+import { CardWrapper } from "../../components/ui/card-wrapper";
+import { BeatLoader } from "react-spinners";
 
 export default function VerifyEmailPage() {
   const searchParams = useSearchParams();
+  const router = useRouter();
   const token = searchParams.get("token");
 
   useEffect(() => {
