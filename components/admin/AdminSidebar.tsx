@@ -409,7 +409,7 @@ export default function AdminSidebar() {
                       <p>{error}</p>
                     </div>
                   ) : users.length === 0 ? (
-                    <div className="p-4 text-center text-gray-500">
+                    <div className="p-4 text-center text-gray-700">
                       <p>No users found</p>
                     </div>
                   ) : (
