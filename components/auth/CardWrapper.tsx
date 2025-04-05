@@ -1,5 +1,7 @@
 "use client";
 
+import React from "react";
+import Link from "next/link";
 import { cn } from "@/lib/utils";
 import {
   Card,
@@ -21,10 +23,12 @@ interface CardWrapperProps {
   backButtonHref: string;
   showSocial?: boolean;
 }
+
 const font = Jost({
   subsets: ["latin"],
   weight: ["700"],
 });
+
 const CardWrapper = ({
   children,
   headerLabel,
@@ -34,23 +38,23 @@ const CardWrapper = ({
 }: CardWrapperProps) => {
   return (
     <Card
-    className={cn(
-      "container w-[400px] shadow-md border border-blue-500 mx-5",
-      font.className
-    )}
+      className={cn(
+        "container w-[400px] shadow-md border border-blue-500 mx-5",
+        font.className
+      )}
     >
-    <CardHeader>
-    <Header label={headerLabel} />
-    </CardHeader>
-    <CardContent>{children}</CardContent>
-    {showSocial && (
+      <CardHeader>
+        <Header label={headerLabel} />
+      </CardHeader>
+      <CardContent>{children}</CardContent>
+      {showSocial && (
+        <CardFooter>
+          <Social />
+        </CardFooter>
+      )}
       <CardFooter>
-      <Social />
+        <BackButton href={backButtonHref} label={backButtonLabel} />
       </CardFooter>
-    )}
-    <CardFooter>
-    <BackButton href={backButtonHref} label={backButtonLabel} />
-    </CardFooter>
     </Card>
   );
 };
