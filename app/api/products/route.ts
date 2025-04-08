@@ -1,10 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/db';
-import { auth } from '@/auth';
+import { withAuth } from "@/auth";
 
 export async function POST(request: NextRequest) {
   try {
-    const session = await auth();
+    const session = await withAuth(request);
     
     // Check if user is logged in
     if (!session?.user) {
@@ -114,66 +114,61 @@ export async function POST(request: NextRequest) {
 }
 
 export async function GET(request: NextRequest) {
-  try {
-    const session = await auth();
-    
-    // Check if user is logged in
-    if (!session?.user) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
-    
-    // Parse query parameters
-    const { searchParams } = new URL(request.url);
-    const search = searchParams.get('search') || '';
-    const limit = parseInt(searchParams.get('limit') || '20');
-    
-    // Fetch products with images
-    const products = await prisma.product.findMany({
-      where: {
-        title: {
-          contains: search,
-          mode: 'insensitive'
-        }
-      },
-      include: {
-        images: true,
-        categories: {
-          include: {
-            category: true
+  return withAuth(request, async (req, session) => {
+    try {
+      // Parse query parameters
+      const { searchParams } = new URL(req.url);
+      const search = searchParams.get('search') || '';
+      const limit = parseInt(searchParams.get('limit') || '20');
+      
+      // Fetch products with images
+      const products = await prisma.product.findMany({
+        where: {
+          title: {
+            contains: search,
+            mode: 'insensitive'
           }
-        }
-      },
-      orderBy: {
-        createdAt: 'desc'
-      },
-      take: limit
-    });
-    
-    // Transform for easier frontend use
-    const formattedProducts = products.map(product => ({
-      id: product.id,
-      title: product.title,
-      description: product.description,
-      status: product.isPublished ? 'Published' : 'Draft',
-      lastUpdated: formatDate(product.updatedAt),
-      price: formatPrice(product.price),
-      sales: product.purchaseCount,
-      images: product.images.map(img => ({
-        id: img.id,
-        url: img.url,
-        isPrimary: img.isPrimary
-      })),
-      categories: product.categories.map(c => c.category.name)
-    }));
-    
-    return NextResponse.json(formattedProducts);
-  } catch (error) {
-    console.error('Error fetching products:', error);
-    return NextResponse.json(
-      { error: 'Failed to fetch products' },
-      { status: 500 }
-    );
-  }
+        },
+        include: {
+          images: true,
+          categories: {
+            include: {
+              category: true
+            }
+          }
+        },
+        orderBy: {
+          createdAt: 'desc'
+        },
+        take: limit
+      });
+      
+      // Transform for easier frontend use
+      const formattedProducts = products.map(product => ({
+        id: product.id,
+        title: product.title,
+        description: product.description,
+        status: product.isPublished ? 'Published' : 'Draft',
+        lastUpdated: formatDate(product.updatedAt),
+        price: formatPrice(product.price),
+        sales: product.purchaseCount,
+        images: product.images.map(img => ({
+          id: img.id,
+          url: img.url,
+          isPrimary: img.isPrimary
+        })),
+        categories: product.categories.map(c => c.category.name)
+      }));
+      
+      return NextResponse.json(formattedProducts);
+    } catch (error) {
+      console.error('Error fetching products:', error);
+      return NextResponse.json(
+        { error: 'Failed to fetch products' },
+        { status: 500 }
+      );
+    }
+  });
 }
 
 // Helper functions

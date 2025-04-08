@@ -7,6 +7,13 @@ const nextConfig = {
     ],
   },
   // Other existing configuration...
+  webpack: (config) => {
+    // Remove the specific next-auth alias that's causing problems
+    if (config.resolve.alias) {
+      delete config.resolve.alias['next-auth'];
+    }
+    return config;
+  }
 };
 
 export default nextConfig;

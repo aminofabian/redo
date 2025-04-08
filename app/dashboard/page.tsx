@@ -192,7 +192,7 @@ export default function Dashboard() {
         </div>
       </div>
 
-      {/* Desktop Header */}
+      {/* Desktop Header
       <div className="hidden lg:flex lg:justify-between lg:items-center mb-8">
         <div>
           <h1 className="text-2xl font-bold text-[#1e2c51]">
@@ -248,7 +248,7 @@ export default function Dashboard() {
           </DropdownMenu>
         </div>
       </div>
-
+ */}
       {/* Stats Grid */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 lg:gap-4 mb-8">
         {stats.map((stat, index) => (

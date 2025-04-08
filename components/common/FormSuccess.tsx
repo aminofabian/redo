@@ -4,13 +4,14 @@ interface FormSuccessProps {
   message?: string;
 }
 
-const FormSuccess = ({ message }: FormSuccessProps) => {
-  if (!message) {
-    return null;
-  }
+const FormSuccess = ({
+  message,
+}: FormSuccessProps) => {
+  if (!message) return null;
+
   return (
-    <div className="bg-emerald-200/70 p-3 rounded-md flex item-center gap-x-2 text-xs font-light text-emerald-500">
-      <CheckCircledIcon className="h-7 w-7" />
+    <div className="bg-emerald-50/50 p-3 rounded-md flex items-center gap-x-2 text-sm text-emerald-500">
+      <CheckCircledIcon className="h-4 w-4" />
       <p>{message}</p>
     </div>
   );

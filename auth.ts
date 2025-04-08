@@ -1,88 +1,99 @@
 import NextAuth from "next-auth";
-import authConfig from "@/auth.config";
+import CredentialsProvider from "next-auth/providers/credentials";
 import { PrismaAdapter } from "@auth/prisma-adapter";
-import { getUserById } from "@/data/user";
+import bcrypt from "bcryptjs";
 import db from "@/lib/db";
-import { UserRole } from "@prisma/client";
+import { getUserByEmail } from "@/data/user";
 
-export const {
-  handlers: { GET, POST },
-  auth,
-  signIn,
-  signOut,
-} = NextAuth({
+// This is a workaround for the NextAuth type issue
+import type { NextAuthConfig } from "next-auth";
+import type { Session } from "next-auth";
+
+export const authConfig = {
   pages: {
-    signIn: "/auth/login",
-    error: "/auth/error",
-  },
-  events: {
-    async linkAccount({ user }) {
-      await db.user.update({
-        where: { id: user.id },
-        data: {
-          emailVerified: new Date(),
-        },
-      });
-    },
+    signIn: '/auth/login',
+    error: '/auth/error',
   },
   callbacks: {
-    async signIn({ user, account }) {
-      console.log({
-        user,
-        account,
-      });
-      // Allow OAuth without email verification
-      if (account?.provider !== "credentials") return true;
-      const existingUser = await getUserById(user.id ?? "");
-      // Prevent Sign In without Email Verification
-      if (!existingUser?.emailVerified) return false;
-
-      // TODO: Add 2FA Check
-      return true;
-    },
-
-    async session({ token, session }) {
-      if (token.sub && session.user) {
-        session.user.id = token.sub;
+    async jwt({ token, user }) {
+      if (user) {
+        token.id = user.id;
+        token.email = user.email;
+        token.role = user.role;
       }
-      if (session.user) {
-        session.user.name = token.name as string;
-        session.user.firstName = token.firstName;
-        session.user.lastName = token.lastName;
-        session.user.email = token.email as string;
-        session.user.role = token.role as UserRole;
-        session.user.image = token.picture;
-        session.user.emailVerified = token.emailVerified as Date | null;
-        session.user.isTwoFactorEnabled = token.isTwoFactorEnabled as boolean;
-      }
-
-      return session;
-    },
-    async jwt({ token }) {
-      if (!token.sub) {
-        return token;
-      }
-      const existingUser = await getUserById(token.sub);
-      if (!existingUser) {
-        return token;
-      }
-
-      // Combine firstName and lastName into a single name field
-      token.name = `${existingUser.firstName || ''} ${existingUser.lastName || ''}`.trim();
-      token.firstName = existingUser.firstName;
-      token.lastName = existingUser.lastName;
-      token.email = existingUser.email;
-      token.role = existingUser.role;
-      token.picture = existingUser.image;
-      token.emailVerified = existingUser.emailVerified;
-      // token.isTwoFactorEnabled = existingUser.isTwoFactorEnabled;
-
-
       return token;
     },
+    async session({ session, token }) {
+      if (token && session.user) {
+        session.user.id = token.id;
+        session.user.email = token.email;
+        session.user.role = token.role;
+      }
+      return session;
+    },
+    async redirect({ url, baseUrl }) {
+      // Allow relative URLs
+      if (url.startsWith("/")) return `${baseUrl}${url}`;
+      // Allow same-origin URLs
+      else if (new URL(url).origin === baseUrl) return url;
+      return baseUrl + "/dashboard";
+    }
   },
+  providers: [
+    CredentialsProvider({
+      name: "credentials",
+      credentials: {
+        email: { label: "Email", type: "email" },
+        password: { label: "Password", type: "password" }
+      },
+      async authorize(credentials) {
+        if (!credentials?.email || !credentials?.password) {
+          return null;
+        }
 
+        const user = await getUserByEmail(credentials.email);
+        if (!user || !user.password) return null;
+
+        const passwordMatch = await bcrypt.compare(
+          credentials.password,
+          user.password
+        );
+
+        if (!passwordMatch) return null;
+        return user;
+      }
+    })
+  ],
   adapter: PrismaAdapter(db),
-  session: { strategy: "jwt" },
-  ...authConfig,
-});
+  session: { strategy: "jwt" }
+} satisfies NextAuthConfig;
+
+// Create a simple handler that exposes the auth functions
+export const { handlers, auth, signIn, signOut } = NextAuth(authConfig);
+
+// Export auth for middleware usage
+export const getServerAuthSession = auth;
+
+// Export a utility function for API routes
+export async function withAuth(
+  req: Request, 
+  handler?: (req: Request, session: Session) => Promise<Response>
+) {
+  const session = await auth();
+  
+  if (!session) {
+    return new Response(JSON.stringify({ error: "Unauthorized" }), {
+      status: 401,
+      headers: { "Content-Type": "application/json" }
+    });
+  }
+
+  if (handler) {
+    return handler(req, session);
+  }
+  
+  return new Response(JSON.stringify(session), {
+    status: 200,
+    headers: { "Content-Type": "application/json" }
+  });
+}

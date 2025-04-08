@@ -4,50 +4,31 @@ import { useState } from "react";
 import { Star, BookOpen, Clock, Users, ChevronLeft, ChevronRight, Heart, Share2, ChevronRight as ChevronRightIcon, Shield, RefreshCw, Download } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
-import { nursingResources } from "@/lib/data";
 
-const productGalleries: Record<string, string[]> = {
-  "nclex-rn-complete-prep-package": [
-    "/categories/sincerely-media--IIIr1Hu6aY-unsplash.jpg",
-    "/categories/element5-digital-OyCl7Y4y0Bk-unsplash.jpg",
-    "/categories/paul-felberbauer-QL7iY3G24z4-unsplash.jpg",
-    "/categories/marissa-grootes-flRm0z3MEoA-unsplash.jpg",
-  ],
-  "fundamentals-of-nursing-study-guide": [
-    "/categories/hush-naidoo-jade-photography-eKNswc0Qxz8-unsplash.jpg",
-    "/categories/national-cancer-institute-NFvdKIhxYlU-unsplash.jpg",
-    "/categories/owen-beard-DK8jXx1B-1c-unsplash.jpg",
-    "/categories/tony-luginsland-qS1bDAxxAYg-unsplash.jpg",
-  ],
-  "specialized-medical-surgical-nursing-test-preparation": [
-    "/categories/national-cancer-institute-NFvdKIhxYlU-unsplash.jpg",
-    "/categories/fahrul-azmi-cFUZ-6i83vs-unsplash.jpg",
-    "/categories/julia-taubitz-6JUYocDPaZo-unsplash.jpg",
-    "/categories/alexander-grey-eMP4sYPJ9x0-unsplash.jpg",
-  ],
-};
-
-const productDescriptions: Record<string, string> = {
-  "nclex-rn-complete-prep-package": "Our comprehensive NCLEX-RN preparation package includes over 2000 practice questions, detailed explanations, and performance tracking. Perfect for nursing students preparing for their licensure examination.",
-  "fundamentals-of-nursing-study-guide": "Master the core concepts of nursing with our comprehensive fundamentals guide. Covers patient care, clinical procedures, and essential nursing theory with real-world examples and case studies.",
-  "specialized-medical-surgical-nursing-test-preparation": "Specialized Medical-Surgical nursing test preparation with focus on adult health nursing, critical thinking skills, and NCLEX-style questions. Includes detailed rationales and study strategies.",
-};
-
-export default function ProductDetails({ params }: { params: { id: string } }) {
-  const [selectedImage, setSelectedImage] = useState(0);
-  const resourceId = params.id;
-  const resource = nursingResources.find(r => r.id === resourceId);
-
-  if (!resource) {
-    return <div>Resource not found</div>;
+type ProductProps = {
+  product: {
+    id: string;
+    title: string;
+    description: string;
+    price: number;
+    monthlyPrice: number;
+    rating: string;
+    reviews: number;
+    type: string;
+    duration: string;
+    tags: string[];
+    images: string[];
+    questions?: string;
+    chapters?: string;
   }
+};
 
-  const images = productGalleries[resourceId as keyof typeof productGalleries];
-  const description = productDescriptions[resourceId as keyof typeof productDescriptions];
+export default function ProductDetails({ product }: ProductProps) {
+  const [selectedImage, setSelectedImage] = useState(0);
 
   const features = [
-    { icon: BookOpen, title: "Study Material", description: resource.type === "Practice Tests" ? `${resource.questions}` : `${resource.chapters || "15+ Chapters"}` },
-    { icon: Clock, title: "Duration", description: resource.duration },
+    { icon: BookOpen, title: "Study Material", description: product.type === "Practice Tests" ? `${product.questions}` : `${product.chapters || "15+ Chapters"}` },
+    { icon: Clock, title: "Duration", description: product.duration },
     { icon: Users, title: "Expert Support", description: "24/7 instructor assistance" },
     { icon: Star, title: "Certificate", description: "Course completion certificate" },
   ];
@@ -60,7 +41,7 @@ export default function ProductDetails({ params }: { params: { id: string } }) {
         <ChevronRightIcon className="w-4 h-4 text-muted-foreground" />
         <Link href="/resources" className="text-muted-foreground hover:text-primary">Resources</Link>
         <ChevronRightIcon className="w-4 h-4 text-muted-foreground" />
-        <span className="text-primary truncate">{resource.title}</span>
+        <span className="text-primary truncate">{product.title}</span>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
@@ -69,18 +50,18 @@ export default function ProductDetails({ params }: { params: { id: string } }) {
           {/* Image Gallery */}
           <div className="relative rounded-lg overflow-hidden mb-4">
             <img
-              src={images[selectedImage]}
-              alt={resource.title}
+              src={product.images[selectedImage]}
+              alt={product.title}
               className="w-full aspect-video object-cover"
             />
             <button
-              onClick={() => setSelectedImage(prev => (prev - 1 + images.length) % images.length)}
+              onClick={() => setSelectedImage(prev => (prev - 1 + product.images.length) % product.images.length)}
               className="absolute left-4 top-1/2 -translate-y-1/2 bg-white/80 rounded-full p-2 hover:bg-white"
             >
               <ChevronLeft className="w-5 h-5" />
             </button>
             <button
-              onClick={() => setSelectedImage(prev => (prev + 1) % images.length)}
+              onClick={() => setSelectedImage(prev => (prev + 1) % product.images.length)}
               className="absolute right-4 top-1/2 -translate-y-1/2 bg-white/80 rounded-full p-2 hover:bg-white"
             >
               <ChevronRight className="w-5 h-5" />
@@ -89,7 +70,7 @@ export default function ProductDetails({ params }: { params: { id: string } }) {
 
           {/* Thumbnail Gallery */}
           <div className="grid grid-cols-4 gap-4 mb-8">
-            {images.map((img, idx) => (
+            {product.images.map((img, idx) => (
               <button
                 key={idx}
                 onClick={() => setSelectedImage(idx)}
@@ -106,7 +87,7 @@ export default function ProductDetails({ params }: { params: { id: string } }) {
           <div className="space-y-8">
             <div>
               <h2 className="text-xl font-semibold mb-4">Course Overview</h2>
-              <p className="text-muted-foreground">{description}</p>
+              <p className="text-muted-foreground">{product.description}</p>
             </div>
 
             <div>
@@ -137,8 +118,8 @@ export default function ProductDetails({ params }: { params: { id: string } }) {
             <div className="flex items-center justify-between mb-4">
               <div className="flex items-center gap-2">
                 <Star className="w-5 h-5 fill-yellow-400 text-yellow-400" />
-                <span className="font-semibold">{resource.rating}</span>
-                <span className="text-muted-foreground">({resource.reviews} reviews)</span>
+                <span className="font-semibold">{product.rating}</span>
+                <span className="text-muted-foreground">({product.reviews} reviews)</span>
               </div>
               <div className="flex gap-2">
                 <Button variant="outline" size="icon">
@@ -152,21 +133,21 @@ export default function ProductDetails({ params }: { params: { id: string } }) {
 
             <div className="space-y-4 mb-6">
               <div>
-                <div className="text-3xl font-bold">${resource.price}</div>
+                <div className="text-3xl font-bold">${product.price}</div>
                 <div className="text-sm text-muted-foreground">
-                  or ${resource.monthlyPrice}/mo with payment plan
+                  or ${product.monthlyPrice}/mo with payment plan
                 </div>
               </div>
 
               <div className="flex items-center gap-2 text-sm">
                 <Clock className="w-4 h-4" />
-                <span>{resource.duration}</span>
+                <span>{product.duration}</span>
               </div>
 
-              {resource.questions && (
+              {product.questions && (
                 <div className="flex items-center gap-2 text-sm">
                   <BookOpen className="w-4 h-4" />
-                  <span>{resource.questions}</span>
+                  <span>{product.questions}</span>
                 </div>
               )}
             </div>

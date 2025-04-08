@@ -1,14 +1,23 @@
+"use client";
+
 import LoginForm from "@/components/auth/LoginForm";
-import React from "react";
+import { Loader2 } from "lucide-react";
+import { useSession } from "next-auth/react";
 
-const LoginPage = () => {
-  return (
-    <>
-      <div className="flex w-4xl h-screen items-center justify-center bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-sky-400 to-blue-800 text-center border rounded-lg">
-        <LoginForm />
+export default function LoginPage() {
+  const { status } = useSession();
+
+  if (status === "loading") {
+    return (
+      <div className="flex h-screen items-center justify-center">
+        <Loader2 className="h-8 w-8 animate-spin text-green-600" />
       </div>
-    </>
+    );
+  }
+  
+  return (
+    <div className="w-full">
+      <LoginForm />
+    </div>
   );
-};
-
-export default LoginPage;
+}

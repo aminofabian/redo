@@ -1,18 +1,13 @@
 "use server";
 
 import * as z from "zod";
-import { AuthError } from "next-auth";
-import bcrypt from "bcryptjs";
-
-import { signIn } from "@/auth";
 import { LoginSchema } from "@/schemas";
-import { getUserByEmail } from "@/data/user";
-import { sendVerificationEmail } from "@/lib/mail";
-import {
-  generateVerificationToken,
-} from "@/lib/token";
+import { signIn } from "next-auth/react";
 import { DEFAULT_LOGIN_REDIRECT } from "@/routes";
-import db from "@/lib/db";
+import { getUserByEmail } from "@/data/user";
+import { generateVerificationToken } from "@/lib/token";
+import { sendVerificationEmail } from "@/lib/mail";
+import bcrypt from "bcryptjs";
 
 export const login = async (
   values: z.infer<typeof LoginSchema>,
@@ -26,93 +21,31 @@ export const login = async (
 
   const { email, password } = validatedFields.data;
 
-  const existingUser = await getUserByEmail(email);
-
-  if (!existingUser || !existingUser.email || !existingUser.password) {
-    return { error: "Email does not exist!" };
-  }
-
-  if (!existingUser.emailVerified) {
-    const verificationToken = await generateVerificationToken(
-      existingUser.email
-    );
-
-    await sendVerificationEmail(
-      verificationToken.email,
-      verificationToken.token
-    );
-
-    return { success: "Confirmation email Sent!" };
-  }
-
-  const passwordMatch = await bcrypt.compare(password, existingUser.password);
-
-  if (!passwordMatch) {
-    return { error: "Invalid Credentials!" };
-  }
-
-  // if (existingUser.isTwoFactorEnabled && existingUser.email) {
-  //   if (code) {
-  //     const twoFactorToken = await getTwoFactorTokenByEmail(existingUser.email);
-
-  //     if (!twoFactorToken) {
-  //       return { error: "Invalid code!" };
-  //     }
-
-  //     if (twoFactorToken.token !== code) {
-  //       return { error: "Invalid code!" };
-  //     }
-
-  //     const hasExpired = new Date(twoFactorToken.expires) < new Date();
-
-  //     if (hasExpired) {
-  //       return { error: "Code expired!" };
-  //     }
-
-  //     await db.twoFactorToken.delete({
-  //       where: { id: twoFactorToken.id },
-  //     });
-
-  //     const existingConfirmation = await getTwoFactorConfirmationByUserId(
-  //       existingUser.id
-  //     );
-
-  //     if (existingConfirmation) {
-  //       await db.twoFactorConfirmation.delete({
-  //         where: { id: existingConfirmation.id },
-  //       });
-  //     }
-
-  //     await db.twoFactorConfirmation.create({
-  //       data: {
-  //         userId: existingUser.id,
-  //       },
-  //     });
-  //   } else {
-  //     const twoFactorToken = await generateTwoFactorToken(existingUser.email);
-  //     await sendTwoFactorTokenEmail(twoFactorToken.email, twoFactorToken.token);
-
-  //     return { twoFactor: true };
-  //   }
-  // }
-
   try {
-    await signIn("credentials", {
-      email,
-      password,
-    });
+    const user = await getUserByEmail(email);
 
-    // return { success: "Login Sucess!" };
-  } catch (error) {
-    if (error instanceof AuthError) {
-      switch (error.type) {
-        case "CredentialsSignin":
-          return { error: "Invalid credentials!" };
-        default:
-          return { error: "Something went wrong!" };
-      }
+    if (!user || !user.email || !user.password) {
+      return { error: "Email does not exist!" }
     }
 
-    throw error;
+    const passwordsMatch = await bcrypt.compare(password, user.password);
+
+    if (!passwordsMatch) {
+      return { error: "Invalid credentials!" };
+    }
+
+    if (!user.emailVerified) {
+      const verificationToken = await generateVerificationToken(user.email);
+      await sendVerificationEmail(
+        verificationToken.email,
+        verificationToken.token,
+      );
+
+      return { success: "Confirmation email sent!" };
+    }
+
+    return { success: "Logged in successfully!" };
+  } catch (error) {
+    return { error: "Something went wrong!" };
   }
 };

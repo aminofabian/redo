@@ -24,7 +24,7 @@ function NavbarContent() {
   const pathname = usePathname();
   
   const isActive = (path: string) => pathname === path;
-  const firstName = session?.user?.firstName || session?.user?.name?.split(' ')[0] || '';
+  const firstName = (session?.user as any)?.firstName || session?.user?.name?.split(' ')[0] || '';
 
   const navItems = [
     { name: "Home", path: "/", icon: Home },

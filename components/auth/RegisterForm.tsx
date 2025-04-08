@@ -48,7 +48,7 @@ const RegisterForm = () => {
     });
   };
   return (
-    <div className="text-slate-50">
+    <div className="w-full">
       <CardWrapper
         headerLabel="Create an Account"
         backButtonLabel="Already Have an Account?"
@@ -58,21 +58,26 @@ const RegisterForm = () => {
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
             <div className="space-y-4">
-              <div className="flex space-x-5">
+              <div className="flex flex-col space-y-4 sm:flex-row sm:space-y-0 sm:space-x-4">
                 <FormField
                   control={form.control}
                   name="firstName"
                   render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>First Name</FormLabel>
+                    <FormItem className="flex-1">
+                      <FormLabel className="text-[13px] font-medium text-gray-700">
+                        First Name
+                      </FormLabel>
                       <FormControl>
                         <Input
                           disabled={isPending}
                           {...field}
                           placeholder="John"
+                          className="h-11 bg-white border border-gray-300 rounded-[4px] px-3 
+                                   focus:ring-2 focus:ring-offset-1 focus:ring-green-700 focus:border-green-700
+                                   placeholder:text-gray-500 text-gray-900"
                         />
                       </FormControl>
-                      <FormMessage className="text-xm text-orange-400 font-light" />
+                      <FormMessage className="text-xs text-red-500 font-normal mt-1" />
                     </FormItem>
                   )}
                 />
@@ -80,16 +85,21 @@ const RegisterForm = () => {
                   control={form.control}
                   name="lastName"
                   render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Last Name</FormLabel>
+                    <FormItem className="flex-1">
+                      <FormLabel className="text-[13px] font-medium text-gray-700">
+                        Last Name
+                      </FormLabel>
                       <FormControl>
                         <Input
                           disabled={isPending}
                           {...field}
                           placeholder="Doe"
+                          className="h-11 bg-white border border-gray-300 rounded-[4px] px-3 
+                                   focus:ring-2 focus:ring-offset-1 focus:ring-green-700 focus:border-green-700
+                                   placeholder:text-gray-500 text-gray-900"
                         />
                       </FormControl>
-                      <FormMessage className="text-xm text-orange-400 font-light" />
+                      <FormMessage className="text-xs text-red-500 font-normal mt-1" />
                     </FormItem>
                   )}
                 />
@@ -99,16 +109,21 @@ const RegisterForm = () => {
                 name="email"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Email</FormLabel>
+                    <FormLabel className="text-[13px] font-medium text-gray-700">
+                      Email or username
+                    </FormLabel>
                     <FormControl>
                       <Input
                         disabled={isPending}
                         {...field}
                         placeholder="john.doe@example.com"
                         type="email"
+                        className="h-11 bg-white border border-gray-300 rounded-[4px] px-3 
+                                 focus:ring-2 focus:ring-offset-1 focus:ring-green-700 focus:border-green-700
+                                 placeholder:text-gray-500 text-gray-900"
                       />
                     </FormControl>
-                    <FormMessage className="text-xm text-orange-400 font-light" />
+                    <FormMessage className="text-xs text-red-500 font-normal mt-1" />
                   </FormItem>
                 )}
               />
@@ -117,16 +132,29 @@ const RegisterForm = () => {
                 name="password"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Password</FormLabel>
+                    <FormLabel className="text-[13px] font-medium text-gray-700">
+                      Password
+                    </FormLabel>
                     <FormControl>
-                      <Input
-                        {...field}
-                        placeholder="1234567"
-                        disabled={isPending}
-                        type="password"
-                      />
+                      <div className="relative">
+                        <Input
+                          {...field}
+                          placeholder="••••••••"
+                          type="password"
+                          disabled={isPending}
+                          className="h-11 bg-white border border-gray-300 rounded-[4px] px-3 
+                                   focus:ring-2 focus:ring-offset-1 focus:ring-green-700 focus:border-green-700
+                                   placeholder:text-gray-500 text-gray-900"
+                        />
+                        <div className="absolute right-3 top-1/2 -translate-y-1/2">
+                          <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-gray-400" viewBox="0 0 20 20" fill="currentColor">
+                            <path d="M10 12a2 2 0 100-4 2 2 0 000 4z" />
+                            <path fillRule="evenodd" d="M.458 10C1.732 5.943 5.522 3 10 3s8.268 2.943 9.542 7c-1.274 4.057-5.064 7-9.542 7S1.732 14.057.458 10zM14 10a4 4 0 11-8 0 4 4 0 018 0z" clipRule="evenodd" />
+                          </svg>
+                        </div>
+                      </div>
                     </FormControl>
-                    <FormMessage className="text-xm text-orange-400 font-light" />
+                    <FormMessage className="text-xs text-red-500 font-normal mt-1" />
                   </FormItem>
                 )}
               />
@@ -136,10 +164,20 @@ const RegisterForm = () => {
             <Button
               variant="default"
               type="submit"
-              className="w-full"
               disabled={isPending}
+              className="w-full bg-green-700 hover:bg-green-800 text-white h-11 rounded-[4px]
+                        font-medium text-[15px] shadow-sm transition-colors
+                        focus:ring-2 focus:ring-offset-1 focus:ring-green-700
+                        disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              Register a New Account
+              {isPending ? (
+                <div className="flex items-center justify-center gap-2">
+                  <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+                  <span>Processing...</span>
+                </div>
+              ) : (
+                "Create Account"
+              )}
             </Button>
           </form>
         </Form>

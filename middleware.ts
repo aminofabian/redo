@@ -1,41 +1,28 @@
-import NextAuth from "next-auth";
+import { NextResponse } from "next/server";
+import type { NextRequest } from "next/server";
+import { auth } from "./auth";
 
-import authConfig from "@/auth.config";
-
-import {
-  DEFAULT_LOGIN_REDIRECT,
-  apiAuthPrefix,
-  authRoutes,
-  publicRoutes,
-} from "@/routes";
-
-export const { auth } = NextAuth(authConfig);
-
-export default auth((req) => {
-  const { nextUrl } = req;
-  const isLoggedIn = !!req.auth;
-
-  const isApiAuthRoute = nextUrl.pathname.startsWith(apiAuthPrefix);
-  const isPublicRoute = publicRoutes.includes(nextUrl.pathname);
-  const isAuthRoute = authRoutes.includes(nextUrl.pathname);
-
-  if (isApiAuthRoute) {
-    return;
+export async function middleware(request: NextRequest) {
+  const session = await auth();
+  
+  // Public paths that don't require authentication
+  const publicPaths = ['/auth/login', '/auth/register', '/auth/error'];
+  const isPublicPath = publicPaths.includes(request.nextUrl.pathname);
+  
+  // If not logged in and not on a public path
+  if (!session && !isPublicPath) {
+    const callbackUrl = encodeURIComponent(request.nextUrl.pathname);
+    return NextResponse.redirect(new URL(`/auth/login?callbackUrl=${callbackUrl}`, request.url));
   }
 
-  if (isAuthRoute) {
-    if (isLoggedIn) {
-      return Response.redirect(new URL(DEFAULT_LOGIN_REDIRECT, nextUrl));
-    }
-    return;
+  // If logged in and on an auth page
+  if (session && isPublicPath) {
+    return NextResponse.redirect(new URL('/dashboard', request.url));
   }
 
-  if (!isLoggedIn && !isPublicRoute) {
-    return Response.redirect(new URL("/auth/login", nextUrl));
-  }
-  return;
-});
+  return NextResponse.next();
+}
 
 export const config = {
-  matcher: ["/((?!.+\\.[\\w]+$|_next).*)", "/", "/(api|trpc)(.*)"],
+  matcher: ['/((?!api|_next/static|_next/image|favicon.ico|images|public).*)'],
 };

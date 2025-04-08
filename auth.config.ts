@@ -1,39 +1,56 @@
-import type { NextAuthConfig } from "next-auth";
+import type { AuthConfig } from "@auth/core";
 import Credentials from "next-auth/providers/credentials";
 import bcryptjs from "bcryptjs";
-import { LoginSchema } from "./schemas";
-import { getUserByEmail } from "./data/user";
-import Github from "next-auth/providers/github";
-import Google from "next-auth/providers/google";
+import { getUserByEmail } from "@/data/user";
 
-export default {
+export const authConfig = {
+  pages: {
+    signIn: '/auth/login',
+    error: '/auth/error',
+  },
   providers: [
-    Github({
-      clientId: process.env.GITHUB_ID,
-      clientSecret: process.env.GITHUB_SECRET,
-    }),
-    Google({
-      clientId: process.env.GOOGLE_ID,
-      clientSecret: process.env.GOOGLE_SECRET,
-    }),
     Credentials({
-      async authorize(credentials) {
-        const validatedFields = LoginSchema.safeParse(credentials);
-
-        if (validatedFields.success) {
-          const { email, password } = validatedFields.data;
-
-          const user = await getUserByEmail(email);
-          if (!user || !user.password) return null;
-
-          const passwordsMatch = await bcryptjs.compare(
-            password,
-            user.password
-          );
-          if (passwordsMatch) return user;
-        }
-        return null;
+      credentials: {
+        email: { type: "email" },
+        password: { type: "password" }
       },
-    }),
+      async authorize(credentials) {
+        if (!credentials?.email || !credentials?.password) {
+          return null;
+        }
+
+        const user = await getUserByEmail(credentials.email as string);
+        if (!user?.password) return null;
+
+        const isValid = await bcryptjs.compare(
+          credentials.password as string,
+          user.password
+        );
+
+        if (!isValid) return null;
+        return user;
+      }
+    })
   ],
-} satisfies NextAuthConfig;
+  callbacks: {
+    async jwt({ token, user }: { token: any; user: any }) {
+      if (user) {
+        token.id = user.id;
+        token.role = user.role;
+      }
+      return token;
+    },
+    async session({ token, session }: { token: any; session: any }) {
+      if (session.user) {
+        session.user.id = token.id;
+        session.user.role = token.role;
+      }
+      return session;
+    },
+    async redirect({ url, baseUrl }) {
+      if (url.startsWith("/")) return `${baseUrl}${url}`;
+      else if (new URL(url).origin === baseUrl) return url;
+      return baseUrl;
+    },
+  }
+} satisfies AuthConfig;
