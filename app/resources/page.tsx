@@ -55,14 +55,20 @@ export default async function ResourcesPage() {
       description: product.description || "",
       image: primaryImage?.url || "/placeholder-image.jpg",
       price: Number(product.price),
-      monthlyPrice: Math.round(Number(product.price) / 3), // Simple monthly price calculation
+      finalPrice: Number(product.finalPrice),
+      discountPercent: product.discountPercent ?? undefined,
+      hasDiscount: Number(product.finalPrice) < Number(product.price),
+      monthlyPrice: Math.round(Number(product.finalPrice) / 3), // Monthly price calculation based on final price
       rating: avgRating,
       reviews: product.reviews.length,
       type: tags[0] || "Study Resource", // Use first category as type
       duration: product.accessDuration ? `${product.accessDuration} days` : "Lifetime",
       tags: tags,
       questions: product.description?.includes("questions") ? "2000+ Questions" : undefined,
-      chapters: product.description?.includes("chapters") ? "15+ Chapters" : undefined
+      chapters: product.description?.includes("chapters") ? "15+ Chapters" : undefined,
+      downloadLimit: product.downloadLimit ?? undefined,
+      featured: product.featured,
+      viewCount: product.viewCount
     };
   });
 

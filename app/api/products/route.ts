@@ -4,112 +4,101 @@ import { withAuth } from "@/auth";
 
 export async function POST(request: NextRequest) {
   try {
-    const session = await withAuth(request);
-    
-    // Check if user is logged in
-    if (!session?.user) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
-    
-    const data = await request.json();
-    
-    // Add null checks for required fields
-    if (!data.title) {
-      return NextResponse.json(
-        { error: 'Product title is required' },
-        { status: 400 }
-      );
-    }
-    
-    // Extract image data and other fields
-    const { 
-      images, 
-      categories,
-      // Remove fields that don't match the schema
-      link, // This is UI-only and not needed in DB
-      ...rawProductData 
-    } = data;
-    
-    // Ensure only valid fields are passed to Prisma
-    const productData = {
-      title: rawProductData.title,
-      description: rawProductData.description,
-      price: parseFloat(rawProductData.price || '0'),
-      discountPercent: rawProductData.discountPercent ? parseInt(rawProductData.discountPercent) : null,
-      discountType: rawProductData.discountType,
-      accessDuration: rawProductData.isUnlimitedAccess ? null : 
-        (rawProductData.accessDuration ? parseInt(rawProductData.accessDuration) : null),
-      downloadLimit: rawProductData.isUnlimitedDownloads ? null : 
-        (rawProductData.downloadLimit ? parseInt(rawProductData.downloadLimit) : null),
-      inStock: rawProductData.inStock,
-      isPublished: true,
-      downloadUrl: rawProductData.downloadLink
-    };
-    
-    // Calculate the final price based on discount if applicable
-    const price = parseFloat(productData.price.toString());
-    let finalPrice = price;
-    
-    if (productData.discountPercent) {
-      finalPrice = price * (1 - (productData.discountPercent / 100));
-    }
-    
-    // Generate slug safely
-    const slug = data.title.toLowerCase().replace(/[^a-z0-9]+/g, '-');
+    return withAuth(request, async (req, session) => {
+      const data = await request.json();
+      
+      // Add null checks for required fields
+      if (!data.title) {
+        return NextResponse.json({ error: 'Product title is required' }, { status: 400 });
+      }
+      
+      // Extract image data and other fields
+      const { 
+        images, 
+        categories,
+        // Remove fields that don't match the schema
+        link, // This is UI-only and not needed in DB
+        ...rawProductData 
+      } = data;
+      
+      // Ensure only valid fields are passed to Prisma
+      const productData = {
+        title: rawProductData.title,
+        description: rawProductData.description,
+        price: parseFloat(rawProductData.price || '0'),
+        discountPercent: rawProductData.discountPercent ? parseInt(rawProductData.discountPercent) : null,
+        discountType: rawProductData.discountType,
+        accessDuration: rawProductData.isUnlimitedAccess ? null : 
+          (rawProductData.accessDuration ? parseInt(rawProductData.accessDuration) : null),
+        downloadLimit: rawProductData.isUnlimitedDownloads ? null : 
+          (rawProductData.downloadLimit ? parseInt(rawProductData.downloadLimit) : null),
+        inStock: rawProductData.inStock,
+        isPublished: true,
+        downloadUrl: rawProductData.downloadLink
+      };
+      
+      // Calculate the final price based on discount if applicable
+      const price = parseFloat(productData.price.toString());
+      let finalPrice = price;
+      
+      if (productData.discountPercent) {
+        finalPrice = price * (1 - (productData.discountPercent / 100));
+      }
+      
+      // Generate slug safely
+      const slug = data.title.toLowerCase().replace(/[^a-z0-9]+/g, '-');
 
-    // Add timestamp to ensure uniqueness
-    const finalSlug = `${slug}-${Date.now()}`;
-    
-    // Add this near the beginning of the POST function
-    console.log("Received images data:", images);
+      // Add timestamp to ensure uniqueness
+      const finalSlug = `${slug}-${Date.now()}`;
+      
+      // Add this near the beginning of the POST function
+      console.log("Received images data:", images);
 
-    // And add this right before creating the product
-    console.log("Formatted image data for DB:", images.map((image: { url: string; alt: string; isPrimary: boolean }) => ({
-      url: image.url,
-      alt: image.alt,
-      isPrimary: image.isPrimary
-    })));
+      // And add this right before creating the product
+      console.log("Formatted image data for DB:", images.map((image: { url: string; alt: string; isPrimary: boolean }) => ({
+        url: image.url,
+        alt: image.alt,
+        isPrimary: image.isPrimary
+      })));
 
-    // Create product with related images
-    const product = await prisma.product.create({
-      data: {
-        ...productData,
-        slug: finalSlug,
-        finalPrice: finalPrice,
-        createdById: session.user.id,
-        images: {
-          create: images.map((image: { url: string; alt: string; isPrimary: boolean }) => ({
-            url: image.url,
-            alt: image.alt,
-            isPrimary: image.isPrimary
-          }))
-        },
-        categories: categories?.length > 0 ? {
-          create: categories.map((categoryName: string) => ({
-            category: {
-              connectOrCreate: {
-                where: { name: categoryName },
-                create: { 
-                  name: categoryName,
-                  slug: categoryName.toLowerCase().replace(/\s+/g, '-')
+      // Create product with related images
+      const product = await prisma.product.create({
+        data: {
+          ...productData,
+          slug: finalSlug,
+          finalPrice: finalPrice,
+          createdById: session.user.id,
+          images: {
+            create: images.map((image: { url: string; alt: string; isPrimary: boolean }) => ({
+              url: image.url,
+              alt: image.alt,
+              isPrimary: image.isPrimary
+            }))
+          },
+          categories: categories?.length > 0 ? {
+            create: categories.map((categoryName: string) => ({
+              category: {
+                connectOrCreate: {
+                  where: { name: categoryName },
+                  create: { 
+                    name: categoryName,
+                    slug: categoryName.toLowerCase().replace(/\s+/g, '-')
+                  }
                 }
               }
-            }
-          }))
-        } : undefined
-      },
-      include: { images: true },
+            }))
+          } : undefined
+        },
+        include: { images: true },
+      });
+      
+      console.log("Created product with images:", product.images);
+      
+      return NextResponse.json(product);
     });
-    
-    console.log("Created product with images:", product.images);
-    
-    return NextResponse.json(product);
   } catch (error) {
     console.error('Error creating product:', error);
-    return NextResponse.json(
-      { error: 'Failed to create product' },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: 'Failed to create product' }, { status: 500 });
   }
 }
 

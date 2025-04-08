@@ -12,6 +12,9 @@ type Resource = {
   description: string;
   image: string;
   price: number;
+  finalPrice: number;
+  discountPercent?: number;
+  hasDiscount: boolean;
   monthlyPrice: number;
   rating: string;
   reviews: number;
@@ -20,6 +23,9 @@ type Resource = {
   tags: string[];
   questions?: string;
   chapters?: string;
+  downloadLimit?: number;
+  featured: boolean;
+  viewCount: number;
 };
 
 export default function ResourcesClient({ initialResources }: { initialResources: Resource[] }) {
@@ -291,10 +297,29 @@ export default function ResourcesClient({ initialResources }: { initialResources
                       : 'justify-between'
                   }`}>
                     <div>
-                      <div className="text-xl font-bold">${resource.price}</div>
-                      <div className="text-sm text-muted-foreground">
-                        or ${resource.monthlyPrice}/mo
-                      </div>
+                      {resource.hasDiscount ? (
+                        <>
+                          <div className="flex items-center gap-2">
+                            <span className="text-xl font-bold text-primary">${resource.finalPrice.toFixed(2)}</span>
+                            <span className="text-sm text-muted-foreground line-through">${resource.price.toFixed(2)}</span>
+                            {resource.discountPercent && (
+                              <span className="bg-green-100 text-green-800 text-xs px-2 py-1 rounded">
+                                Save {resource.discountPercent}%
+                              </span>
+                            )}
+                          </div>
+                          <div className="text-sm text-muted-foreground">
+                            or ${resource.monthlyPrice}/mo
+                          </div>
+                        </>
+                      ) : (
+                        <>
+                          <div className="text-xl font-bold">${resource.price.toFixed(2)}</div>
+                          <div className="text-sm text-muted-foreground">
+                            or ${resource.monthlyPrice}/mo
+                          </div>
+                        </>
+                      )}
                     </div>
                     <Link href={`/resources/${resource.id}`}>
                       <Button>View Details</Button>
