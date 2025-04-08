@@ -1,22 +1,27 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
-import { auth } from "./auth";
+// Import the getToken function which is more compatible with middleware
+import { getToken } from "next-auth/jwt";
 
 export async function middleware(request: NextRequest) {
-  const session = await auth();
+  // Use getToken instead of auth() in middleware
+  const token = await getToken({ 
+    req: request,
+    secret: process.env.NEXTAUTH_SECRET
+  });
   
   // Public paths that don't require authentication
   const publicPaths = ['/auth/login', '/auth/register', '/auth/error'];
   const isPublicPath = publicPaths.includes(request.nextUrl.pathname);
   
   // If not logged in and not on a public path
-  if (!session && !isPublicPath) {
+  if (!token && !isPublicPath) {
     const callbackUrl = encodeURIComponent(request.nextUrl.pathname);
     return NextResponse.redirect(new URL(`/auth/login?callbackUrl=${callbackUrl}`, request.url));
   }
 
   // If logged in and on an auth page
-  if (session && isPublicPath) {
+  if (token && isPublicPath) {
     return NextResponse.redirect(new URL('/dashboard', request.url));
   }
 

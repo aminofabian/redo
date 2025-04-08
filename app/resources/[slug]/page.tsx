@@ -3,16 +3,9 @@ import { notFound } from "next/navigation";
 import prisma from "@/lib/db";
 import ProductDetails from "./ProductDetails";
 
-// Move this to a separate data file
-const productDescriptions: Record<string, string> = {
-  "nclex-rn-complete-prep-package": "Our comprehensive NCLEX-RN preparation package includes over 2000 practice questions, detailed explanations, and performance tracking. Perfect for nursing students preparing for their licensure examination.",
-  "fundamentals-of-nursing-study-guide": "Master the core concepts of nursing with our comprehensive fundamentals guide. Covers patient care, clinical procedures, and essential nursing theory with real-world examples and case studies.",
-  "specialized-medical-surgical-nursing-test-preparation": "Specialized Medical-Surgical nursing test preparation with focus on adult health nursing, critical thinking skills, and NCLEX-style questions. Includes detailed rationales and study strategies."
-};
-
-export async function generateMetadata({ params }: { params: { id: string } }): Promise<Metadata> {
+export async function generateMetadata({ params }: { params: { slug: string } }): Promise<Metadata> {
   const product = await prisma.product.findUnique({
-    where: { id: params.id }
+    where: { slug: params.slug }
   });
   
   if (!product) {
@@ -28,9 +21,9 @@ export async function generateMetadata({ params }: { params: { id: string } }): 
   };
 }
 
-export default async function Page({ params }: { params: { id: string } }) {
+export default async function Page({ params }: { params: { slug: string } }) {
   const product = await prisma.product.findUnique({
-    where: { id: params.id },
+    where: { slug: params.slug },
     include: {
       images: true,
       categories: {
@@ -56,13 +49,17 @@ export default async function Page({ params }: { params: { id: string } }) {
     notFound();
   }
   
-  // Transform product data for client component
+  // Make sure all data is serializable
   const productData = {
     id: product.id,
+    slug: product.slug,
     title: product.title,
     description: product.description || "",
     price: Number(product.price),
-    monthlyPrice: Math.round(Number(product.price) / 3),
+    finalPrice: Number(product.finalPrice),
+    discountPercent: product.discountPercent ? Number(product.discountPercent) : undefined,
+    hasDiscount: Number(product.finalPrice) < Number(product.price),
+    monthlyPrice: Math.round(Number(product.finalPrice) / 3),
     rating: calculateAverageRating(product.reviews),
     reviews: product.reviews.length,
     type: product.categories[0]?.category.name || "Study Resource",
@@ -70,10 +67,29 @@ export default async function Page({ params }: { params: { id: string } }) {
     tags: product.categories.map(c => c.category.name),
     images: product.images.map(img => img.url),
     questions: product.description?.includes("questions") ? "2000+ Questions" : undefined,
-    chapters: product.description?.includes("chapters") ? "15+ Chapters" : undefined
+    chapters: product.description?.includes("chapters") ? "15+ Chapters" : undefined,
+    downloadLimit: product.downloadLimit ? Number(product.downloadLimit) : undefined,
+    featured: Boolean(product.featured),
+    viewCount: product.viewCount ? Number(product.viewCount) : 0
   };
   
-  return <ProductDetails product={productData} />;
+  // Custom serializer that handles circular references
+  function safeStringify(obj: any) {
+    const seen = new WeakSet();
+    return JSON.stringify(obj, (key, value) => {
+      if (typeof value === 'object' && value !== null) {
+        if (seen.has(value)) {
+          return '[Circular]';
+        }
+        seen.add(value);
+      }
+      return value;
+    });
+  }
+  
+  const serializedData = JSON.parse(safeStringify(productData));
+  
+  return <ProductDetails product={serializedData} />;
 }
 
 function calculateAverageRating(reviews: any[]) {

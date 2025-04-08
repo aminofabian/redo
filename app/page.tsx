@@ -1,5 +1,4 @@
 import Hero from "@/components/ui/Hero";
-import NursingResourcesSection from "@/components/ui/NursingResources";
 import Features from "@/components/ui/Features";
 import DiscoverNursing from "@/components/ui/DiscoverNursing";
 import FindBestResources from "@/components/ui/FindBestResources";
@@ -9,6 +8,7 @@ import Footer from "@/components/ui/Footer";
 import MainNav from "@/components/navigation/MainNav";
 import WhatsAppButton from "@/components/ui/WhatsAppButton";
 import FloatingButtons from "@/components/ui/FloatingButtons";
+import FeaturedResources from "@/components/FeaturedResources";
 
 export default function Home() {
   return (
@@ -18,7 +18,7 @@ export default function Home() {
         <Hero />
         <Features />
         <DiscoverNursing />
-        <NursingResourcesSection />
+        <FeaturedResources />
         <BlogSection />
         <FAQ />
         <FindBestResources />

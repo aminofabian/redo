@@ -51,6 +51,7 @@ export default async function ResourcesPage() {
     // Format to match current UI expectations
     return {
       id: product.id,
+      slug: product.slug || product.id,
       title: product.title,
       description: product.description || "",
       image: primaryImage?.url || "/placeholder-image.jpg",

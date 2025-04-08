@@ -2,6 +2,8 @@
 import { PrismaAdapter } from "@auth/prisma-adapter";
 import prisma  from "./db";
 import { Session } from "next-auth";
+import { getServerSession } from "next-auth/next";
+import { authConfig } from "./auth-config";
 
 // Create a simple session response
 export async function GET(request: Request) {
@@ -250,4 +252,38 @@ function formatName(firstName?: string | null, lastName?: string | null): string
   }
   
   return formattedFirstName || formattedLastName || "User";
+}
+
+export async function getSession() {
+  return await getServerSession({
+    ...authConfig,
+    session: {
+      strategy: "jwt"
+    }
+  });
+}
+
+export const auth = () => getSession();
+
+export async function withAuth(
+  req: Request, 
+  handler?: (req: Request, session: Session) => Promise<Response>
+) {
+  const session = await auth();
+  
+  if (!session) {
+    return new Response(JSON.stringify({ error: "Unauthorized" }), {
+      status: 401,
+      headers: { "Content-Type": "application/json" }
+    });
+  }
+
+  if (handler) {
+    return handler(req, session);
+  }
+  
+  return new Response(JSON.stringify(session), {
+    status: 200,
+    headers: { "Content-Type": "application/json" }
+  });
 } 

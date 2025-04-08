@@ -8,6 +8,7 @@ import Link from "next/link";
 // Type definition to match your data structure
 type Resource = {
   id: string;
+  slug: string;
   title: string;
   description: string;
   image: string;
@@ -321,7 +322,7 @@ export default function ResourcesClient({ initialResources }: { initialResources
                         </>
                       )}
                     </div>
-                    <Link href={`/resources/${resource.id}`}>
+                    <Link href={`/resources/${resource.slug || resource.id}`}>
                       <Button>View Details</Button>
                     </Link>
                   </div>

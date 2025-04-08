@@ -9,28 +9,28 @@ export const authConfig = {
     error: '/auth/error',
   },
   providers: [
-    Credentials({
+    {
+      id: "credentials",
+      name: "Credentials",
+      type: "credentials",
       credentials: {
         email: { type: "email" },
         password: { type: "password" }
       },
-      async authorize(credentials) {
-        if (!credentials?.email || !credentials?.password) {
-          return null;
-        }
+      async authorize(credentials, req) {
+        // Type assertion to work with our expected types
+        const { email, password } = credentials as Record<string, string>;
+        if (!email || !password) return null;
 
-        const user = await getUserByEmail(credentials.email as string);
+        const user = await getUserByEmail(email);
         if (!user?.password) return null;
 
-        const isValid = await bcryptjs.compare(
-          credentials.password as string,
-          user.password
-        );
-
+        const isValid = await bcryptjs.compare(password, user.password);
         if (!isValid) return null;
+        
         return user;
       }
-    })
+    }
   ],
   callbacks: {
     async jwt({ token, user }: { token: any; user: any }) {

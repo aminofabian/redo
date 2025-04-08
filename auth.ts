@@ -1,21 +1,22 @@
-import NextAuth from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
 import { PrismaAdapter } from "@auth/prisma-adapter";
 import bcrypt from "bcryptjs";
 import db from "@/lib/db";
 import { getUserByEmail } from "@/data/user";
+import { UserRole } from "@prisma/client";
+import { getSession } from "@/lib/auth";
 
-// This is a workaround for the NextAuth type issue
-import type { NextAuthConfig } from "next-auth";
-import type { Session } from "next-auth";
+// Import correct types
+import type { Session, User } from "next-auth";
+import type { JWT } from "next-auth/jwt";
 
-export const authConfig = {
+export const authOptions = {
   pages: {
     signIn: '/auth/login',
     error: '/auth/error',
   },
   callbacks: {
-    async jwt({ token, user }) {
+    async jwt({ token, user }: { token: JWT; user?: User }) {
       if (user) {
         token.id = user.id;
         token.email = user.email;
@@ -23,7 +24,7 @@ export const authConfig = {
       }
       return token;
     },
-    async session({ session, token }) {
+    async session({ session, token }: { session: Session; token: JWT }) {
       if (token && session.user) {
         session.user.id = token.id;
         session.user.email = token.email;
@@ -31,7 +32,7 @@ export const authConfig = {
       }
       return session;
     },
-    async redirect({ url, baseUrl }) {
+    async redirect({ url, baseUrl }: { url: string; baseUrl: string }) {
       // Allow relative URLs
       if (url.startsWith("/")) return `${baseUrl}${url}`;
       // Allow same-origin URLs
@@ -46,16 +47,16 @@ export const authConfig = {
         email: { label: "Email", type: "email" },
         password: { label: "Password", type: "password" }
       },
-      async authorize(credentials) {
+      async authorize(credentials, request) {
         if (!credentials?.email || !credentials?.password) {
           return null;
         }
 
-        const user = await getUserByEmail(credentials.email);
+        const user = await getUserByEmail(credentials.email as string);
         if (!user || !user.password) return null;
 
         const passwordMatch = await bcrypt.compare(
-          credentials.password,
+          credentials.password as string,
           user.password
         );
 
@@ -66,20 +67,40 @@ export const authConfig = {
   ],
   adapter: PrismaAdapter(db),
   session: { strategy: "jwt" }
-} satisfies NextAuthConfig;
+};
 
-// Create a simple handler that exposes the auth functions
-export const { handlers, auth, signIn, signOut } = NextAuth(authConfig);
+// Type for the session including user id and role
+declare module "next-auth" {
+  interface Session {
+    user: {
+      id: string;
+      email: string;
+      name?: string | undefined;
+      role: UserRole;
+    }
+  }
+  
+  interface User {
+    id: string;
+    email: string;
+    role: UserRole;
+  }
+}
 
-// Export auth for middleware usage
-export const getServerAuthSession = auth;
+declare module "next-auth/jwt" {
+  interface JWT {
+    id: string;
+    email: string;
+    role: UserRole;
+  }
+}
 
 // Export a utility function for API routes
 export async function withAuth(
   req: Request, 
   handler?: (req: Request, session: Session) => Promise<Response>
 ) {
-  const session = await auth();
+  const session = await getSession();
   
   if (!session) {
     return new Response(JSON.stringify({ error: "Unauthorized" }), {
