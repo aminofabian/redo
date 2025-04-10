@@ -43,8 +43,8 @@ export default function ProductDetails({ product }: ProductProps) {
 
   // Ensure we have a valid image URL
   const getImageUrl = (index: number): string => {
-    if (index >= 0 && index < product.images.length) {
-      return product.images[index];
+    if (index >= 0 && index < product.images.length && product.images[index]) {
+      return String(product.images[index]);
     }
     return '/placeholder-image.jpg';
   };
@@ -65,7 +65,7 @@ export default function ProductDetails({ product }: ProductProps) {
         <div>
           <div className="rounded-lg overflow-hidden border mb-4 aspect-video bg-gray-100">
             <img 
-              src={getImageUrl(selectedImage)} 
+              src={getImageUrl(selectedImage)}
               alt={product.title}
               className="w-full h-full object-contain"
             />
@@ -84,7 +84,7 @@ export default function ProductDetails({ product }: ProductProps) {
                     }`}
                   >
                     <img 
-                      src={image} 
+                      src={String(image)}
                       alt={`${product.title} thumbnail ${String(index + 1)}`}
                       className="w-full h-full object-cover"
                     />
