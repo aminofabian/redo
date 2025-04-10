@@ -80,7 +80,7 @@ export default function ProductDetails({ product }: ProductProps) {
                     key={index}
                     onClick={() => setSelectedImage(index)}
                     className={`flex-shrink-0 w-20 h-20 rounded border-2 overflow-hidden ${
-                      selectedImage === index ? &apos;border-primary&apos; : &apos;border-transparent&apos;
+                      selectedImage === index ? 'border-primary' : 'border-transparent'
                     }`}
                   >
                     <img 
@@ -97,7 +97,7 @@ export default function ProductDetails({ product }: ProductProps) {
                   <button 
                     className="absolute left-0 top-1/2 -translate-y-1/2 bg-white rounded-full p-1 shadow-md"
                     onClick={() => {
-                      const container = document.querySelector(&apos;.overflow-x-auto&apos;);
+                      const container = document.querySelector('.overflow-x-auto');
                       if (container) container.scrollLeft -= 100;
                     }}
                   >
@@ -106,7 +106,7 @@ export default function ProductDetails({ product }: ProductProps) {
                   <button 
                     className="absolute right-0 top-1/2 -translate-y-1/2 bg-white rounded-full p-1 shadow-md"
                     onClick={() => {
-                      const container = document.querySelector(&apos;.overflow-x-auto&apos;);
+                      const container = document.querySelector('.overflow-x-auto');
                       if (container) container.scrollLeft += 100;
                     }}
                   >
