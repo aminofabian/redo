@@ -318,32 +318,18 @@ export default async function ProductPage({ params }: { params: { slug: string }
           )}
         </div>
       </div>
+      
+      {/* Product views count */}
+      {product.viewCount > 0 && (
+        <div className="flex justify-between border-b pb-2">
+          <span className="text-muted-foreground">Views:</span>
+          <span className="font-medium">{product.viewCount} people viewed this resource</span>
+        </div>
+      )}
     </div>
   );
 }
 
 // Helper functions
 function formatPrice(price: any): string {
-  return `$${Number(price).toFixed(2)}`;
-}
-
-function formatDate(date: Date): string {
-  return new Intl.DateTimeFormat('en-US', {
-    year: 'numeric',
-    month: 'long',
-    day: 'numeric'
-  }).format(date);
-}
-
-function calculateAverageRating(reviews: any[]) {
-  if (reviews.length === 0) return "0.0";
-  const total = reviews.reduce((sum, review) => sum + review.rating, 0);
-  return (total / reviews.length).toFixed(1);
-}
-
-{product.viewCount > 0 && (
-  <div className="flex justify-between border-b pb-2">
-    <span className="text-muted-foreground">Views:</span>
-    <span className="font-medium">{product.viewCount} people viewed this resource</span>
-  </div>
-)} 
+  return `
