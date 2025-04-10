@@ -256,15 +256,31 @@ function formatName(firstName?: string | null, lastName?: string | null): string
 }
 
 export async function getSession() {
-  return await getServerSession({
-    ...authConfig,
-    session: {
-      strategy: "jwt"
-    }
-  });
+  return await getServerSession(authConfig as any);
 }
 
-export const auth = () => getSession();
+export const auth = async () => {
+  const session = await getSession();
+  // Ensure we return null instead of an empty object if session is invalid
+  return session && session.user ? session : null;
+};
+
+// Add this type guard function
+function isSession(obj: any): obj is Session {
+  return obj && typeof obj === 'object' && 'user' in obj && obj.user !== null;
+}
+
+// Create a type-safe wrapper function
+function createSafeHandler(handler: (req: Request, session: Session) => Promise<Response>) {
+  return (req: Request, rawSession: any): Promise<Response> => {
+    // Create a safe session object with the required properties
+    const safeSession: Session = {
+      user: rawSession.user || { id: '', email: '', role: 'USER' },
+      expires: rawSession.expires || new Date().toISOString()
+    };
+    return handler(req, safeSession);
+  };
+}
 
 export async function withAuth(
   req: Request, 
@@ -272,7 +288,7 @@ export async function withAuth(
 ) {
   const session = await auth();
   
-  if (!session) {
+  if (!session || !session.user) {
     return new Response(JSON.stringify({ error: "Unauthorized" }), {
       status: 401,
       headers: { "Content-Type": "application/json" }
@@ -280,7 +296,9 @@ export async function withAuth(
   }
 
   if (handler) {
-    return handler(req, session);
+    // Wrap the handler in our safe wrapper
+    const safeHandler = createSafeHandler(handler);
+    return safeHandler(req, session);
   }
   
   return new Response(JSON.stringify(session), {

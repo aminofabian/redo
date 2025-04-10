@@ -4,6 +4,8 @@ import bcrypt from "bcryptjs";
 import db from "@/lib/db";
 import { getUserByEmail } from "@/data/user";
 import { UserRole } from "@prisma/client";
+import { JWT } from "next-auth/jwt";
+import { Session, User } from "next-auth";
 
 export const authConfig = {
   pages: {
@@ -11,7 +13,7 @@ export const authConfig = {
     error: '/auth/error',
   },
   callbacks: {
-    async jwt({ token, user }) {
+    async jwt({ token, user }: { token: JWT; user?: User }) {
       if (user) {
         token.id = user.id;
         token.email = user.email;
@@ -19,7 +21,7 @@ export const authConfig = {
       }
       return token;
     },
-    async session({ session, token }) {
+    async session({ session, token }: { session: Session; token: JWT }) {
       if (token && session.user) {
         session.user.id = token.id;
         session.user.email = token.email;
@@ -27,7 +29,7 @@ export const authConfig = {
       }
       return session;
     },
-    async redirect({ url, baseUrl }) {
+    async redirect({ url, baseUrl }: { url: string; baseUrl: string }) {
       if (url.startsWith("/")) return `${baseUrl}${url}`;
       else if (new URL(url).origin === baseUrl) return url;
       return baseUrl + "/dashboard";

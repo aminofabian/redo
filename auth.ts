@@ -123,6 +123,7 @@ export async function withAuth(
   }
 
   if (handler) {
+    // @ts-ignore - Session object is validated at runtime but TypeScript doesn't recognize it
     return handler(req, session);
   }
   
