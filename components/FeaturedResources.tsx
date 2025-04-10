@@ -121,8 +121,8 @@ export default async function FeaturedResources() {
     ];
     
     // Use fallback resources (for development only)
-    return <NursingResourcesSection products={fallbackResources} />;
+    return <NursingResourcesSection resources={fallbackResources} />;
   }
 
-  return <NursingResourcesSection products={resources} />;
+  return <NursingResourcesSection resources={resources} />;
 } 
