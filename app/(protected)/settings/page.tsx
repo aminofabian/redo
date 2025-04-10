@@ -1,8 +1,20 @@
-import { auth } from "@/auth";
+import { auth } from "@/lib/auth";
 import { signOut } from "@/lib/auth";
 
+// Define the session type to match what auth() returns
+interface UserSession {
+  user?: {
+    name?: string;
+    email?: string;
+    id?: string;
+    role?: string;
+    emailVerified?: Date | null;
+  };
+}
+
 async function SettingsPage() {
-  const session = await auth();
+  // Type assertion to help TypeScript understand the session structure
+  const session = await auth() as UserSession | null;
   
   return (
     <div>
