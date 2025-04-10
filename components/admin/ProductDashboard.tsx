@@ -139,7 +139,7 @@ export function ProductDashboard({ product, isDetailedView = false }: {
         <div>
           <h1 className="text-2xl font-bold">{product.title}</h1>
           <p className="text-gray-500">
-            Product ID: {product.id.substring(0, 8)}...
+            Product ID: #{product.id}
           </p>
         </div>
         <div className="flex space-x-2">

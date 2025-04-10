@@ -4,6 +4,7 @@ import React, { useState, useEffect } from "react";
 import { Star, BookOpen, Clock, Users, Grid, List } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
+import { generateProductSlug } from "../../lib/products";
 
 // Type definition to match your data structure
 type Resource = {
@@ -27,10 +28,11 @@ type Resource = {
   downloadLimit?: number;
   featured: boolean;
   viewCount: number;
+  categories?: { category: { name: string } }[];
 };
 
 export default function ResourcesClient({ initialResources }: { initialResources: Resource[] }) {
-  const [resources, setResources] = useState<Resource[]>(initialResources);
+  const [products, setproducts] = useState<Resource[]>(initialResources);
   const [selectedFilters, setSelectedFilters] = useState({
     type: "",
     priceRange: "",
@@ -69,7 +71,7 @@ export default function ResourcesClient({ initialResources }: { initialResources
       filtered = filtered.filter(resource => resource.duration.includes(selectedFilters.duration));
     }
     
-    // Sort resources
+    // Sort products
     filtered.sort((a, b) => {
       switch(sortBy) {
         case "price-low":
@@ -83,7 +85,7 @@ export default function ResourcesClient({ initialResources }: { initialResources
       }
     });
     
-    setResources(filtered);
+    setproducts(filtered);
   };
 
   // Apply filters when they change
@@ -95,7 +97,7 @@ export default function ResourcesClient({ initialResources }: { initialResources
     <div className="max-w-7xl mx-auto px-4 py-8">
       {/* Header */}
       <div className="mb-8">
-        <h1 className="text-3xl font-bold">Nursing Study Resources</h1>
+        <h1 className="text-3xl font-bold">Nursing Study products</h1>
         <p className="text-muted-foreground mt-2">
           Comprehensive study materials and practice tests for nursing students
         </p>
@@ -103,22 +105,22 @@ export default function ResourcesClient({ initialResources }: { initialResources
           <div className="flex items-center">
             <Star className="w-5 h-5 fill-yellow-400 text-yellow-400" />
             <span className="font-semibold ml-1">
-              {(resources.reduce((sum, r) => sum + parseFloat(r.rating), 0) / Math.max(1, resources.length)).toFixed(1)}
+              {(products.reduce((sum, r) => sum + parseFloat(r.rating), 0) / Math.max(1, products.length)).toFixed(1)}
             </span>
           </div>
           <span className="text-muted-foreground">•</span>
           <span className="text-muted-foreground">
-            {resources.reduce((sum, r) => sum + r.reviews, 0)} Reviews
+            {products.reduce((sum, r) => sum + r.reviews, 0)} Reviews
           </span>
         </div>
       </div>
 
-      {/* Rest of your existing UI code, but using the filtered resources state */}
+      {/* Rest of your existing UI code, but using the filtered products state */}
       <div className="flex gap-8">
         {/* Filters Sidebar */}
         <div className="w-64 flex-shrink-0">
           <div className="border rounded-lg p-4">
-            <h3 className="font-semibold mb-4">Filter Resources</h3>
+            <h3 className="font-semibold mb-4">Filter products</h3>
             
             {/* Resource Type Filter */}
             <div className="mb-6">
@@ -192,7 +194,7 @@ export default function ResourcesClient({ initialResources }: { initialResources
           </div>
         </div>
 
-        {/* Resources Grid/List */}
+        {/* products Grid/List */}
         <div className="flex-1">
           {/* Updated Sort and View Options */}
           <div className="flex justify-between items-center mb-6">
@@ -229,13 +231,13 @@ export default function ResourcesClient({ initialResources }: { initialResources
             </div>
           </div>
 
-          {/* Dynamic Resources Layout */}
+          {/* Dynamic products Layout */}
           <div className={
             viewMode === 'grid' 
               ? "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
               : "space-y-4"
           }>
-            {resources.length > 0 ? resources.map((resource) => (
+            {products.length > 0 ? products.map((resource) => (
               <div 
                 key={resource.id} 
                 className={`border rounded-lg overflow-hidden hover:shadow-lg transition-shadow ${
@@ -322,7 +324,10 @@ export default function ResourcesClient({ initialResources }: { initialResources
                         </>
                       )}
                     </div>
-                    <Link href={`/resources/${resource.slug || resource.id}`}>
+                    <Link 
+                      href={`/products/${generateProductSlug(resource)}`}
+                      className="..."
+                    >
                       <Button>View Details</Button>
                     </Link>
                   </div>
@@ -330,7 +335,7 @@ export default function ResourcesClient({ initialResources }: { initialResources
               </div>
             )) : (
               <div className="col-span-full py-12 text-center">
-                <p className="text-lg text-muted-foreground">No resources match your filters.</p>
+                <p className="text-lg text-muted-foreground">No products match your filters.</p>
                 <Button 
                   variant="outline" 
                   className="mt-4"
@@ -349,7 +354,7 @@ export default function ResourcesClient({ initialResources }: { initialResources
           {/* Pagination */}
           <div className="mt-8 flex justify-between items-center">
             <div className="text-sm text-muted-foreground">
-              Showing 1-{Math.min(resources.length, 15)} of {resources.length} resources
+              Showing 1-{Math.min(products.length, 15)} of {products.length} products
             </div>
             <div className="flex items-center gap-2">
               <Button variant="outline" size="sm">Previous</Button>

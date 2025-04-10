@@ -65,6 +65,7 @@ export default async function ResourcesPage() {
       type: tags[0] || "Study Resource", // Use first category as type
       duration: product.accessDuration ? `${product.accessDuration} days` : "Lifetime",
       tags: tags,
+      categories: product.categories,
       questions: product.description?.includes("questions") ? "2000+ Questions" : undefined,
       chapters: product.description?.includes("chapters") ? "15+ Chapters" : undefined,
       downloadLimit: product.downloadLimit ?? undefined,

@@ -9,7 +9,10 @@ import { getSession } from "@/lib/auth";
 // Import correct types
 import type { Session, User } from "next-auth";
 import type { JWT } from "next-auth/jwt";
+import { getServerSession } from "next-auth/next";
+import { AuthOptions } from "next-auth";
 
+// Configure your auth providers and options
 export const authOptions = {
   pages: {
     signIn: '/auth/login',
@@ -17,19 +20,29 @@ export const authOptions = {
   },
   callbacks: {
     async jwt({ token, user }: { token: JWT; user?: User }) {
+      console.log("JWT callback - user:", user);
+      console.log("JWT callback - token before:", token);
+      
       if (user) {
         token.id = user.id;
         token.email = user.email;
         token.role = user.role;
       }
+      
+      console.log("JWT callback - token after:", token);
       return token;
     },
     async session({ session, token }: { session: Session; token: JWT }) {
+      console.log("Session callback - token:", token);
+      console.log("Session callback - session before:", session);
+      
       if (token && session.user) {
         session.user.id = token.id;
         session.user.email = token.email;
         session.user.role = token.role;
       }
+      
+      console.log("Session callback - session after:", session);
       return session;
     },
     async redirect({ url, baseUrl }: { url: string; baseUrl: string }) {
@@ -67,7 +80,7 @@ export const authOptions = {
   ],
   adapter: PrismaAdapter(db),
   session: { strategy: "jwt" }
-};
+} as any; // Quick fix, but not ideal for type safety
 
 // Type for the session including user id and role
 declare module "next-auth" {
@@ -117,4 +130,11 @@ export async function withAuth(
     status: 200,
     headers: { "Content-Type": "application/json" }
   });
+}
+
+// Add a debugging version of the auth function
+export async function auth() {
+  const session = await getServerSession(authOptions);
+  console.log("Auth function called, returning session:", session);
+  return session;
 }

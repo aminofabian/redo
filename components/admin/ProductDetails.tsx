@@ -16,9 +16,15 @@ import {
 import { useAdmin } from "@/contexts/AdminContext";
 import Image from "next/image";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { useState } from "react";
+import { Input } from "@/components/ui/input";
+import { toast } from "react-hot-toast";
+import { generateProductSlug } from "@/lib/products";
 
 export function ProductDetails() {
   const { selectedItem: product } = useAdmin();
+  const [isEditingSlug, setIsEditingSlug] = useState(false);
+  const [slugValue, setSlugValue] = useState(product?.slug || "");
   
   if (!product) {
     return (
@@ -31,6 +37,46 @@ export function ProductDetails() {
   const mainImage = product.images?.find(img => img.isPrimary)?.url || 
                     product.images?.[0]?.url || 
                     '/placeholder-image.jpg';
+
+  const fetchProductDetails = async (id: number) => {
+    try {
+      const response = await fetch(`/api/products/${id}`);
+      if (!response.ok) throw new Error('Failed to fetch product');
+      return await response.json();
+    } catch (error) {
+      console.error('Error fetching product details:', error);
+      throw error;
+    }
+  };
+
+  const handleSlugUpdate = async () => {
+    try {
+      const response = await fetch(`/api/products/${product.id}/slug`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ slug: slugValue }),
+      });
+      
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.message || "Failed to update slug");
+      }
+      
+      toast.success("URL slug updated successfully");
+      setIsEditingSlug(false);
+    } catch (error) {
+      toast.error(error.message || "An error occurred");
+    }
+  };
+  
+  const regenerateSlug = () => {
+    const newSlug = generateProductSlug(product);
+    setSlugValue(newSlug);
+  };
+
+  const hasDiscount = product.discountAmount || product.discountPercent || product.finalPrice;
 
   return (
     <div className="p-6 max-w-5xl mx-auto">
@@ -166,6 +212,40 @@ export function ProductDetails() {
                     )}
                   </div>
                 </div>
+
+                <div className="mb-4">
+                  <h4 className="text-sm font-medium text-gray-500">Pricing</h4>
+                  <div className="mt-1">
+                    <div className="flex items-center space-x-3">
+                      <div className="flex flex-col">
+                        <span className="text-sm text-gray-500">Original Price</span>
+                        <span className={hasDiscount ? "line-through text-gray-500" : "font-medium"}>
+                          ${Number(product.price).toFixed(2)}
+                        </span>
+                      </div>
+                      
+                      {hasDiscount && (
+                        <>
+                          <div className="flex flex-col">
+                            <span className="text-sm text-gray-500">Discount</span>
+                            <span className="text-green-600">
+                              {product.discountPercent ? 
+                                `${product.discountPercent}%` : 
+                                `$${Number(product.discountAmount).toFixed(2)}`}
+                            </span>
+                          </div>
+                          
+                          <div className="flex flex-col">
+                            <span className="text-sm text-gray-500">Final Price</span>
+                            <span className="font-medium text-green-600">
+                              ${Number(product.finalPrice).toFixed(2)}
+                            </span>
+                          </div>
+                        </>
+                      )}
+                    </div>
+                  </div>
+                </div>
               </div>
             </TabsContent>
             
@@ -191,6 +271,50 @@ export function ProductDetails() {
               </div>
             </TabsContent>
           </Tabs>
+          
+          {/* Slug editing section */}
+          <div className="mb-6 p-4 border rounded-md">
+            <h3 className="text-lg font-medium mb-2">URL Slug</h3>
+            
+            {isEditingSlug ? (
+              <div className="space-y-2">
+                <div className="flex items-center">
+                  <span className="text-gray-500 mr-1">/products/</span>
+                  <Input
+                    value={slugValue}
+                    onChange={(e) => setSlugValue(e.target.value)}
+                    className="flex-1"
+                    placeholder="product-name-123"
+                  />
+                </div>
+                
+                <div className="text-xs text-gray-500 mb-2">
+                  Use only lowercase letters, numbers, and hyphens. No spaces or special characters.
+                </div>
+                
+                <div className="flex space-x-2">
+                  <Button size="sm" onClick={handleSlugUpdate}>Save</Button>
+                  <Button size="sm" variant="outline" onClick={regenerateSlug}>
+                    Auto-Generate
+                  </Button>
+                  <Button size="sm" variant="outline" onClick={() => setIsEditingSlug(false)}>
+                    Cancel
+                  </Button>
+                </div>
+              </div>
+            ) : (
+              <div>
+                <div className="flex items-center mb-2">
+                  <span className="font-mono bg-gray-100 p-1 rounded text-gray-700">
+                    /products/{product.slug}
+                  </span>
+                </div>
+                <Button size="sm" variant="outline" onClick={() => setIsEditingSlug(true)}>
+                  Edit URL
+                </Button>
+              </div>
+            )}
+          </div>
         </div>
         
         <div className="col-span-1 space-y-6">

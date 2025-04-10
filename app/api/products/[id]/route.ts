@@ -14,7 +14,13 @@ export async function GET(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
     
-    const productId = params.id;
+    // Convert string ID to integer
+    const productId = parseInt(params.id);
+    
+    // Check if conversion was successful
+    if (isNaN(productId)) {
+      return NextResponse.json({ error: 'Invalid product ID' }, { status: 400 });
+    }
     
     // Fetch detailed product info
     const product = await prisma.product.findUnique({

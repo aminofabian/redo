@@ -47,7 +47,7 @@ export default function ProductDetails({ product }: ProductProps) {
       <div className="flex items-center gap-2 text-sm mb-6">
         <Link href="/" className="text-muted-foreground hover:text-primary">Home</Link>
         <ChevronRightIcon className="w-4 h-4 text-muted-foreground" />
-        <Link href="/resources" className="text-muted-foreground hover:text-primary">Resources</Link>
+        <Link href="/products" className="text-muted-foreground hover:text-primary">Products</Link>
         <ChevronRightIcon className="w-4 h-4 text-muted-foreground" />
         <span className="text-primary truncate">{product.title}</span>
       </div>

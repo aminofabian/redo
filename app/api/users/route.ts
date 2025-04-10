@@ -1,10 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/db';
 import { auth } from '@/auth';
+import { Session } from 'next-auth';
 
 export async function GET(request: NextRequest) {
   try {
-    const session = await auth();
+    const session = await auth() as Session | null;
     
     // Check if user is logged in
     if (!session?.user) {

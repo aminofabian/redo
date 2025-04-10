@@ -11,6 +11,7 @@ import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Navbar } from "@/components/navbar";
 import { AuthProvider } from "@/components/providers/session-provider";
+import { Toaster } from 'react-hot-toast';
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -94,6 +95,7 @@ export default function RootLayout({
           <Navbar />
           <main>{children}</main>
           <JsonLd />
+          <Toaster position="bottom-right" />
         </AuthProvider>
       </body>
     </html>
