@@ -1,4 +1,5 @@
-import { auth, signOut } from "@/auth";
+import { auth } from "@/auth";
+import { signOut } from "@/lib/auth";
 
 async function SettingsPage() {
   const session = await auth();
