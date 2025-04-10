@@ -261,8 +261,15 @@ export async function getSession() {
 
 export const auth = async () => {
   const session = await getSession();
-  // Use non-null assertion on user property for TypeScript
-  return session ? { ...session, user: session.user! } : null;
+  // First check if session exists, then safely check for user property
+  if (!session) return null;
+  
+  // Type assertion to tell TypeScript the session structure
+  type SessionWithUser = { user?: { id: string; email: string; role: string }; [key: string]: any };
+  const typedSession = session as SessionWithUser;
+  
+  // Only spread the user if it exists
+  return typedSession.user ? { ...typedSession, user: typedSession.user } : null;
 };
 
 // Add this type guard function
