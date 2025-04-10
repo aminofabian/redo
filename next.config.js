@@ -12,6 +12,11 @@ const nextConfig = {
   typescript: {
     ignoreBuildErrors: true,
   },
+  reactStrictMode: false,
+  swcMinify: false,
+  productionBrowserSourceMaps: false,
+  output: 'standalone',
+  poweredByHeader: false
 }
 
 module.exports = nextConfig; 
