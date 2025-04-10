@@ -44,10 +44,10 @@ export default async function ProductPage({ params }: { params: { slug: string }
     return (
       <div className="max-w-4xl mx-auto p-6">
         <h1 className="text-2xl font-bold text-red-600">Product Not Found</h1>
-        <p className="mt-4">We couldn't find a product with the slug: "{slug}"</p>
+        <p className="mt-4">We couldn&apos;t find a product with the slug: &quot;{slug}&quot;</p>
         <p className="mt-2">This might be because:</p>
         <ul className="list-disc ml-6 mt-2">
-          <li>The product doesn't exist in the database</li>
+          <li>The product doesn&apos;t exist in the database</li>
           <li>The URL might contain special characters that need encoding</li>
           <li>The product ID type change might have affected slug formats</li>
         </ul>
@@ -336,4 +336,11 @@ function calculateAverageRating(reviews: any[]) {
   if (reviews.length === 0) return "0.0";
   const total = reviews.reduce((sum, review) => sum + review.rating, 0);
   return (total / reviews.length).toFixed(1);
-} 
+}
+
+{product.viewCount > 0 && (
+  <div className="flex justify-between border-b pb-2">
+    <span className="text-muted-foreground">Views:</span>
+    <span className="font-medium">{product.viewCount} people viewed this resource</span>
+  </div>
+)} 
