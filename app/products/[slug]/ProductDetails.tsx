@@ -57,7 +57,7 @@ export default function ProductDetails({ product }: ProductProps) {
         <div>
           <div className="rounded-lg overflow-hidden border mb-4 aspect-video bg-gray-100">
             <img 
-              src={product.images[selectedImage] || '/placeholder-image.jpg'} 
+              src={product.images[selectedImage] || &apos;/placeholder-image.jpg&apos;} 
               alt={product.title}
               className="w-full h-full object-contain"
             />
@@ -72,7 +72,7 @@ export default function ProductDetails({ product }: ProductProps) {
                     key={index}
                     onClick={() => setSelectedImage(index)}
                     className={`flex-shrink-0 w-20 h-20 rounded border-2 overflow-hidden ${
-                      selectedImage === index ? 'border-primary' : 'border-transparent'
+                      selectedImage === index ? &apos;border-primary&apos; : &apos;border-transparent&apos;
                     }`}
                   >
                     <img 
@@ -89,7 +89,7 @@ export default function ProductDetails({ product }: ProductProps) {
                   <button 
                     className="absolute left-0 top-1/2 -translate-y-1/2 bg-white rounded-full p-1 shadow-md"
                     onClick={() => {
-                      const container = document.querySelector('.overflow-x-auto');
+                      const container = document.querySelector(&apos;.overflow-x-auto&apos;);
                       if (container) container.scrollLeft -= 100;
                     }}
                   >
@@ -98,7 +98,7 @@ export default function ProductDetails({ product }: ProductProps) {
                   <button 
                     className="absolute right-0 top-1/2 -translate-y-1/2 bg-white rounded-full p-1 shadow-md"
                     onClick={() => {
-                      const container = document.querySelector('.overflow-x-auto');
+                      const container = document.querySelector(&apos;.overflow-x-auto&apos;);
                       if (container) container.scrollLeft += 100;
                     }}
                   >
