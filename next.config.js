@@ -16,7 +16,26 @@ const nextConfig = {
   swcMinify: false,
   productionBrowserSourceMaps: false,
   output: 'standalone',
-  poweredByHeader: false
+  poweredByHeader: false,
+  
+  // Add Images configuration to allow the S3 bucket domain
+  images: {
+    domains: [
+      'alexawriters.s3.eu-north-1.amazonaws.com',
+      'alexawriters.s3.amazonaws.com',
+      's3.eu-north-1.amazonaws.com',
+      's3.amazonaws.com'
+    ],
+    // Additional safety with remote patterns
+    remotePatterns: [
+      {
+        protocol: 'https',
+        hostname: '**.amazonaws.com',
+        port: '',
+        pathname: '/**',
+      },
+    ]
+  }
 }
 
 module.exports = nextConfig; 

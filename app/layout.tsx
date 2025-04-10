@@ -15,12 +15,6 @@ import { Toaster } from 'react-hot-toast';
 
 const inter = Inter({ subsets: ["latin"] });
 
-// Add this near the top of your layout file
-// This helps ensure the fetch API is properly registered
-if (typeof globalThis.fetch !== 'function') {
-  globalThis.fetch = require('node-fetch');
-}
-
 export const metadata: Metadata = {
   title: "RN Student Resources | Nursing Education & Study Materials",
   description: "Join over 50,000+ nursing students who've achieved their goals with our comprehensive study materials and practice tests",
