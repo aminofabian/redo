@@ -80,8 +80,8 @@ export default async function FeaturedResources() {
     const tags = product.categories.map(c => c.category.name);
     
     return {
-      id: product.id,
-      slug: product.slug || product.id,
+      id: String(product.id),
+      slug: product.slug || String(product.id),
       title: product.title,
       originalPrice: Number(product.price),
       price: Number(product.finalPrice),
@@ -121,8 +121,8 @@ export default async function FeaturedResources() {
     ];
     
     // Use fallback resources (for development only)
-    return <NursingResourcesSection resources={fallbackResources} />;
+    return <NursingResourcesSection products={fallbackResources} />;
   }
 
-  return <NursingResourcesSection resources={resources} />;
+  return <NursingResourcesSection products={resources} />;
 } 
