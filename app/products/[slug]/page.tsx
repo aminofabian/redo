@@ -332,4 +332,19 @@ export default async function ProductPage({ params }: { params: { slug: string }
 
 // Helper functions
 function formatPrice(price: any): string {
-  return `
+  return `$${Number(price).toFixed(2)}`;
+}
+
+function formatDate(date: Date): string {
+  return new Intl.DateTimeFormat('en-US', {
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric'
+  }).format(date);
+}
+
+function calculateAverageRating(reviews: any[]) {
+  if (reviews.length === 0) return "0.0";
+  const total = reviews.reduce((sum, review) => sum + review.rating, 0);
+  return (total / reviews.length).toFixed(1);
+}
