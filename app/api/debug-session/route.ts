@@ -1,6 +1,5 @@
 import { NextResponse } from "next/server";
-import { getServerSession } from "next-auth/next";
-import { authOptions } from "@/lib/auth";
+import { auth } from "@/lib/auth";
 
 // Define a type for the session object
 interface UserSession {
@@ -15,8 +14,8 @@ interface UserSession {
 }
 
 export async function GET(request: Request) {
-  // Type assertion to help TypeScript understand the session structure
-  const session = await getServerSession(authOptions) as UserSession | null;
+  // Use the auth() function directly which should handle the session properly
+  const session = await auth() as UserSession | null;
   
   return NextResponse.json({
     authenticated: !!session,
