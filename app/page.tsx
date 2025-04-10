@@ -10,6 +10,8 @@ import WhatsAppButton from "@/components/ui/WhatsAppButton";
 import FloatingButtons from "@/components/ui/FloatingButtons";
 import FeaturedResources from "@/components/FeaturedResources";
 
+export const dynamic = 'force-dynamic';
+
 export default function Home() {
   return (
     <div>
