@@ -10,7 +10,7 @@ import { getSession } from "@/lib/auth";
 import type { Session, User } from "next-auth";
 import type { JWT } from "next-auth/jwt";
 import { getServerSession } from "next-auth/next";
-import { AuthOptions } from "next-auth";
+// Import the correct config type
 
 // Configure your auth providers and options
 export const authOptions = {
@@ -80,7 +80,7 @@ export const authOptions = {
   ],
   adapter: PrismaAdapter(db),
   session: { strategy: "jwt" }
-} as any; // Quick fix, but not ideal for type safety
+} as const;
 
 // Type for the session including user id and role
 declare module "next-auth" {
@@ -134,7 +134,9 @@ export async function withAuth(
 
 // Add a debugging version of the auth function
 export async function auth() {
-  const session = await getServerSession(authOptions);
+  // Deep clone to make all properties mutable
+  const mutableOptions = JSON.parse(JSON.stringify(authOptions));
+  const session = await getServerSession(mutableOptions);
   console.log("Auth function called, returning session:", session);
   return session;
 }
