@@ -21,6 +21,24 @@ import { Input } from "@/components/ui/input";
 import { toast } from "react-hot-toast";
 import { generateProductSlug } from "@/lib/products";
 
+// Add this type definition at the top of the file
+type Product = {
+  id: string | number;
+  slug: string;
+  title: string;
+  description?: string;
+  images?: any[];
+  status?: string;
+  price?: any;
+  sales?: number;
+  lastUpdated?: string;
+  categories?: any[];
+  discountAmount?: any;
+  discountPercent?: any;
+  finalPrice?: any;
+  viewCount?: number;
+};
+
 function isProduct(item: any): item is Product {
   return item && typeof item === 'object' && 'slug' in item;
 }
