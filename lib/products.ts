@@ -45,24 +45,15 @@ export async function getAllProducts() {
 // @ts-nocheck
 export { getProductBySlug } from './productQueries';
 
-// Helper function to extract ID from various slug formats
-function extractIdFromSlug(slug: string): string | null {
-  // Try to match ID at the end after a hyphen or slash
-  const patterns = [
-    /-(\d+)$/,
-    /\/[^\/]+-(\d+)$/,
-    /[^0-9]+(\d+)$/
-  ];
-  
-  for (const pattern of patterns) {
-    const match = slug.match(pattern);
-    if (match && match[1]) {
-      // Just return the matched string, don't validate with isNaN
-      return match[1];
-    }
-  }
-  
-  return null;
+/**
+ * Extracts the product ID from a URL slug
+ * @param slug The product slug (format: "product-name-id")
+ * @returns The extracted ID
+ */
+export function extractIdFromSlug(slug: string): string {
+  // Extract the ID which is expected to be at the end of the slug after the last dash
+  const parts = slug.split('-');
+  return parts[parts.length - 1];
 }
 
 export async function createProduct(productData: ProductData) {

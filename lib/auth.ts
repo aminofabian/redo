@@ -4,6 +4,7 @@ import prisma  from "./db";
 import { Session } from "next-auth";
 import { getServerSession } from "next-auth/next";
 import { authConfig } from "./auth-config";
+import { signOut as nextAuthSignOut } from "next-auth/react";
 
 // Create a simple session response
 export async function GET(request: Request) {
@@ -286,4 +287,7 @@ export async function withAuth(
     status: 200,
     headers: { "Content-Type": "application/json" }
   });
-} 
+}
+
+// Re-export signOut function
+export const signOut = () => nextAuthSignOut({ callbackUrl: "/" }); 
