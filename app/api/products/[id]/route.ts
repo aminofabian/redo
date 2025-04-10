@@ -3,17 +3,30 @@ import prisma from '@/lib/db';
 import { auth } from '@/lib/auth';
 import { Session } from "next-auth";
 
+// At the top of the file, add these type definitions
+interface UserSession {
+  user: {
+    id: string;
+    email: string;
+    role: string;
+    name?: string;
+  };
+  expires: string;
+}
+
 export async function GET(
   request: NextRequest,
   { params }: { params: { id: string } }
 ) {
   try {
-    const session = await auth();
+    const sessionData = await auth() as unknown as UserSession;
     
-    // Check if user is logged in
-    if (!session?.user) {
+    if (!sessionData || !sessionData.user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
+    
+    // Now TypeScript knows sessionData.user exists and has an id property
+    const userId = sessionData.user.id;
     
     // Convert string ID to integer
     const productId = parseInt(params.id);

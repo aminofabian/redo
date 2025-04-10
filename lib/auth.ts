@@ -261,8 +261,8 @@ export async function getSession() {
 
 export const auth = async () => {
   const session = await getSession();
-  // Ensure we return null instead of an empty object if session is invalid
-  return session && session.user ? session : null;
+  // Use non-null assertion on user property for TypeScript
+  return session ? { ...session, user: session.user! } : null;
 };
 
 // Add this type guard function

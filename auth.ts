@@ -4,13 +4,12 @@ import bcrypt from "bcryptjs";
 import db from "@/lib/db";
 import { getUserByEmail } from "@/data/user";
 import { UserRole } from "@prisma/client";
-import { getSession } from "@/lib/auth";
+import { getServerSession } from "next-auth/next";
+import { authConfig } from "@/lib/auth-config";
 
 // Import correct types
 import type { Session, User } from "next-auth";
 import type { JWT } from "next-auth/jwt";
-import { getServerSession } from "next-auth/next";
-// Import the correct config type
 
 // Configure your auth providers and options
 export const authOptions = {
@@ -140,4 +139,8 @@ export async function auth() {
   const session = await getServerSession(mutableOptions);
   console.log("Auth function called, returning session:", session);
   return session;
+}
+
+async function getSession() {
+  return await getServerSession(authConfig);
 }
