@@ -9,7 +9,7 @@ import { useRouter } from "next/navigation";
 
 type EditSlugButtonProps = {
   product: {
-    id: string;
+    id: string | number;
     slug: string;
   };
 };
@@ -25,7 +25,7 @@ export default function EditSlugButton({ product }: EditSlugButtonProps) {
 
   const handleSaveClick = async () => {
     try {
-      const response = await fetch(`/api/products/${product.id}/update-slug`, {
+      const response = await fetch(`/api/products/${String(product.id)}/update-slug`, {
         method: "PATCH",
         headers: {
           "Content-Type": "application/json",

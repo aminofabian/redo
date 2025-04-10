@@ -83,7 +83,10 @@ export default async function ProductPage({ params }: { params: { slug: string }
             <div className="flex items-center justify-between mb-4">
               <h1 className="text-3xl font-bold">{product.title}</h1>
               
-              <EditSlugButton product={product} />
+              <EditSlugButton product={{
+                id: String(product.id),
+                slug: product.slug
+              }} />
             </div>
             
             <div className="text-sm text-gray-500 mb-4 flex items-center">
