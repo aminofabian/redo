@@ -1,10 +1,21 @@
 import { NextResponse } from 'next/server';
-import { getServerSession } from 'next-auth/next';
-import { authOptions } from '@/lib/auth'; // Correct import path
+import { auth } from '@/lib/auth'; // Use the auth() function instead of getServerSession
+
+// Define a type for the session object
+interface UserSession {
+  user?: {
+    name?: string;
+    email?: string;
+    id?: string;
+    role?: string;
+    emailVerified?: Date | null;
+    [key: string]: any;
+  };
+}
 
 // Export the handler functions to make this a proper module
 export async function GET(request: Request) {
-  const session = await getServerSession(authOptions);
+  const session = await auth() as UserSession | null;
   
   if (!session) {
     return new NextResponse(
@@ -21,7 +32,7 @@ export async function GET(request: Request) {
 }
 
 export async function PUT(request: Request) {
-  const session = await getServerSession(authOptions);
+  const session = await auth() as UserSession | null;
   
   if (!session) {
     return new NextResponse(
