@@ -21,8 +21,13 @@ import { Input } from "@/components/ui/input";
 import { toast } from "react-hot-toast";
 import { generateProductSlug } from "@/lib/products";
 
+function isProduct(item: any): item is Product {
+  return item && typeof item === 'object' && 'slug' in item;
+}
+
 export function ProductDetails() {
-  const { selectedItem: product } = useAdmin();
+  const { selectedItem } = useAdmin();
+  const product = selectedItem && isProduct(selectedItem) ? selectedItem : null;
   const [isEditingSlug, setIsEditingSlug] = useState(false);
   const [slugValue, setSlugValue] = useState(product?.slug || "");
   

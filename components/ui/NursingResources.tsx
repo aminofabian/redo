@@ -25,8 +25,8 @@ type Resource = {
   tags: string[];
 };
 
-// Update the component to accept resources as props
-const NursingResourcesSection = ({ resources }: { resources: Resource[] }) => {
+// Update the component to accept products as props
+const NursingproductsSection = ({ products }: { products: Resource[] }) => {
   return (
     <div className="bg-[#fdfbf7] py-16">
       <div className="max-w-7xl mx-auto px-4">
@@ -43,7 +43,7 @@ const NursingResourcesSection = ({ resources }: { resources: Resource[] }) => {
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-          {resources.map((resource, index) => (
+          {products.map((resource, index) => (
             <motion.div
               key={resource.id}
               initial={{ opacity: 0, y: 20 }}
@@ -117,7 +117,7 @@ const NursingResourcesSection = ({ resources }: { resources: Resource[] }) => {
                         </span>
                       )}
                     </div>
-                    <Link href={`/resources/${resource.slug}`}>
+                    <Link href={`/products/${resource.slug}`}>
                       <button className="bg-[#5d8e9a] hover:bg-[#537f8a] text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors">
                         View Details
                       </button>
@@ -134,7 +134,7 @@ const NursingResourcesSection = ({ resources }: { resources: Resource[] }) => {
         </div>
 
         <div className="text-center mt-12">
-          <Link href="/resources">
+          <Link href="/products">
             <button className="bg-[#ffd60a] hover:bg-yellow-400 text-[#1e2c51] font-semibold px-8 py-3 rounded-lg transition-colors">
               View More
             </button>
@@ -145,4 +145,4 @@ const NursingResourcesSection = ({ resources }: { resources: Resource[] }) => {
   );
 };
 
-export default NursingResourcesSection; 
+export default NursingproductsSection; 
