@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, Suspense } from "react";
-import Hero from "@/components/ui/Hero";
+import dynamic from 'next/dynamic';
 import Features from "@/components/ui/Features";
 import DiscoverNursing from "@/components/ui/DiscoverNursing";
 import FindBestResources from "@/components/ui/FindBestResources";
@@ -11,12 +11,24 @@ import Footer from "@/components/ui/Footer";
 import MainNav from "@/components/navigation/MainNav";
 import WhatsAppButton from "@/components/ui/WhatsAppButton";
 import FloatingButtons from "@/components/ui/FloatingButtons";
-import dynamic from 'next/dynamic';
+import HeroWrapper from "@/components/HeroWrapper";
 
-// Use dynamic import with no SSR for components that need client-side only rendering
+// Dynamic imports for components that need client-only rendering
 const FeaturedResourcesWrapper = dynamic(() => import('@/components/FeaturedResourcesWrapper'), {
   ssr: false,
   loading: () => <div className="w-full h-40 flex items-center justify-center">Loading featured resources...</div>
+});
+
+const CategoryShowcase = dynamic(() => import('@/components/CategoryShowcase'), {
+  ssr: false,
+  loading: () => (
+    <div className="w-full py-12">
+      <div className="container mx-auto px-4 text-center">
+        <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-current border-r-transparent align-[-0.125em] motion-reduce:animate-[spin_1.5s_linear_infinite]"></div>
+        <p className="mt-2 text-gray-600">Loading categories...</p>
+      </div>
+    </div>
+  ),
 });
 
 export default function HomeClient() {
@@ -52,9 +64,14 @@ export default function HomeClient() {
       <div>
         <MainNav />
         <main className="pt-[90px]">
-          <Hero />
+          <Suspense fallback={<div className="min-h-[600px] flex items-center justify-center">
+            <div className="w-16 h-16 border-4 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
+          </div>}>
+            <HeroWrapper />
+          </Suspense>
           <Features />
           <DiscoverNursing />
+          <CategoryShowcase />
           <FeaturedResourcesWrapper />
           <BlogSection />
           <FAQ />
