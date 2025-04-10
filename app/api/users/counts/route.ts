@@ -3,12 +3,25 @@ import prisma from '@/lib/db';
 import { auth } from '@/auth';
 import { UserRole } from '@prisma/client';
 
+// Define a type for the session object
+interface UserSession {
+  user?: {
+    name?: string;
+    email?: string;
+    id?: string;
+    role?: string;
+    emailVerified?: Date | null;
+    [key: string]: any;
+  };
+}
+
 export async function GET(request: NextRequest) {
   try {
-    const session = await auth();
+    // Use the auth helper function with type assertion
+    const session = await auth() as UserSession | null;
     
     // Check if user is logged in
-    if (!session?.user) {
+    if (!session || !session.user || session.user.role !== "ADMIN") {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
     
