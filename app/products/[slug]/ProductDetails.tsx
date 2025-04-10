@@ -41,6 +41,14 @@ export default function ProductDetails({ product }: ProductProps) {
     { icon: Star, title: "Certificate", description: "Course completion certificate" },
   ];
 
+  // Ensure we have a valid image URL
+  const getImageUrl = (index: number): string => {
+    if (index >= 0 && index < product.images.length) {
+      return product.images[index];
+    }
+    return '/placeholder-image.jpg';
+  };
+
   return (
     <div className="max-w-7xl mx-auto px-4 py-8">
       {/* Breadcrumb */}
@@ -57,7 +65,7 @@ export default function ProductDetails({ product }: ProductProps) {
         <div>
           <div className="rounded-lg overflow-hidden border mb-4 aspect-video bg-gray-100">
             <img 
-              src={product.images[selectedImage] || &apos;/placeholder-image.jpg&apos;} 
+              src={getImageUrl(selectedImage)} 
               alt={product.title}
               className="w-full h-full object-contain"
             />
@@ -77,7 +85,7 @@ export default function ProductDetails({ product }: ProductProps) {
                   >
                     <img 
                       src={image} 
-                      alt={`${product.title} thumbnail ${index + 1}`}
+                      alt={`${product.title} thumbnail ${String(index + 1)}`}
                       className="w-full h-full object-cover"
                     />
                   </button>
