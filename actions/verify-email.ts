@@ -3,7 +3,7 @@
 import { getUserByEmail } from "@/data/user";
 import { getVerificationTokenByToken } from "@/data/verification-token";
 import prisma from "@/lib/db";
-import { getServerSession } from "next-auth";
+import { getServerSession } from "next-auth/next";
 import { signIn, signOut } from "next-auth/react";
 
 export const verifyEmail = async (token: string) => {
