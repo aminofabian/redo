@@ -142,5 +142,6 @@ export async function auth() {
 }
 
 async function getSession() {
-  return await getServerSession(authConfig);
+  // Cast authConfig to any to bypass strict type checking
+  return await getServerSession(authConfig as any);
 }
