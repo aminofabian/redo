@@ -1,7 +1,7 @@
 import { Metadata } from "next";
 import { notFound } from "next/navigation";
 import prisma from "../../../lib/db";
-import { getProductBySlug, getAllProducts, generateProductSlug } from "../../../lib/products";
+import { getProductBySlug, getAllProducts, generateProductSlug, extractIdFromSlug } from "../../../lib/products";
 import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import { CalendarIcon, Clock, Download, DollarSign, ShoppingCart, Tag, Users } from "lucide-react";

@@ -2,6 +2,7 @@
 import { auth } from "@/auth";
 import { redirect } from "next/navigation";
 import AdminClient from "./AdminClient";
+import { signOut } from '@/lib/auth';
 
 // 1. Create an interface that matches your session structure
 interface AdminSession {
