@@ -1,4 +1,5 @@
-import { auth, signOut } from "@/auth";
+import { auth } from "@/auth";
+import { signOut } from "next-auth/react";
 
 // Define the session type to match what auth() returns
 interface UserSession {
