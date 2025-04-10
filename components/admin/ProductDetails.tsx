@@ -90,7 +90,11 @@ export function ProductDetails() {
       toast.success("URL slug updated successfully");
       setIsEditingSlug(false);
     } catch (error) {
-      toast.error(error.message || "An error occurred");
+      if (error instanceof Error) {
+        toast.error(error.message);
+      } else {
+        toast.error("An unknown error occurred");
+      }
     }
   };
   
@@ -283,7 +287,7 @@ export function ProductDetails() {
                   <div className="bg-gray-50 p-4 rounded-lg">
                     <p className="text-sm text-gray-500">Revenue</p>
                     <p className="text-2xl font-bold">
-                      ${(parseFloat(product.price.replace('$', '')) * product.sales).toFixed(2)}
+                      ${(parseFloat(product.price.replace('$', '')) * (product.sales || 0)).toFixed(2)}
                     </p>
                   </div>
                   <div className="bg-gray-50 p-4 rounded-lg">
@@ -356,7 +360,7 @@ export function ProductDetails() {
               <div>
                 <p className="text-sm text-gray-500">Total Revenue</p>
                 <p className="text-lg font-medium">
-                  ${(parseFloat(product.price.replace('$', '')) * product.sales).toFixed(2)}
+                  ${(parseFloat(product.price.replace('$', '')) * (product.sales || 0)).toFixed(2)}
                 </p>
               </div>
             </div>
