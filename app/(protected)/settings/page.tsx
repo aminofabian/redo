@@ -1,5 +1,4 @@
-import { auth } from "@/lib/auth";
-import { signOut } from "@/lib/auth";
+import { auth, signOut } from "@/auth";
 
 // Define the session type to match what auth() returns
 interface UserSession {
