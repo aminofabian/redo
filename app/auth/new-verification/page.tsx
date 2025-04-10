@@ -7,8 +7,10 @@ import { CardWrapper } from "@/components/auth/card-wrapper";
 import { verifyEmail } from "@/actions/verify-email";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
+import { Suspense } from "react";
 
-export default function NewVerificationPage() {
+// Create a client component that uses searchParams
+function NewVerificationClient() {
   const [loading, setLoading] = useState(true);
   const searchParams = useSearchParams();
   const router = useRouter();
@@ -56,5 +58,14 @@ export default function NewVerificationPage() {
         )}
       </div>
     </CardWrapper>
+  );
+}
+
+// Wrap the client component with Suspense in the page component
+export default function NewVerificationPage() {
+  return (
+    <Suspense fallback={<div>Loading verification...</div>}>
+      <NewVerificationClient />
+    </Suspense>
   );
 }

@@ -2,12 +2,13 @@
 
 import { verifyEmail } from "@/actions/verify-email";
 import { useSearchParams, useRouter } from "next/navigation";
-import { useEffect } from "react";
+import { useEffect, Suspense } from "react";
 import { toast } from "sonner";
 import { BeatLoader } from "react-spinners";
 import CardWrapper from "@/components/auth/CardWrapper";
 
-export default function VerifyEmailPage() {
+// Create a client component that uses searchParams
+function VerifyClient() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const token = searchParams.get("token");
@@ -45,5 +46,14 @@ export default function VerifyEmailPage() {
         </div>
       </CardWrapper>
     </div>
+  );
+}
+
+// Wrap the client component with Suspense in the page component
+export default function VerifyPage() {
+  return (
+    <Suspense fallback={<div>Loading verification...</div>}>
+      <VerifyClient />
+    </Suspense>
   );
 } 
