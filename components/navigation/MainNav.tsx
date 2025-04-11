@@ -15,117 +15,57 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { useSession, signOut } from "next-auth/react";
+import { Badge } from "@/components/ui/badge";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Bell, Settings, BookMarked, History } from "lucide-react";
 
 // Update type for user object
 interface UserData {
   name?: string;
   email?: string;
+  image?: string;
   firstName?: string;
   lastName?: string;
-  role?: string;  // Add role field
-  id?: string;    // Add id field
-  [key: string]: any; // For any other properties
+  role?: string;
+  id?: string;
+  memberSince?: string;
+  lastLogin?: string;
+  notifications?: number;
+  savedResources?: number;
 }
 
 export default function MainNav() {
+  const { data: session, status } = useSession();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
-  const [userData, setUserData] = useState<any>(null);
+  const [notifications, setNotifications] = useState(3); // Example notification count
+  const [userData, setUserData] = useState<UserData | null>(null);
   const pathname = usePathname();
 
-  // Load auth state on initial render only
+  // Replace the existing useEffect for auth with this simplified version
   useEffect(() => {
-    const checkLocalAuth = () => {
-      try {
-        // First check for auth cookie
-        const hasAuthCookie = document.cookie.includes('auth-status=authenticated');
-        
-        if (hasAuthCookie) {
-          setIsLoggedIn(true);
-          
-          // Try to get cached user data from localStorage first
-          const cachedUser = localStorage.getItem('user-data');
-          if (cachedUser) {
-            try {
-              const parsedUser = JSON.parse(cachedUser);
-              setUserData(parsedUser);
-              return; // Use cached data, no need to fetch
-            } catch (e) {
-              console.error("Error parsing cached user data", e);
-              // Continue to fetch if parse fails
-            }
-          }
-          
-          // Fetch fresh user data only if needed
-          fetchUserData();
-        } else {
-          setIsLoggedIn(false);
-          setUserData(null);
-          localStorage.removeItem('user-data');
-        }
-      } catch (error) {
-        console.error('Auth check failed:', error);
-      }
-    };
-    
-    // Separate function to fetch user data
-    const fetchUserData = async () => {
-      try {
-        console.log("Fetching user data from session API...");
-        const res = await fetch('/api/auth/session');
-        const sessionData = await res.json();
-        console.log("Session response raw:", sessionData);
-        
-        if (sessionData.user) {
-          // Ensure user is an object, not a string
-          const userFromSession = typeof sessionData.user === 'string' 
-            ? JSON.parse(sessionData.user) 
-            : sessionData.user;
-            
-          console.log("User from session (parsed if needed):", userFromSession);
-          
-          // Create proper user object
-          const userObj = {
-            ...(typeof userFromSession === 'object' ? userFromSession : {}),
-            name: formatUserName(userFromSession)
-          };
-          
-          console.log("Final user object to store:", userObj);
-          
-          // Save to state and localStorage 
-          setUserData(userObj);
-          localStorage.setItem('user-data', JSON.stringify(userObj));
-        } else {
-          console.log("No user in session, using fallback");
-          const fallbackUser = { name: "User" };
-          setUserData(fallbackUser);
-          localStorage.setItem('user-data', JSON.stringify(fallbackUser));
-        }
-      } catch (e) {
-        console.error("Error fetching session:", e);
-        const fallbackUser = { name: "User" };
-        setUserData(fallbackUser);
-      }
-    };
-    
-    // Initial check
-    checkLocalAuth();
-    
-    // Only check on visibility change (tab focus), not continuous interval
-    document.addEventListener('visibilitychange', () => {
-      if (document.visibilityState === 'visible') {
-        // Only check auth cookie on visibility change, not full user data
-        const hasAuthCookie = document.cookie.includes('auth-status=authenticated');
-        if (hasAuthCookie !== isLoggedIn) {
-          checkLocalAuth(); // Only refetch if auth state changed
-        }
-      }
-    });
-    
-    return () => {
-      document.removeEventListener('visibilitychange', checkLocalAuth);
-    };
-  }, []); // Empty dependency array - only run on mount
+    if (session?.user) {
+      setUserData({
+        ...session.user,
+        name: session.user.name || undefined,  // Convert null to undefined
+        email: session.user.email || undefined,
+        image: session.user.image || undefined,
+        notifications: 3,
+        savedResources: 12,
+        memberSince: "2024-01-01",
+        lastLogin: new Date().toISOString(),
+      });
+    }
+  }, [session]);
+
+  // Update the handleLogout function
+  const handleLogout = async () => {
+    try {
+      await signOut({ redirect: true, callbackUrl: "/" });
+    } catch (error) {
+      console.error("Logout failed:", error);
+    }
+  };
 
   // Then update the formatUserName function with proper typing
   const formatUserName = (user: UserData): string => {
@@ -172,28 +112,6 @@ export default function MainNav() {
     }
     
     return formattedFirstName || formattedLastName || "User";
-  };
-
-  const handleLogout = async () => {
-    try {
-      await fetch("/api/auth/signout", { method: "POST" });
-      
-      // Delete cookies directly in browser too
-      document.cookie = "auth-status=; Path=/; Expires=Thu, 01 Jan 1970 00:00:00 GMT;";
-      document.cookie = "next-auth.session-token=; Path=/; Expires=Thu, 01 Jan 1970 00:00:00 GMT;";
-      
-      // Clear user data from localStorage
-      localStorage.removeItem('user-data');
-      
-      // Reset state immediately
-      setIsLoggedIn(false);
-      setUserData(null);
-      
-      // Force page refresh
-      window.location.href = "/";
-    } catch (error) {
-      console.error("Logout failed:", error);
-    }
   };
 
   const toggleMenu = () => {
@@ -262,49 +180,101 @@ export default function MainNav() {
 
           {/* Auth Buttons */}
           <div className="flex items-center space-x-4">
-            {isLoggedIn ? (
+            {session ? (
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <Button 
                     variant="ghost" 
-                    className="h-8 px-3 rounded-full bg-[#1e2c51] flex items-center justify-center text-white"
+                    className="h-9 px-3 rounded-full hover:bg-slate-100 flex items-center gap-2"
                   >
-                    <User className="w-4 h-4 mr-2" />
-                    {userData?.name || 'User'}
+                    <Avatar className="h-7 w-7">
+                      <AvatarImage src={session.user?.image || ''} />
+                      <AvatarFallback className="bg-[#1e2c51] text-white">
+                        {session.user?.name?.charAt(0) || 'U'}
+                      </AvatarFallback>
+                    </Avatar>
+                    <div className="flex flex-col items-start">
+                      <span className="text-sm font-medium line-clamp-1">
+                        {session.user?.name}
+                      </span>
+                      <span className="text-xs text-muted-foreground">
+                        {userData?.role || 'Student'}
+                      </span>
+                    </div>
+                    {notifications > 0 && (
+                      <Badge variant="destructive" className="h-5 w-5 rounded-full p-0 flex items-center justify-center">
+                        {notifications}
+                      </Badge>
+                    )}
                   </Button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent align="end">
+                <DropdownMenuContent align="end" className="w-72">
                   <DropdownMenuLabel>
-                    {(() => {
-                      // Explicitly handle different scenarios - this self-executing function
-                      // lets us do more complex logic directly in JSX
-                      console.log("Rendering dropdown with userData:", userData);
-                      
-                      // Make sure userData is an object
-                      const user = typeof userData === 'string' 
-                        ? JSON.parse(userData) 
-                        : userData;
-                      
-                      if (!user) return 'My Account';
-                      
-                      // Show name if available, with email below it
-                      return (
+                    <div className="flex flex-col space-y-2">
+                      <div className="flex items-center gap-2">
+                        <Avatar className="h-10 w-10">
+                          <AvatarImage src={session.user?.image || ''} />
+                          <AvatarFallback className="bg-[#1e2c51] text-white">
+                            {session.user?.name?.charAt(0) || 'U'}
+                          </AvatarFallback>
+                        </Avatar>
                         <div className="flex flex-col">
-                          <div className="font-bold">{user.name || 'User'}</div>
-                          <div className="text-sm text-muted-foreground">{user.email || 'No email'}</div>
-                          {user.role && <div className="text-xs mt-1 px-2 py-0.5 bg-slate-100 rounded-full self-start">{user.role}</div>}
+                          <span className="font-semibold">{session.user?.name}</span>
+                          <span className="text-xs text-muted-foreground">{session.user?.email}</span>
                         </div>
-                      );
-                    })()}
+                      </div>
+                      <div className="flex items-center justify-between text-xs text-muted-foreground bg-slate-50 rounded-lg p-2">
+                        <span>Member since {new Date(userData?.memberSince || '').toLocaleDateString()}</span>
+                        <Badge variant="secondary" className="text-xs">
+                          {userData?.role || 'Student'}
+                        </Badge>
+                      </div>
+                    </div>
                   </DropdownMenuLabel>
                   <DropdownMenuSeparator />
                   <DropdownMenuItem asChild>
-                    <Link href="/dashboard" className="cursor-pointer">
+                    <Link href="/dashboard" className="flex items-center">
                       <User className="mr-2 h-4 w-4" />
                       <span>Dashboard</span>
                     </Link>
                   </DropdownMenuItem>
-                  <DropdownMenuItem onClick={handleLogout} className="cursor-pointer">
+                  <DropdownMenuItem asChild>
+                    <Link href="/saved-resources" className="flex items-center">
+                      <BookMarked className="mr-2 h-4 w-4" />
+                      <span>Saved Resources</span>
+                      <Badge className="ml-auto" variant="secondary">
+                        {userData?.savedResources || 0}
+                      </Badge>
+                    </Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem asChild>
+                    <Link href="/notifications" className="flex items-center">
+                      <Bell className="mr-2 h-4 w-4" />
+                      <span>Notifications</span>
+                      {notifications > 0 && (
+                        <Badge className="ml-auto" variant="destructive">
+                          {notifications}
+                        </Badge>
+                      )}
+                    </Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem asChild>
+                    <Link href="/history" className="flex items-center">
+                      <History className="mr-2 h-4 w-4" />
+                      <span>Study History</span>
+                    </Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem asChild>
+                    <Link href="/settings" className="flex items-center">
+                      <Settings className="mr-2 h-4 w-4" />
+                      <span>Settings</span>
+                    </Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem 
+                    onClick={handleLogout}
+                    className="text-red-600 focus:text-red-600 focus:bg-red-50"
+                  >
                     <LogOut className="mr-2 h-4 w-4" />
                     <span>Log out</span>
                   </DropdownMenuItem>
@@ -379,7 +349,7 @@ export default function MainNav() {
         </div>
         
         <div className="hidden md:flex flex-shrink-0 items-center space-x-4">
-          {isLoggedIn && (
+          {session && (
             <Link href="/dashboard">
               <Button 
                 variant="default" 
@@ -422,7 +392,7 @@ export default function MainNav() {
             </Link>
           ))}
           
-          {isLoggedIn ? (
+          {session ? (
             <>
               <Link
                 href="/dashboard"
@@ -430,7 +400,7 @@ export default function MainNav() {
                 onClick={() => setIsMenuOpen(false)}
               >
                 <User className="w-4 h-4 mr-2" />
-                {userData?.name || 'Dashboard'}
+                {session.user?.name || 'Dashboard'}
               </Link>
               <Button
                 variant="ghost"
