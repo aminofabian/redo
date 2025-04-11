@@ -5,9 +5,10 @@ import db from "@/lib/db";
 import { getUserByEmail } from "@/data/user";
 import { getServerSession } from "next-auth/next";
 import { authConfig } from "@/lib/auth-config";
+import type { Session } from "next-auth";
 
 // Import correct types
-import type { Session, User } from "next-auth";
+import type { User } from "next-auth";
 import type { JWT } from "next-auth/jwt";
 
 type UserRole = "USER" | "ADMIN";
@@ -125,13 +126,13 @@ export async function withAuth(
 }
 
 // Add a debugging version of the auth function
-export async function auth() {
-  // Deep clone to make all properties mutable
-  const mutableOptions = JSON.parse(JSON.stringify(authOptions));
-  const session = await getServerSession(mutableOptions);
-  console.log("Auth function called, returning session:", session);
+export const auth = async () => {
+  const session = await getServerSession(authConfig);
+  console.log("Auth check - session:", session);
   return session;
-}
+};
+
+export { signIn, signOut } from "next-auth/react";
 
 async function getSession(): Promise<Session | null> {
   // Cast authConfig to any to bypass strict type checking

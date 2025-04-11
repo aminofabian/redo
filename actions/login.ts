@@ -2,50 +2,34 @@
 
 import * as z from "zod";
 import { LoginSchema } from "@/schemas";
-import { signIn } from "next-auth/react";
-import { DEFAULT_LOGIN_REDIRECT } from "@/routes";
-import { getUserByEmail } from "@/data/user";
-import { generateVerificationToken } from "@/lib/token";
-import { sendVerificationEmail } from "@/lib/mail";
-import bcrypt from "bcryptjs";
+import { signIn } from "@/auth";
+import { AuthError } from "@auth/core/errors";
 
-export const login = async (
-  values: z.infer<typeof LoginSchema>,
-  callbackUrl?: string | null
-) => {
-  const validatedFields = LoginSchema.safeParse(values);
-
-  if (!validatedFields.success) {
-    return { error: "Invalid fields!" };
-  }
-
-  const { email, password } = validatedFields.data;
-
+export const login = async (values: z.infer<typeof LoginSchema>) => {
   try {
-    const user = await getUserByEmail(email);
-
-    if (!user || !user.email || !user.password) {
-      return { error: "Email does not exist!" }
+    const validatedFields = LoginSchema.safeParse(values);
+    
+    if (!validatedFields.success) {
+      return { error: "Please check your email and password" };
     }
 
-    const passwordsMatch = await bcrypt.compare(password, user.password);
+    const { email, password } = validatedFields.data;
 
-    if (!passwordsMatch) {
-      return { error: "Invalid credentials!" };
+    // Attempt to sign in (don't check for email verification here)
+    const result = await signIn("credentials", {
+      email,
+      password,
+      redirect: false
+    });
+
+    if (result?.error) {
+      console.error("SignIn error:", result.error);
+      return { error: "Invalid email or password" };
     }
 
-    if (!user.emailVerified) {
-      const verificationToken = await generateVerificationToken(user.email);
-      await sendVerificationEmail(
-        verificationToken.email,
-        verificationToken.token,
-      );
-
-      return { success: "Confirmation email sent!" };
-    }
-
-    return { success: "Logged in successfully!" };
+    return { success: "Welcome back!" };
   } catch (error) {
-    return { error: "Something went wrong!" };
+    console.error("Login error:", error);
+    return { error: "An unexpected error occurred. Please try again." };
   }
 };
