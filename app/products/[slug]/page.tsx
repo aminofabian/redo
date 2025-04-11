@@ -83,8 +83,8 @@ export async function generateStaticParams() {
   }));
 }
 
-async function getRelatedProducts(productId: number, categoryIds: string[], limit = 4): Promise<RelatedProduct[]> {
-  return await prisma.product.findMany({
+async function getRelatedProducts(productId: number, categoryIds: string[], limit = 4): Promise<SerializableProduct[]> {
+  const products = await prisma.product.findMany({
     where: {
       AND: [
         { isPublished: true },
@@ -114,6 +114,8 @@ async function getRelatedProducts(productId: number, categoryIds: string[], limi
       viewCount: 'desc'
     }
   });
+
+  return products.map((product: Product) => serializeProduct(product));
 }
 
 function serializeProduct(product: Product): SerializableProduct {
