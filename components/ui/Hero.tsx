@@ -5,48 +5,17 @@ import Image from "next/image";
 import { Button } from "./button";
 import { ArrowRight, Download, ShieldCheck, HeadphonesIcon, ThumbsUp, PiggyBank } from "lucide-react";
 
-// Define the type for category items
+// Update the CategoryItem interface to match database structure
 interface CategoryItem {
-  id?: string;
-  title: string;
-  image: string;
-  students: string;
-  rating: number;
-  tag?: string;
-  resourceCount?: number;
-  averagePrice?: string;
+  id: string;
+  name: string;
+  slug: string;
+  description?: string | null;
+  image?: string;
+  productCount: number;
+  averagePrice?: number;
+  studentCount?: number;
 }
-
-// No more hardcoded categories - only placeholder logic
-const generatePlaceholderCategories = (): CategoryItem[] => {
-  const categoryNames = ["NCLEX-RN", "Med-Surg", "Critical Care", "Pediatrics", "OB/GYN", "Mental Health", "Fundamentals"];
-  const imagePaths = [
-    "/categories/national-cancer-institute-NFvdKIhxYlU-unsplash.jpg",
-    "/categories/hush-naidoo-jade-photography-eKNswc0Qxz8-unsplash.jpg",
-    "/categories/owen-beard-DK8jXx1B-1c-unsplash.jpg",
-    "/categories/tony-luginsland-qS1bDAxxAYg-unsplash.jpg",
-    "/categories/paul-felberbauer-QL7iY3G24z4-unsplash.jpg",
-    "/categories/robina-weermeijer-NIuGLCC7q54-unsplash.jpg",
-    "/categories/element5-digital-OyCl7Y4y0Bk-unsplash.jpg"
-  ];
-  
-  // Generate placeholder items with realistic resource counts and prices
-  return categoryNames.map((name, index) => {
-    const resourceCount = Math.floor(Math.random() * 10) + 1;
-    const basePrice = 30 + Math.floor(Math.random() * 70);
-    
-    return {
-      id: index.toString(),
-      title: name,
-      image: imagePaths[index],
-      students: `${Math.floor(Math.random() * 10) + 2}K+`,
-      rating: 4.5 + Math.random() * 0.4,
-      tag: index === 0 ? "Most Popular" : undefined,
-      resourceCount,
-      averagePrice: basePrice.toFixed(2)
-    };
-  });
-};
 
 const triggers = [
   {
@@ -71,24 +40,17 @@ const triggers = [
   }
 ];
 
-// Update Hero component to generate placeholders on-demand
-const Hero = ({ categories }: { categories?: CategoryItem[] }) => {
+// Update the Hero component to use database categories
+const Hero = ({ categories }: { categories: CategoryItem[] }) => {
   console.log("HERO: Component rendering");
   console.log(`HERO: Received ${categories?.length || 0} categories from parent`);
   
   if (categories && categories.length > 0) {
-    console.log("HERO: Using database categories:", categories.map(c => c.title));
+    console.log("HERO: Using database categories:", categories.map(c => c.name));
   } else {
     console.log("HERO: No categories from database, using placeholders");
   }
   
-  // Only generate placeholders if no categories are provided or array is empty
-  const items = (categories && categories.length > 0) 
-    ? categories 
-    : generatePlaceholderCategories();
-  
-  console.log("HERO: Final categories being displayed:", items.map(c => c.title));
-
   return (
     <div className="relative min-h-[600px] flex items-center bg-gradient-to-br from-[#5d8e9a]/10 via-white to-[#4a7280]/10">
       <div className="absolute inset-0 bg-grid-black/[0.02] -z-10" />
@@ -150,9 +112,9 @@ const Hero = ({ categories }: { categories?: CategoryItem[] }) => {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5, delay: 0.3 }}
         >
-          {items.map((item, index) => (
+          {categories.map((category, index) => (
             <motion.div
-              key={`${item.id || index}-${item.title}`}
+              key={category.id}
               className="group relative bg-white rounded-xl overflow-hidden shadow-md hover:shadow-xl transition-all duration-300 cursor-pointer"
               whileHover={{ y: -5 }}
               initial={{ opacity: 0, y: 20 + (index * 5) }}
@@ -167,84 +129,44 @@ const Hero = ({ categories }: { categories?: CategoryItem[] }) => {
             >
               <div className="aspect-[4/3] relative">
                 <Image
-                  src={item.image}
-                  alt={item.title}
+                  src={category.image || '/images/default-category.jpg'}
+                  alt={category.name}
                   fill
+                  sizes="(max-width: 768px) 50vw, (max-width: 1200px) 33vw, 14vw"
                   className="object-cover group-hover:scale-105 transition-transform duration-500"
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
                 
-                <div className="absolute top-2 right-2 flex flex-col gap-1 items-end">
-                  {item.tag && (
-                    <span className="px-2 py-1 bg-[#5d8e9a] text-white text-[10px] font-medium rounded-full">
-                      {item.tag}
-                    </span>
-                  )}
-                  {item.resourceCount !== undefined && item.resourceCount > 5 && !item.tag && (
-                    <span className="px-2 py-1 bg-amber-500 text-white text-[10px] font-medium rounded-full">
-                      Popular
-                    </span>
-                  )}
-                  {item.resourceCount === 0 && (
-                    <span className="px-2 py-1 bg-blue-500 text-white text-[10px] font-medium rounded-full">
-                      Coming Soon
-                    </span>
-                  )}
-                </div>
-                
-                <div className="absolute top-2 left-2">
-                  {Array.from({ length: Math.min(item.resourceCount || 0, 5) }).map((_, i) => (
-                    <div 
-                      key={i}
-                      className="w-2 h-2 bg-white rounded-full mb-1 opacity-80"
-                      style={{ transform: `translateX(${i * 2}px)` }}
-                    />
-                  ))}
-                </div>
-                
                 <div className="absolute bottom-0 left-0 right-0 p-3">
                   <h3 className="text-sm font-semibold text-white mb-1 flex items-center">
-                    {item.title}
-                    {(item.resourceCount ?? 0) > 10 && (
+                    {category.name}
+                    {category.productCount > 10 && (
                       <span className="ml-1 inline-block w-2 h-2 bg-green-400 rounded-full"></span>
                     )}
                   </h3>
                   
                   <div className="text-[10px] text-white/90">
                     <div className="flex items-center">
-                      <span>{item.resourceCount || 0} Resource{item.resourceCount !== 1 ? 's' : ''}</span>
+                      <span>{category.productCount} Resource{category.productCount !== 1 ? 's' : ''}</span>
                       
                       <div className="ml-1 flex-1 h-1 bg-white/20 rounded-full overflow-hidden">
                         <div 
                           className="h-full bg-[#5d8e9a]" 
-                          style={{ width: `${Math.min((item.resourceCount || 0) * 10, 100)}%` }}
+                          style={{ width: `${Math.min(category.productCount * 10, 100)}%` }}
                         />
                       </div>
                     </div>
                     
-                    {item.averagePrice && (
+                    {category.averagePrice && (
                       <div className="mt-1 flex justify-between items-center">
-                        <span>Avg. ${item.averagePrice}</span>
+                        <span>Avg. ${category.averagePrice.toFixed(2)}</span>
                         <span className="text-[9px] opacity-80">
-                          {parseFloat(item.averagePrice) < 50 ? 'Budget' : 
-                           parseFloat(item.averagePrice) < 80 ? 'Standard' : 'Premium'}
+                          {category.averagePrice < 50 ? 'Budget' : 
+                           category.averagePrice < 80 ? 'Standard' : 'Premium'}
                         </span>
                       </div>
                     )}
                   </div>
-                </div>
-              </div>
-              
-              <div className="absolute inset-0 bg-black/80 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                <div className="text-center p-3">
-                  <p className="text-white font-medium mb-2">{item.title}</p>
-                  <p className="text-[10px] text-white/80 mb-1">{item.resourceCount || 0} resources available</p>
-                  {item.averagePrice && (
-                    <p className="text-[10px] text-white/80">Average price: ${item.averagePrice}</p>
-                  )}
-                  <button className="mt-2 text-[10px] px-3 py-1 bg-[#5d8e9a] text-white rounded-full">
-                    Explore Category
-                  </button>
                 </div>
               </div>
             </motion.div>
