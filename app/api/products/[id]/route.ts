@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import prisma from '@/lib/db';
+import { db } from '@/lib/db';
 import { auth } from '@/lib/auth';
 import { Session } from "next-auth";
 
@@ -19,95 +19,93 @@ export async function GET(
   { params }: { params: { id: string } }
 ) {
   try {
-    const sessionData = await auth() as unknown as UserSession;
+    // Convert the ID to a number since our schema uses Int for product IDs
+    const productId = parseInt(params.id, 10);
     
-    if (!sessionData || !sessionData.user) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
-    
-    // Now TypeScript knows sessionData.user exists and has an id property
-    const userId = sessionData.user.id;
-    
-    // Convert string ID to integer
-    const productId = parseInt(params.id);
-    
-    // Check if conversion was successful
     if (isNaN(productId)) {
-      return NextResponse.json({ error: 'Invalid product ID' }, { status: 400 });
+      return NextResponse.json(
+        { error: 'Invalid product ID format' },
+        { status: 400 }
+      );
     }
     
-    // Fetch detailed product info
-    const product = await prisma.product.findUnique({
-      where: {
-        id: productId
-      },
+    // Fetch the product with all its related data
+    const product = await db.product.findUnique({
+      where: { id: productId },
       include: {
         images: true,
         categories: {
           include: {
-            category: true
-          }
+            category: true,
+          },
         },
+        purchases: true, // Use purchases instead of orders
         createdBy: {
           select: {
             id: true,
-            firstName: true,
-            lastName: true,
+            name: true,
             email: true,
-            image: true
+            image: true,
           }
         }
-      }
+      },
     });
     
     if (!product) {
-      return NextResponse.json({ error: 'Product not found' }, { status: 404 });
+      return NextResponse.json(
+        { error: 'Product not found' },
+        { status: 404 }
+      );
     }
     
-    // Get related products (same categories)
-    const categoryIds = product.categories.map(c => c.categoryId);
-    
-    const relatedProducts = await prisma.product.findMany({
-      where: {
-        id: { not: productId },
-        categories: {
-          some: {
-            categoryId: { in: categoryIds }
-          }
-        }
-      },
-      include: {
-        images: {
-          where: {
-            isPrimary: true
-          },
-          take: 1
-        }
-      },
-      take: 4
-    });
-    
-    // Format the response
+    // Transform the data to match the expected format
     const formattedProduct = {
-      ...product,
-      categories: product.categories.map(c => c.category.name),
-      salesData: [], // Provide empty array instead of real sales data
-      relatedProducts: relatedProducts.map(p => ({
-        id: p.id,
-        title: p.title,
-        price: formatPrice(p.price),
-        image: p.images[0]?.url || null
+      id: product.id.toString(),
+      title: product.title,
+      description: product.description || "",
+      status: product.isPublished ? "Published" : "Draft",
+      price: `$${Number(product.price).toFixed(2)}`,
+      lastUpdated: formatDate(product.updatedAt),
+      sales: product.purchaseCount || 0,
+      slug: product.slug,
+      images: product.images.map(img => ({
+        id: img.id,
+        url: img.url,
+        isPrimary: img.isPrimary
       })),
-      viewCount: Math.floor(Math.random() * 1000),
-      conversionRate: ((product.purchaseCount / Math.max(1, Math.floor(Math.random() * 1000))) * 100).toFixed(1) + '%',
-      lastPurchase: formatDate(new Date(Date.now() - Math.floor(Math.random() * 10000000000)))
+      categories: product.categories.map(pc => pc.category.name),
+      orders: product.purchases.map(purchase => ({
+        order: {
+          id: purchase.id,
+          userId: purchase.userId,
+          totalAmount: purchase.amount,
+          createdAt: purchase.createdAt
+        }
+      })),
+      downloadUrl: product.downloadUrl || null,
+      accessDuration: product.accessDuration,
+      downloadLimit: product.downloadLimit,
+      createdBy: {
+        firstName: product.createdBy?.name?.split(' ')[0] || '',
+        lastName: product.createdBy?.name?.split(' ').slice(1).join(' ') || '',
+        email: product.createdBy?.email || '',
+        image: product.createdBy?.image || null
+      },
+      viewCount: product.viewCount || 0,
+      conversionRate: product.purchaseCount > 0 
+        ? `${((product.purchaseCount / Math.max(1, product.viewCount)) * 100).toFixed(1)}%` 
+        : "0%",
+      lastPurchase: product.purchases.length > 0 
+        ? formatDate(product.purchases.sort((a, b) => 
+            b.createdAt.getTime() - a.createdAt.getTime())[0].createdAt) 
+        : "Never"
     };
     
     return NextResponse.json(formattedProduct);
   } catch (error) {
-    console.error('Error fetching product details:', error);
+    console.error('Error fetching product:', error);
     return NextResponse.json(
-      { error: 'Failed to fetch product details' },
+      { error: 'Failed to fetch product', details: error instanceof Error ? error.message : 'Unknown error' },
       { status: 500 }
     );
   }

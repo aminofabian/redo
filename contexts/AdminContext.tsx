@@ -5,13 +5,23 @@ import { createContext, useContext, useState, ReactNode } from "react";
 export interface Product {
   id: string;
   title: string;
-  status: string;
-  lastUpdated: string;
-  price: string;
-  sales: number;
   description?: string;
-  images?: { id: string; url: string; isPrimary: boolean; }[];
+  status?: string;
+  price: string;
+  lastUpdated?: string;
+  sales?: number;
+  slug?: string;
+  images?: Array<{id: string; url: string; isPrimary: boolean}>;
   categories?: string[];
+  viewCount?: number;
+  conversionRate?: string;
+  lastPurchase?: string;
+  createdBy?: {
+    firstName: string;
+    lastName: string;
+    email: string;
+    image?: string;
+  };
 }
 
 export interface User {

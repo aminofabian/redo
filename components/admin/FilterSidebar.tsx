@@ -123,6 +123,22 @@ export function FilterSidebar() {
     }
   };
 
+  const handleProductSelect = async (product: any) => {
+    try {
+      // First set basic info
+      setSelectedItem(product);
+      
+      // Then fetch detailed info
+      const response = await fetch(`/api/products/${product.id}`);
+      if (response.ok) {
+        const detailedProduct = await response.json();
+        setSelectedItem(detailedProduct);
+      }
+    } catch (error) {
+      console.error("Error fetching product details:", error);
+    }
+  };
+
   // Render different content based on active menu
   if (activeMenu === "Users") {
     return (
@@ -225,6 +241,7 @@ export function FilterSidebar() {
                     "transition-colors duration-200",
                     "hover:bg-gray-100"
                   )}
+                  onClick={() => handleProductSelect(option)}
                 >
                   <span className="text-gray-700">{option.label}</span>
                   <span className="text-xs text-gray-500">{option.count}</span>

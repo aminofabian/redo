@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { 
   Edit, 
   Trash2, 
@@ -95,6 +95,51 @@ export function ProductDashboard({ product, isDetailedView = false }: {
 }) {
   const [isEditing, setIsEditing] = useState(false);
   const [publishStatus, setPublishStatus] = useState(product.status === 'Published');
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  
+  // Ensure we have valid data to display
+  const displayProduct = {
+    ...product,
+    title: product.title || "Untitled Product",
+    description: product.description || "No description available",
+    status: product.status || "Draft",
+    price: product.price || "$0.00",
+    lastUpdated: product.lastUpdated || "Unknown",
+    sales: product.sales || 0,
+    slug: product.slug || "unknown-product",
+    images: product.images || [],
+    categories: product.categories || [],
+    viewCount: product.viewCount || 0,
+    conversionRate: product.conversionRate || "0%",
+    lastPurchase: product.lastPurchase || "Never"
+  };
+  
+  // If we have a product ID but missing details, try to fetch them
+  useEffect(() => {
+    if (product.id && (!product.images || product.images.length === 0)) {
+      const fetchMissingDetails = async () => {
+        try {
+          setIsLoading(true);
+          const response = await fetch(`/api/products/${product.id}`);
+          
+          if (!response.ok) {
+            throw new Error('Failed to fetch product details');
+          }
+          
+          // We don't need to do anything with the response here
+          // This is just a backup in case the product details weren't fetched earlier
+        } catch (err) {
+          console.error('Error fetching product details in ProductDashboard:', err);
+          setError('Some product details could not be loaded.');
+        } finally {
+          setIsLoading(false);
+        }
+      };
+      
+      fetchMissingDetails();
+    }
+  }, [product.id]);
   
   const handlePublishToggle = () => {
     setPublishStatus(!publishStatus);
@@ -137,9 +182,9 @@ export function ProductDashboard({ product, isDetailedView = false }: {
     <div className="p-6 max-w-7xl mx-auto">
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h1 className="text-2xl font-bold">{product.title}</h1>
+          <h1 className="text-2xl font-bold">{displayProduct.title}</h1>
           <p className="text-gray-500">
-            Product ID: #{product.id}
+            Product ID: #{displayProduct.id}
           </p>
         </div>
         <div className="flex space-x-2">
@@ -147,7 +192,7 @@ export function ProductDashboard({ product, isDetailedView = false }: {
             <Share2 className="mr-2 h-4 w-4" />
             Share
           </Button>
-          <a href={product.downloadUrl} target="_blank" rel="noreferrer">
+          <a href={displayProduct.downloadUrl} target="_blank" rel="noreferrer">
             <Button variant="outline" size="sm">
               <Eye className="mr-2 h-4 w-4" />
               Preview
@@ -206,23 +251,23 @@ export function ProductDashboard({ product, isDetailedView = false }: {
                 {mainImage && (
                   <Image 
                     src={mainImage}
-                    alt={product.title}
+                    alt={displayProduct.title}
                     fill
                     className="object-cover"
                   />
                 )}
               </div>
               <div className="col-span-2">
-                <h2 className="font-medium text-lg mb-2">{product.title}</h2>
+                <h2 className="font-medium text-lg mb-2">{displayProduct.title}</h2>
                 <div className="flex flex-wrap gap-2 mb-3">
-                  {product.categories && product.categories.map((category, idx) => (
+                  {displayProduct.categories && displayProduct.categories.map((category, idx) => (
                     <Badge key={idx} variant="secondary" className="rounded-full">
                       {category}
                     </Badge>
                   ))}
                 </div>
                 <p className="text-gray-600 text-sm mb-4 line-clamp-3">
-                  {product.description || "No description available"}
+                  {displayProduct.description}
                 </p>
                 
                 <div className="grid grid-cols-2 gap-4">
@@ -231,24 +276,24 @@ export function ProductDashboard({ product, isDetailedView = false }: {
                       <Tag className="w-4 h-4 mr-2 text-gray-500" />
                       <span className="text-gray-600">Status:</span>
                       <span className={`ml-2 px-2 py-1 text-xs rounded-full ${
-                        product.status === "Published" 
+                        displayProduct.status === "Published" 
                           ? "bg-green-50 text-green-700"
                           : "bg-gray-100 text-gray-700"
                       }`}>
-                        {product.status}
+                        {displayProduct.status}
                       </span>
                     </div>
                     
                     <div className="flex items-center text-sm">
                       <DollarSign className="w-4 h-4 mr-2 text-gray-500" />
                       <span className="text-gray-600">Price:</span>
-                      <span className="ml-2 font-medium">{product.price}</span>
+                      <span className="ml-2 font-medium">{displayProduct.price}</span>
                     </div>
                     
                     <div className="flex items-center text-sm">
                       <Clock className="w-4 h-4 mr-2 text-gray-500" />
                       <span className="text-gray-600">Last updated:</span>
-                      <span className="ml-2">{product.lastUpdated}</span>
+                      <span className="ml-2">{displayProduct.lastUpdated}</span>
                     </div>
                   </div>
                   
@@ -256,20 +301,20 @@ export function ProductDashboard({ product, isDetailedView = false }: {
                     <div className="flex items-center text-sm">
                       <ShoppingCart className="w-4 h-4 mr-2 text-gray-500" />
                       <span className="text-gray-600">Sales:</span>
-                      <span className="ml-2">{product.sales} units</span>
+                      <span className="ml-2">{displayProduct.sales} units</span>
                     </div>
                     
                     <div className="flex items-center text-sm">
                       <Users className="w-4 h-4 mr-2 text-gray-500" />
                       <span className="text-gray-600">Views:</span>
-                      <span className="ml-2">{product.viewCount || 0}</span>
+                      <span className="ml-2">{displayProduct.viewCount || 0}</span>
                     </div>
                     
                     <div className="flex items-center text-sm">
                       <Link className="w-4 h-4 mr-2 text-gray-500" />
                       <span className="text-gray-600">URL:</span>
                       <span className="ml-2 text-blue-600">
-                        {product.slug && `/products/${product.slug.substring(0, 15)}...`}
+                        {displayProduct.slug && `/products/${displayProduct.slug.substring(0, 15)}...`}
                       </span>
                     </div>
                   </div>
@@ -290,7 +335,7 @@ export function ProductDashboard({ product, isDetailedView = false }: {
                   <div className="flex items-center">
                     <DollarSign className="w-5 h-5 mr-2 text-green-500" />
                     <div className="text-2xl font-bold">
-                      ${(parseFloat(product.price.replace('$', '')) * product.sales).toFixed(2)}
+                      ${(parseFloat(displayProduct.price.replace('$', '')) * displayProduct.sales).toFixed(2)}
                     </div>
                   </div>
                   <p className="text-xs text-gray-500 mt-2">
@@ -307,7 +352,7 @@ export function ProductDashboard({ product, isDetailedView = false }: {
                   <div className="flex items-center">
                     <TrendingUp className="w-5 h-5 mr-2 text-blue-500" />
                     <div className="text-2xl font-bold">
-                      {product.conversionRate || '3.2%'}
+                      {displayProduct.conversionRate || '3.2%'}
                     </div>
                   </div>
                   <p className="text-xs text-gray-500 mt-2">
@@ -324,7 +369,7 @@ export function ProductDashboard({ product, isDetailedView = false }: {
                   <div className="flex items-center">
                     <ShoppingCart className="w-5 h-5 mr-2 text-purple-500" />
                     <div className="text-2xl font-bold">
-                      {product.price}
+                      {displayProduct.price}
                     </div>
                   </div>
                   <p className="text-xs text-gray-500 mt-2">
@@ -340,9 +385,9 @@ export function ProductDashboard({ product, isDetailedView = false }: {
             <div className="grid grid-cols-2 gap-6">
               <div className="bg-white p-6 rounded-lg border shadow-sm">
                 <h3 className="font-medium text-lg mb-4">Recent Orders</h3>
-                {product.orders && product.orders.length > 0 ? (
+                {displayProduct.orders && displayProduct.orders.length > 0 ? (
                   <div className="space-y-4">
-                    {product.orders.slice(0, 5).map((order, idx) => (
+                    {displayProduct.orders.slice(0, 5).map((order, idx) => (
                       <div key={idx} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
                         <div className="flex items-center">
                           <Avatar className="h-8 w-8">
@@ -388,7 +433,7 @@ export function ProductDashboard({ product, isDetailedView = false }: {
                     </div>
                     <div>
                       <p className="text-sm">New purchase</p>
-                      <p className="text-xs text-gray-500">{product.lastPurchase || '3 hours ago'}</p>
+                      <p className="text-xs text-gray-500">{displayProduct.lastPurchase || '3 hours ago'}</p>
                     </div>
                   </div>
                   
@@ -398,7 +443,7 @@ export function ProductDashboard({ product, isDetailedView = false }: {
                     </div>
                     <div>
                       <p className="text-sm">Product updated</p>
-                      <p className="text-xs text-gray-500">{product.lastUpdated}</p>
+                      <p className="text-xs text-gray-500">{displayProduct.lastUpdated}</p>
                     </div>
                   </div>
                 </div>
@@ -427,12 +472,12 @@ export function ProductDashboard({ product, isDetailedView = false }: {
               <div className="grid grid-cols-3 gap-4">
                 <div className="bg-gray-50 p-4 rounded-lg">
                   <p className="text-sm text-gray-500">Total Sales</p>
-                  <p className="text-2xl font-bold">{product.sales}</p>
+                  <p className="text-2xl font-bold">{displayProduct.sales}</p>
                 </div>
                 <div className="bg-gray-50 p-4 rounded-lg">
                   <p className="text-sm text-gray-500">Total Revenue</p>
                   <p className="text-2xl font-bold">
-                    ${(parseFloat(product.price.replace('$', '')) * product.sales).toFixed(2)}
+                    ${(parseFloat(displayProduct.price.replace('$', '')) * displayProduct.sales).toFixed(2)}
                   </p>
                 </div>
                 <div className="bg-gray-50 p-4 rounded-lg">
@@ -445,12 +490,12 @@ export function ProductDashboard({ product, isDetailedView = false }: {
             <TabsContent value="images" className="bg-white p-6 rounded-lg border shadow-sm">
               <h3 className="font-medium mb-4">Images</h3>
               <div className="grid grid-cols-4 gap-4">
-                {product.images && product.images.length > 0 ? (
-                  product.images.map((image) => (
+                {displayProduct.images && displayProduct.images.length > 0 ? (
+                  displayProduct.images.map((image) => (
                     <div key={image.id} className="relative aspect-square rounded-md overflow-hidden border">
                       <Image 
                         src={image.url}
-                        alt={product.title}
+                        alt={displayProduct.title}
                         fill
                         className="object-cover"
                       />
@@ -475,14 +520,14 @@ export function ProductDashboard({ product, isDetailedView = false }: {
               <div className="space-y-4">
                 <div>
                   <h4 className="text-sm font-medium text-gray-500">Description</h4>
-                  <p className="mt-1">{product.description || "No description available"}</p>
+                  <p className="mt-1">{displayProduct.description}</p>
                 </div>
                 
                 <div>
                   <h4 className="text-sm font-medium text-gray-500">Categories</h4>
                   <div className="mt-1 flex flex-wrap gap-2">
-                    {product.categories && product.categories.length > 0 ? (
-                      product.categories.map((category, idx) => (
+                    {displayProduct.categories && displayProduct.categories.length > 0 ? (
+                      displayProduct.categories.map((category, idx) => (
                         <span key={idx} className="px-2 py-1 bg-gray-100 text-gray-800 text-xs rounded-full">
                           {category}
                         </span>
@@ -497,18 +542,18 @@ export function ProductDashboard({ product, isDetailedView = false }: {
                   <>
                     <div>
                       <h4 className="text-sm font-medium text-gray-500">Download URL</h4>
-                      <p className="mt-1 text-blue-600 break-all">{product.downloadUrl || "No download URL available"}</p>
+                      <p className="mt-1 text-blue-600 break-all">{displayProduct.downloadUrl || "No download URL available"}</p>
                     </div>
                     
                     <div className="grid grid-cols-2 gap-4">
                       <div>
                         <h4 className="text-sm font-medium text-gray-500">Access Duration</h4>
-                        <p className="mt-1">{product.accessDuration ? `${product.accessDuration} days` : "Unlimited"}</p>
+                        <p className="mt-1">{displayProduct.accessDuration ? `${displayProduct.accessDuration} days` : "Unlimited"}</p>
                       </div>
                       
                       <div>
                         <h4 className="text-sm font-medium text-gray-500">Download Limit</h4>
-                        <p className="mt-1">{product.downloadLimit || "Unlimited"}</p>
+                        <p className="mt-1">{displayProduct.downloadLimit || "Unlimited"}</p>
                       </div>
                     </div>
                     
@@ -516,16 +561,16 @@ export function ProductDashboard({ product, isDetailedView = false }: {
                       <h4 className="text-sm font-medium text-gray-500">Created By</h4>
                       <div className="flex items-center space-x-2">
                         <Avatar className="h-8 w-8">
-                          <AvatarImage src={product.createdBy?.image || ''} alt="Creator" />
+                          <AvatarImage src={displayProduct.createdBy?.image || ''} alt="Creator" />
                           <AvatarFallback>
-                            {getInitials(product.createdBy?.firstName, product.createdBy?.lastName)}
+                            {getInitials(displayProduct.createdBy?.firstName, displayProduct.createdBy?.lastName)}
                           </AvatarFallback>
                         </Avatar>
                         <div>
                           <p className="text-sm font-medium">
-                            {product.createdBy ? `${product.createdBy.firstName} ${product.createdBy.lastName}` : 'Unknown'}
+                            {displayProduct.createdBy ? `${displayProduct.createdBy.firstName} ${displayProduct.createdBy.lastName}` : 'Unknown'}
                           </p>
-                          <p className="text-xs text-gray-500">{product.createdBy?.email}</p>
+                          <p className="text-xs text-gray-500">{displayProduct.createdBy?.email}</p>
                         </div>
                       </div>
                     </div>
@@ -537,9 +582,9 @@ export function ProductDashboard({ product, isDetailedView = false }: {
             <TabsContent value="related" className="bg-white p-6 rounded-lg border shadow-sm">
               <h3 className="font-medium mb-4">Related Products</h3>
               
-              {product.relatedProducts && product.relatedProducts.length > 0 ? (
+              {displayProduct.relatedProducts && displayProduct.relatedProducts.length > 0 ? (
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                  {product.relatedProducts.map((relatedProduct, idx) => (
+                  {displayProduct.relatedProducts.map((relatedProduct, idx) => (
                     <div key={idx} className="border rounded-lg overflow-hidden">
                       <div className="aspect-video relative">
                         {relatedProduct.image ? (
@@ -612,21 +657,21 @@ export function ProductDashboard({ product, isDetailedView = false }: {
             <div className="space-y-4">
               <div>
                 <p className="text-sm text-gray-500">Views</p>
-                <p className="text-lg font-medium">{product.viewCount || "0"}</p>
+                <p className="text-lg font-medium">{displayProduct.viewCount || "0"}</p>
               </div>
               <div>
                 <p className="text-sm text-gray-500">Conversion Rate</p>
-                <p className="text-lg font-medium">{product.conversionRate || "0%"}</p>
+                <p className="text-lg font-medium">{displayProduct.conversionRate || "0%"}</p>
               </div>
               <div>
                 <p className="text-sm text-gray-500">Total Revenue</p>
                 <p className="text-lg font-medium">
-                  ${(parseFloat(product.price.replace('$', '')) * product.sales).toFixed(2)}
+                  ${(parseFloat(displayProduct.price.replace('$', '')) * displayProduct.sales).toFixed(2)}
                 </p>
               </div>
               <div>
                 <p className="text-sm text-gray-500">Last Purchase</p>
-                <p className="text-lg font-medium">{product.lastPurchase || "Never"}</p>
+                <p className="text-lg font-medium">{displayProduct.lastPurchase || "Never"}</p>
               </div>
             </div>
           </div>

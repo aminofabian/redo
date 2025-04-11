@@ -39,6 +39,8 @@ interface Product {
   description?: string;
   images: { id: string; url: string; isPrimary: boolean; }[];
   categories: string[];
+  slug?: string;
+  viewCount?: number;
 }
 
 interface User {
@@ -47,6 +49,16 @@ interface User {
   email: string;
   image?: string;
   role: string;
+}
+
+// Keep the function definition
+function generateSlug(title: string): string {
+  return title
+    .toLowerCase()
+    .replace(/[^\w\s-]/g, '') // Remove special characters
+    .replace(/\s+/g, '-')     // Replace spaces with hyphens
+    .replace(/-+/g, '-')      // Replace multiple hyphens with single hyphen
+    .trim();                  // Trim leading/trailing spaces
 }
 
 export default function AdminSidebar() {
@@ -134,6 +146,12 @@ export default function AdminSidebar() {
   // Then create mainMenuItems inside the component using the state
   const mainMenuItems = [
     {
+      title: "Overview",
+      icon: LayoutGrid,
+      href: "/admin",
+      badge: "",
+    },
+    {
       title: "Products",
       icon: Package,
       href: "/admin/products",
@@ -144,12 +162,6 @@ export default function AdminSidebar() {
         { title: "Practice Tests", count: productCounts.practiceTests },
         { title: "Video Courses", count: productCounts.videoCourses },
       ]
-    },
-    {
-      title: "Overview",
-      icon: LayoutGrid,
-      href: "/admin",
-      badge: "",
     },
     {
       title: "Users",
@@ -209,10 +221,21 @@ export default function AdminSidebar() {
     setError(null);
     
     try {
+      // First try the real API
       const response = await fetch(`/api/products?search=${encodeURIComponent(searchTerm)}`);
       
       if (!response.ok) {
-        throw new Error('Failed to fetch products');
+        // If real API fails, use mock API
+        console.log("Using mock product data");
+        const mockResponse = await fetch(`/api/mock/products?search=${encodeURIComponent(searchTerm)}`);
+        
+        if (!mockResponse.ok) {
+          throw new Error('Failed to fetch products');
+        }
+        
+        const mockData = await mockResponse.json();
+        setProducts(mockData);
+        return;
       }
       
       const data = await response.json();
@@ -222,6 +245,68 @@ export default function AdminSidebar() {
       setError('Could not load products. Please try again.');
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  // Update the fetchProductDetails function
+  const fetchProductDetails = async (productId: string | number) => {
+    try {
+      // Ensure we're working with a string ID for the URL
+      const idString = productId.toString();
+      
+      // Try the mock API first for development
+      const mockResponse = await fetch(`/api/mock/products/${idString}`);
+      
+      if (mockResponse.ok) {
+        console.log("Using mock product details");
+        return await mockResponse.json();
+      }
+      
+      // If mock fails, try the real API
+      const response = await fetch(`/api/products/${idString}`);
+      
+      if (!response.ok) {
+        throw new Error(`Failed to fetch product details: ${await response.text()}`);
+      }
+      
+      return await response.json();
+    } catch (err) {
+      console.error('Error fetching product details:', err);
+      // Return a minimal product object to avoid UI errors
+      return {
+        id: productId.toString(),
+        title: "Product Details Unavailable",
+        description: "Could not load product details. Please try again later.",
+        status: "Unknown",
+        price: "$0.00",
+        lastUpdated: "Unknown",
+        sales: 0,
+        slug: "unknown",
+        images: [],
+        categories: []
+      };
+    }
+  };
+
+  // Update the product selection handler with better error handling
+  const handleProductSelect = async (product: Product) => {
+    try {
+      // First set the basic product info to show something immediately
+      setSelectedItem({
+        ...product,
+        slug: product.slug || generateSlug(product.title),
+        viewCount: product.viewCount || 0,
+      });
+      
+      // Then fetch the full product details
+      const detailedProduct = await fetchProductDetails(product.id);
+      if (detailedProduct) {
+        // Update with the complete product details
+        setSelectedItem(detailedProduct);
+      }
+    } catch (error) {
+      console.error("Error selecting product:", error);
+      // Keep the basic product info displayed
     }
   };
 
@@ -364,7 +449,7 @@ export default function AdminSidebar() {
                     products.map((product) => (
                       <button
                         key={product.id}
-                        onClick={() => setSelectedItem(product)}
+                        onClick={() => handleProductSelect(product)}
                         className={cn(
                           "w-full p-3 rounded-lg text-left",
                           "transition-colors duration-200",

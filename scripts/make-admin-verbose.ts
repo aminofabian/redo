@@ -34,7 +34,11 @@ async function main() {
       where: { email },
     });
     
-    console.log(`Verification: User now has role: ${verifiedUser.role}`);
+    if (verifiedUser) {
+      console.log(`Verification: User now has role: ${verifiedUser?.role}`);
+    } else {
+      console.log(`Verification failed: User no longer exists`);
+    }
   } catch (error) {
     console.error(`Error updating user ${email}:`, error);
   } finally {
