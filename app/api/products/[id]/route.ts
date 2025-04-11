@@ -1,17 +1,42 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { db } from '@/lib/db';
-import { auth } from '@/lib/auth';
-import { Session } from "next-auth";
+import db from '@/lib/db';
 
-// At the top of the file, add these type definitions
-interface UserSession {
-  user: {
+type Image = {
+  id: string;
+  url: string;
+  isPrimary: boolean;
+}
+
+type Purchase = {
+  id: string;
+  userId: string;
+  amount: number;
+  createdAt: Date;
+}
+
+type ProductWithRelations = {
+  id: number;
+  title: string;
+  description: string | null;
+  slug: string | null;
+  price: number;
+  finalPrice: number;
+  purchaseCount: number;
+  viewCount: number;
+  isPublished: boolean;
+  updatedAt: Date;
+  downloadUrl: string | null;
+  accessDuration: number | null;
+  downloadLimit: number | null;
+  images: Image[];
+  categories: { category: { name: string } }[];
+  purchases: Purchase[];
+  createdBy?: {
     id: string;
+    name: string | null;
     email: string;
-    role: string;
-    name?: string;
+    image: string | null;
   };
-  expires: string;
 }
 
 export async function GET(
@@ -68,13 +93,13 @@ export async function GET(
       lastUpdated: formatDate(product.updatedAt),
       sales: product.purchaseCount || 0,
       slug: product.slug,
-      images: product.images.map(img => ({
+      images: product.images.map((img: Image) => ({
         id: img.id,
         url: img.url,
         isPrimary: img.isPrimary
       })),
-      categories: product.categories.map(pc => pc.category.name),
-      orders: product.purchases.map(purchase => ({
+      categories: product.categories.map((pc: { category: { name: string } }) => pc.category.name),
+      orders: product.purchases.map((purchase: Purchase) => ({
         order: {
           id: purchase.id,
           userId: purchase.userId,
@@ -96,7 +121,7 @@ export async function GET(
         ? `${((product.purchaseCount / Math.max(1, product.viewCount)) * 100).toFixed(1)}%` 
         : "0%",
       lastPurchase: product.purchases.length > 0 
-        ? formatDate(product.purchases.sort((a, b) => 
+        ? formatDate(product.purchases.sort((a: Purchase, b: Purchase) => 
             b.createdAt.getTime() - a.createdAt.getTime())[0].createdAt) 
         : "Never"
     };
