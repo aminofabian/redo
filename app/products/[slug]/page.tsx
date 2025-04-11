@@ -121,31 +121,31 @@ async function getRelatedProducts(productId: number, categoryIds: string[], limi
 function serializeProduct(product: Product): SerializableProduct {
   return {
     ...product,
-    price: product.price.toNumber(),
-    finalPrice: product.finalPrice.toNumber(),
+    price: product.price?.toNumber() ?? 0,
+    finalPrice: product.finalPrice?.toNumber() ?? 0,
     discountAmount: product.discountAmount?.toNumber() ?? null,
-    createdAt: product.createdAt.toISOString(),
-    updatedAt: product.updatedAt.toISOString(),
-    images: product.images.map(img => ({
+    createdAt: product.createdAt?.toISOString() ?? new Date().toISOString(),
+    updatedAt: product.updatedAt?.toISOString() ?? new Date().toISOString(),
+    images: product.images?.map(img => ({
       id: img.id,
       url: img.url,
       isPrimary: img.isPrimary
-    })),
-    categories: product.categories.map(cat => ({
+    })) ?? [],
+    categories: product.categories?.map(cat => ({
       category: {
         id: cat.category.id,
         name: cat.category.name,
         parentId: cat.category.parentId
       }
-    })),
-    reviews: product.reviews.map(review => ({
+    })) ?? [],
+    reviews: product.reviews?.map(review => ({
       rating: review.rating,
       user: {
-        firstName: review.user.firstName,
-        lastName: review.user.lastName,
-        image: review.user.image
+        firstName: review.user?.firstName ?? null,
+        lastName: review.user?.lastName ?? null,
+        image: review.user?.image ?? null
       }
-    }))
+    })) ?? []
   };
 }
 
