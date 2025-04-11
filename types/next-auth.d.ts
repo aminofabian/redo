@@ -1,3 +1,5 @@
+import { DefaultSession } from "next-auth";
+
 type UserRole = "ADMIN" | "USER" | "VERIFIED_USER";
 
 declare module "next-auth" {
@@ -9,7 +11,12 @@ declare module "next-auth" {
   }
 
   interface Session {
-    user: User;
+    user: {
+      id: string;
+      email: string;
+      name?: string | null;
+      role: UserRole;
+    } & DefaultSession["user"];
     expires: string;
   }
 }
