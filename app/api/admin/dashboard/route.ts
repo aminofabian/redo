@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import db  from '@/lib/db';
+import prismadb from '@/lib/db';
 import { auth } from '@/lib/auth';
 
 type Order = {
@@ -41,10 +41,10 @@ export async function GET(request: NextRequest) {
     oneMonthAgo.setMonth(now.getMonth() - 1);
     
     // Get total products count
-    const totalProducts = await db.product.count();
+    const totalProducts = await prismadb.product.count();
     
     // Get products created in the last week
-    const newProductsThisWeek = await db.product.count({
+    const newProductsThisWeek = await prismadb.product.count({
       where: {
         createdAt: {
           gte: oneWeekAgo
@@ -53,10 +53,10 @@ export async function GET(request: NextRequest) {
     });
     
     // Get total users count
-    const totalUsers = await db.user.count();
+    const totalUsers = await prismadb.user.count();
     
     // Get users registered in the last month
-    const newUsersThisMonth = await db.user.count({
+    const newUsersThisMonth = await prismadb.user.count({
       where: {
         createdAt: {
           gte: oneMonthAgo
@@ -65,7 +65,7 @@ export async function GET(request: NextRequest) {
     });
     
     // Get total sales amount
-    const orders: Order[] = await db.order.findMany({
+    const orders: Order[] = await prismadb.order.findMany({
       select: {
         totalAmount: true,
         createdAt: true
@@ -131,7 +131,7 @@ export async function GET(request: NextRequest) {
 
 async function getRecentActivity() {
   // Get recent orders
-  const recentOrders = await db.order.findMany({
+  const recentOrders = await prismadb.order.findMany({
     take: 5,
     orderBy: {
       createdAt: 'desc'
@@ -157,7 +157,7 @@ async function getRecentActivity() {
   });
   
   // Get recent user registrations
-  const recentRegistrations = await db.user.findMany({
+  const recentRegistrations = await prismadb.user.findMany({
     take: 5,
     orderBy: {
       createdAt: 'desc'
@@ -171,7 +171,7 @@ async function getRecentActivity() {
   });
   
   // Get recent reviews
-  const recentReviews = await db.review.findMany({
+  const recentReviews = await prismadb.review.findMany({
     take: 5,
     orderBy: {
       createdAt: 'desc'
