@@ -7,12 +7,6 @@
     }
   ],
   "regions": ["iad1"],
-  "functions": {
-    "app/api/**/*": {
-      "memory": 1024,
-      "maxDuration": 10
-    }
-  },
   "headers": [
     {
       "source": "/(.*)",
