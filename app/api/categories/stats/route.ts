@@ -1,5 +1,15 @@
 import { NextResponse } from "next/server";
 import prisma from "@/lib/db";
+import type { PrismaClient } from "@prisma/client";
+
+type Category = Awaited<ReturnType<PrismaClient['category']['findFirst']>>
+type Product = Awaited<ReturnType<PrismaClient['product']['findFirst']>>
+type ProductImage = Awaited<ReturnType<PrismaClient['productImage']['findFirst']>>
+
+type CategoryWithProducts = Category & {
+  products?: Product[];
+  images?: ProductImage[];
+}
 
 export const revalidate = 3600; // Revalidate once per hour
 
@@ -8,7 +18,7 @@ export async function GET() {
     // Alternative approach using separate count queries
     const categories = await prisma.category.findMany();
     const categoryCounts = await Promise.all(
-      categories.map(category => 
+      categories.map((category: Category) => 
         prisma.product.count({
           where: {
             categories: {
@@ -26,7 +36,7 @@ export async function GET() {
 
     // Get popular products per category (top seller in each category)
     const categoryStats = await Promise.all(
-      categories.map(async (category, index) => {
+      categories.map(async (category: Category, index: number) => {
         // Find products in this category
         const productsInCategory = await prisma.product.findMany({
           where: {
@@ -63,7 +73,7 @@ export async function GET() {
         });
 
         const topSeller = productsInCategory[0] || null;
-        const topSellerImage = topSeller?.images.find(img => img.isPrimary)?.url || 
+        const topSellerImage = topSeller?.images.find((img: ProductImage) => img.isPrimary)?.url || 
                               (topSeller?.images[0]?.url || "/placeholder-image.jpg");
 
         return {

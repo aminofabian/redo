@@ -18,6 +18,22 @@ const categoryImages = [
   '/categories/alexander-grey-eMP4sYPJ9x0-unsplash.jpg'
 ];
 
+type CategoryWithProducts = {
+  id: string;
+  name: string;
+  slug: string | null;
+  description: string | null;
+  _count: {
+    products: number;
+  };
+  products: {
+    product: {
+      price: number;
+      purchaseCount: number;
+    };
+  }[];
+}
+
 export async function getCategories() {
   const categories = await prisma.category.findMany({
     select: {
@@ -43,14 +59,15 @@ export async function getCategories() {
 
   // Debug logging
   console.log("Available image mappings:", categoryImages);
-  console.log("Database category slugs:", categories.map(c => c.slug));
+  console.log("Database category slugs:", categories.map((c: CategoryWithProducts) => c.slug));
 
-  return categories.map((category, index) => {
-    const prices = category.products.map(p => Number(p.product.price));
+  return categories.map((category: CategoryWithProducts, index: number) => {
+    const prices = category.products.map((p: { product: { price: number } }) => Number(p.product.price));
     const avgPrice = prices.length > 0 
-      ? prices.reduce((a, b) => a + b, 0) / prices.length 
+      ? prices.reduce((a: number, b: number) => a + b, 0) / prices.length 
       : 0;
-    const studentCount = category.products.reduce((sum, p) => sum + (p.product.purchaseCount || 0), 0);
+    const studentCount = category.products.reduce((sum: number, p: { product: { purchaseCount: number } }) => 
+      sum + (p.product.purchaseCount || 0), 0);
 
     console.log(`Category "${category.slug}" mapped to image: "${categoryImages[index % categoryImages.length]}"`);
 

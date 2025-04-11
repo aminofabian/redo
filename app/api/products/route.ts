@@ -2,6 +2,30 @@ import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/db';
 import { withAuth } from "@/auth";
 
+type Image = {
+  id: string;
+  url: string;
+  isPrimary: boolean;
+}
+
+type Category = {
+  category: {
+    name: string;
+  }
+}
+
+type ProductWithRelations = {
+  id: number;
+  title: string;
+  description: string | null;
+  isPublished: boolean;
+  updatedAt: Date;
+  price: number;
+  purchaseCount: number;
+  images: Image[];
+  categories: Category[];
+}
+
 export async function POST(request: NextRequest) {
   try {
     return withAuth(request, async (req, session) => {
@@ -134,7 +158,7 @@ export async function GET(request: NextRequest) {
       });
       
       // Transform for easier frontend use
-      const formattedProducts = products.map(product => ({
+      const formattedProducts = products.map((product: ProductWithRelations) => ({
         id: product.id,
         title: product.title,
         description: product.description,
@@ -142,12 +166,12 @@ export async function GET(request: NextRequest) {
         lastUpdated: formatDate(product.updatedAt),
         price: formatPrice(product.price),
         sales: product.purchaseCount,
-        images: product.images.map(img => ({
+        images: product.images.map((img) => ({
           id: img.id,
           url: img.url,
           isPrimary: img.isPrimary
         })),
-        categories: product.categories.map(c => c.category.name)
+        categories: product.categories.map((c) => c.category.name)
       }));
       
       return NextResponse.json(formattedProducts);

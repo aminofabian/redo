@@ -1,6 +1,30 @@
 import { NextResponse } from "next/server";
 import prisma from "@/lib/db";
 
+type Review = {
+  rating: number;
+  user: {
+    firstName: string | null;
+    lastName: string | null;
+    image: string | null;
+  };
+}
+
+type FeaturedProduct = {
+  id: number;
+  title: string;
+  slug: string | null;
+  price: number;
+  finalPrice: number;
+  discountPercent: number | null;
+  description: string | null;
+  accessDuration: number | null;
+  viewCount: number;
+  images: { url: string; isPrimary: boolean; }[];
+  categories: { category: { name: string; }; }[];
+  reviews: Review[];
+}
+
 // Add caching to prevent request flooding
 export const revalidate = 3600; // Revalidate once per hour
 
@@ -70,9 +94,9 @@ export async function GET() {
     }
 
     // Transform the data to match the expected format
-    const resources = products.map(product => {
+    const resources = products.map((product: FeaturedProduct) => {
       // Find primary image or use the first one
-      const primaryImage = product.images.find(img => img.isPrimary) || product.images[0];
+      const primaryImage = product.images.find((img: { isPrimary: boolean }) => img.isPrimary) || product.images[0];
       
       // Calculate average rating
       const totalRating = product.reviews.reduce((sum, review) => sum + review.rating, 0);

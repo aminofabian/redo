@@ -1,10 +1,17 @@
 import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/auth";
+import { Session } from "next-auth";
+
+type CustomSession = Session & {
+  user?: {
+    role?: string;
+  }
+}
 
 export async function GET() {
   try {
-    const session = await getServerSession(authOptions);
+    const session = await getServerSession(authOptions) as CustomSession;
     
     if (!session) {
       return NextResponse.json({ error: "Not authenticated" }, { status: 401 });

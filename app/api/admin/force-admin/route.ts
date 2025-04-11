@@ -1,7 +1,6 @@
 import { NextResponse } from "next/server";
-import { PrismaClient, UserRole } from "@prisma/client";
-
-const prisma = new PrismaClient();
+import { PrismaClient } from "@prisma/client";
+import db from "@/lib/db";
 
 export async function POST(req: Request) {
   try {
@@ -22,7 +21,7 @@ export async function POST(req: Request) {
     }
     
     // Check if user exists
-    const user = await prisma.user.findUnique({
+    const user = await db.user.findUnique({
       where: { email },
     });
     
@@ -34,9 +33,9 @@ export async function POST(req: Request) {
     }
     
     // Update user to ADMIN role
-    const updatedUser = await prisma.user.update({
+    const updatedUser = await db.user.update({
       where: { email },
-      data: { role: UserRole.ADMIN },
+      data: { role: "ADMIN" },
       select: { id: true, email: true, role: true }
     });
     
@@ -52,6 +51,6 @@ export async function POST(req: Request) {
       { status: 500 }
     );
   } finally {
-    await prisma.$disconnect();
+    await db.$disconnect();
   }
 } 

@@ -1,6 +1,28 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { db } from '@/lib/db';
+import db  from '@/lib/db';
 import { auth } from '@/lib/auth';
+
+type Order = {
+  id: string;
+  totalAmount: number;
+  createdAt: Date;
+  user: { id: string; name: string; image: string };
+  items: { product: { title: string } }[];
+}
+
+type User = {
+  id: string;
+  name: string;
+  image: string;
+  createdAt: Date;
+}
+
+type Review = {
+  id: string;
+  user: { id: string; name: string; image: string };
+  product: { title: string };
+  createdAt: Date;
+}
 
 export async function GET(request: NextRequest) {
   try {
@@ -43,18 +65,18 @@ export async function GET(request: NextRequest) {
     });
     
     // Get total sales amount
-    const orders = await db.order.findMany({
+    const orders: Order[] = await db.order.findMany({
       select: {
         totalAmount: true,
         createdAt: true
       }
     });
     
-    const totalSales = orders.reduce((sum, order) => sum + Number(order.totalAmount), 0);
+    const totalSales = orders.reduce((sum: number, order: Order) => sum + Number(order.totalAmount), 0);
     
     // Get sales from last month
-    const lastMonthOrders = orders.filter(order => order.createdAt >= oneMonthAgo);
-    const lastMonthSales = lastMonthOrders.reduce((sum, order) => sum + Number(order.totalAmount), 0);
+    const lastMonthOrders = orders.filter((order: Order) => order.createdAt >= oneMonthAgo);
+    const lastMonthSales = lastMonthOrders.reduce((sum: number, order: Order) => sum + Number(order.totalAmount), 0);
     
     // Get sales from two months ago for comparison
     const twoMonthsAgo = new Date(oneMonthAgo);
@@ -172,14 +194,14 @@ async function getRecentActivity() {
   
   // Combine and sort all activities
   const allActivities = [
-    ...recentOrders.map(order => ({
+    ...recentOrders.map((order: Order) => ({
       type: 'purchase',
       user: order.user,
       productName: order.items[0]?.product.title || 'a product',
       timestamp: order.createdAt,
       id: `order-${order.id}`
     })),
-    ...recentRegistrations.map(user => ({
+    ...recentRegistrations.map((user: User) => ({
       type: 'registration',
       user: {
         id: user.id,
@@ -189,7 +211,7 @@ async function getRecentActivity() {
       timestamp: user.createdAt,
       id: `reg-${user.id}`
     })),
-    ...recentReviews.map(review => ({
+    ...recentReviews.map((review: Review) => ({
       type: 'review',
       user: review.user,
       productName: review.product.title,

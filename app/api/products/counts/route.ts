@@ -2,6 +2,20 @@ import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/db';
 import { auth } from '@/lib/auth';
 
+type CategoryWithCount = {
+  id: string;
+  name: string;
+  _count: {
+    products: number;
+  };
+}
+
+type CategoryCount = {
+  id: string;
+  name: string;
+  count: number;
+}
+
 export async function GET(request: NextRequest) {
   try {
     const session = await auth();
@@ -24,16 +38,16 @@ export async function GET(request: NextRequest) {
     });
     
     // Format the counts
-    const categoryCounts = categories.map(category => ({
+    const categoryCounts = categories.map((category: CategoryWithCount): CategoryCount => ({
       id: category.id,
       name: category.name,
       count: category._count.products
     }));
     
     // Find specific category counts
-    const studyGuides = categoryCounts.find(c => c.name.toLowerCase() === 'study guides')?.count || 0;
-    const practiceTests = categoryCounts.find(c => c.name.toLowerCase() === 'practice tests')?.count || 0;
-    const videoCourses = categoryCounts.find(c => c.name.toLowerCase() === 'video courses')?.count || 0;
+    const studyGuides = categoryCounts.find((c: CategoryCount) => c.name.toLowerCase() === 'study guides')?.count || 0;
+    const practiceTests = categoryCounts.find((c: CategoryCount) => c.name.toLowerCase() === 'practice tests')?.count || 0;
+    const videoCourses = categoryCounts.find((c: CategoryCount) => c.name.toLowerCase() === 'video courses')?.count || 0;
     
     return NextResponse.json({
       total: totalCount,
