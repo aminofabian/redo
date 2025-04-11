@@ -34,8 +34,10 @@ export type Product = {
   downloadLimit: number | null;
   isPublished: boolean;
   featured: boolean;
+  inStock?: boolean;
   viewCount: number;
   createdAt: Date;
+  updatedAt: Date;
   images: ProductImage[];
   categories: ProductCategory[];
   reviews: ProductReview[];
