@@ -3,13 +3,14 @@ import { PrismaAdapter } from "@auth/prisma-adapter";
 import bcrypt from "bcryptjs";
 import db from "@/lib/db";
 import { getUserByEmail } from "@/data/user";
-import { UserRole } from "@prisma/client";
 import { getServerSession } from "next-auth/next";
 import { authConfig } from "@/lib/auth-config";
 
 // Import correct types
 import type { Session, User } from "next-auth";
 import type { JWT } from "next-auth/jwt";
+
+type UserRole = "USER" | "ADMIN";
 
 // Use inferred typing
 export const authOptions = {
@@ -88,31 +89,14 @@ export const authOptions = {
   debug: process.env.NODE_ENV === "development",
 } as any;
 
-// Type for the session including user id and role
 declare module "next-auth" {
   interface Session {
-    user: {
-      id: string;
-      email: string;
-      name?: string | undefined;
-      role: UserRole;
-    }
-  }
-  
-  interface User {
-    id: string;
-    email: string;
-    name?: string;
-    role: UserRole;
+    user: User
   }
 }
 
 declare module "next-auth/jwt" {
-  interface JWT {
-    id: string;
-    email: string;
-    role: UserRole;
-  }
+  interface JWT extends User {}
 }
 
 // Export a utility function for API routes

@@ -9,15 +9,16 @@ generator client {
 }
 
 datasource db {
-  provider = "postgresql"
-  url      = env("DATABASE_URL")
-    relationMode = "prisma"
-
+  provider     = "postgresql"
+  url          = env("DATABASE_URL")
+  relationMode = "prisma"
 }
+
 enum UserRole {
   USER
   ADMIN
 }
+
 model Session {
   id           String   @id @default(cuid())
   sessionToken String   @unique
