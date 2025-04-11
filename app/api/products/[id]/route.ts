@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import db from '@/lib/db';
+import prismadb from '@/lib/db';
 
 type Image = {
   id: string;
@@ -55,7 +55,7 @@ export async function GET(
     }
     
     // Fetch the product with all its related data
-    const product = await db.product.findUnique({
+    const product = await prismadb.product.findUnique({
       where: { id: productId },
       include: {
         images: true,
