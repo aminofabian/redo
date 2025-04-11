@@ -126,6 +126,26 @@ function serializeProduct(product: Product): SerializableProduct {
     discountAmount: product.discountAmount?.toNumber() ?? null,
     createdAt: product.createdAt.toISOString(),
     updatedAt: product.updatedAt.toISOString(),
+    images: product.images.map(img => ({
+      id: img.id,
+      url: img.url,
+      isPrimary: img.isPrimary
+    })),
+    categories: product.categories.map(cat => ({
+      category: {
+        id: cat.category.id,
+        name: cat.category.name,
+        parentId: cat.category.parentId
+      }
+    })),
+    reviews: product.reviews.map(review => ({
+      rating: review.rating,
+      user: {
+        firstName: review.user.firstName,
+        lastName: review.user.lastName,
+        image: review.user.image
+      }
+    }))
   };
 }
 
