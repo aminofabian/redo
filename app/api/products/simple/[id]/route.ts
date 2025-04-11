@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { db } from '@/lib/db';
+import prismadb from '@/lib/db';
 
 export async function GET(
   request: NextRequest,
@@ -17,7 +17,7 @@ export async function GET(
     }
     
     // Fetch just the basic product data without relations
-    const product = await db.product.findUnique({
+    const product = await prismadb.product.findUnique({
       where: { id: productId },
     });
     
