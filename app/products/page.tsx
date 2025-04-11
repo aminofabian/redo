@@ -3,43 +3,9 @@ import ResourcesClient from "./ResourcesClient";
 import prisma from "@/lib/db";
 import { Skeleton } from "@/components/ui/skeleton";
 import { revalidatePath } from 'next/cache';
-import { Prisma } from "@prisma/client";
+import type { Product } from "@/types/products";
 
-type ProductWithRelations = {
-  id: number;
-  title: string;
-  slug: string | null;
-  description: string | null;
-  price: { toNumber(): number };
-  finalPrice: { toNumber(): number };
-  discountPercent: number | null;
-  discountAmount: { toNumber(): number } | null;
-  accessDuration: number | null;
-  downloadLimit: number | null;
-  isPublished: boolean;
-  featured: boolean;
-  viewCount: number;
-  createdAt: Date;
-  images: {
-    id: string;
-    url: string;
-    isPrimary: boolean;
-  }[];
-  categories: {
-    category: {
-      id: string;
-      name: string;
-    };
-  }[];
-  reviews: {
-    rating: number;
-    user: {
-      firstName: string | null;
-      lastName: string | null;
-      image: string | null;
-    };
-  }[];
-};
+type ProductWithRelations = Product;
 
 // Server component to fetch products
 export default async function ResourcesPage() {

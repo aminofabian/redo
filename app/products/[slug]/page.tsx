@@ -8,38 +8,9 @@ import PackageSelector from './PackageSelector';
 import { CartSidebar } from "@/components/ui/CartSidebar";
 import { Toaster } from "sonner";
 import { AddToPackageButton } from './AddToPackageButton';
+import type { Product } from "@/types/products";
 
-type RelatedProduct = {
-  id: number;
-  title: string;
-  description: string | null;
-  slug: string | null;
-  price: { toNumber(): number };
-  finalPrice: { toNumber(): number };
-  images: {
-    id: string;
-    url: string;
-    isPrimary: boolean;
-  }[];
-  categories: {
-    category: {
-      id: string;
-      name: string;
-      parentId?: string | null;
-    };
-  }[];
-  reviews: {
-    rating: number;
-  }[];
-  createdAt: Date;
-  updatedAt: Date;
-  isPublished: boolean;
-  featured: boolean;
-  inStock: boolean;
-  accessDuration: number | null;
-  downloadLimit: number | null;
-  viewCount: number;
-};
+type RelatedProduct = Product;
 
 type BaseProduct = {
   id: number;
