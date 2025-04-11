@@ -1,26 +1,51 @@
 import { Metadata } from "next";
-import { notFound } from "next/navigation";
 import prisma from "../../../lib/db";
 import { getProductBySlug, getAllProducts, generateProductSlug, extractIdFromSlug } from "../../../lib/products";
 import Image from "next/image";
-import { Button } from "@/components/ui/button";
-import { CalendarIcon, Clock, Download, DollarSign, ShoppingCart, Tag, Users, Package } from "lucide-react";
 import { formatDistanceToNow } from 'date-fns';
-import EditSlugButton from "./EditSlugButton";
 import ProductImageGallery from './ProductImageGallery';
 import PackageSelector from './PackageSelector';
 import { CartSidebar } from "@/components/ui/CartSidebar";
 import { Toaster } from "sonner";
 import { AddToPackageButton } from './AddToPackageButton';
-import { Prisma } from "@prisma/client";
 
-type RelatedProduct = Prisma.ProductGetPayload<{
-  include: {
-    images: true;
-    categories: { include: { category: true } };
-    reviews: true;
-  };
-}>;
+type RelatedProduct = {
+  id: number;
+  title: string;
+  description: string | null;
+  slug: string | null;
+  price: { toNumber(): number };
+  finalPrice: { toNumber(): number };
+  images: {
+    id: string;
+    url: string;
+    isPrimary: boolean;
+  }[];
+  categories: {
+    category: {
+      id: string;
+      name: string;
+      parentId?: string | null;
+    };
+  }[];
+  reviews: {
+    rating: number;
+  }[];
+  createdAt: Date;
+  updatedAt: Date;
+  isPublished: boolean;
+  featured: boolean;
+  inStock: boolean;
+  accessDuration: number | null;
+  downloadLimit: number | null;
+  viewCount: number;
+};
+
+type BaseProduct = {
+  id: number;
+  slug: string | null;
+  category: { id: string; name: string };
+};
 
 export async function generateMetadata({ params }: { params: { slug: string } }): Promise<Metadata> {
   console.log('Fetching metadata for slug:', params.slug);
@@ -49,7 +74,7 @@ export async function generateMetadata({ params }: { params: { slug: string } })
   }
 
   const price = product.finalPrice.toNumber();
-  const categories = product.categories.map(c => c.category.name).join(", ");
+  const categories = product.categories.map((c: { category: { name: string } }) => c.category.name).join(", ");
   
   return {
     title: `${product.title} | RN Student Resources`,
@@ -82,8 +107,7 @@ export async function generateMetadata({ params }: { params: { slug: string } })
 
 export async function generateStaticParams() {
   const products = await getAllProducts();
-  
-  return products.map((product) => ({
+  return products.map((product: BaseProduct) => ({
     slug: generateProductSlug(product),
   }));
 }
@@ -155,7 +179,7 @@ export default async function ProductPage({ params }: { params: { slug: string }
   const timeAgo = formatDistanceToNow(updatedAt, { addSuffix: true });
   
   // Get categories from the product
-  const categories = product.categories?.map(cat => cat.category) || [];
+  const categories = product.categories.map((c: { category: { name: string } }) => c.category.name);
   
   console.log("Product price data:", {
     price: product.price,
@@ -164,7 +188,7 @@ export default async function ProductPage({ params }: { params: { slug: string }
     discountPercent: product.discountPercent
   });
   
-  const categoryIds = categories.map(category => category.id);
+  const categoryIds = categories.map((category: { id: string }) => category.id);
   const relatedProducts = await getRelatedProducts(product.id, categoryIds);
   
   return (
@@ -176,7 +200,7 @@ export default async function ProductPage({ params }: { params: { slug: string }
             <h1 className="text-3xl font-bold mb-4">{product.title}</h1>
             
             <div className="flex flex-wrap gap-2 mb-4">
-              {categories.map(category => (
+              {categories.map((category: { id: string; name: string; parentId?: string }) => (
                 <span key={category.id} className="px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded-full">
                   {category.name}
                 </span>
@@ -304,7 +328,7 @@ export default async function ProductPage({ params }: { params: { slug: string }
             <div className="bg-white p-6 rounded-lg shadow-sm border">
               <h2 className="text-xl font-bold mb-4">Categories</h2>
               <div className="space-y-2">
-                {categories.map(category => (
+                {categories.map((category: { id: string; name: string; parentId?: string }) => (
                   <div key={category.id} className="p-3 border rounded flex justify-between items-center">
                     <span>{category.name}</span>
                     {category.parentId && (
