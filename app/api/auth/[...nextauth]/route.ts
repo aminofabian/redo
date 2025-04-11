@@ -1,7 +1,7 @@
 // Most compatible approach
-import { authOptions } from "@/auth";
 import NextAuth from "next-auth/next";
+import { authOptions } from "@/auth";
 
-// Use type assertion to override readonly constraint
+// Use casting to bypass TypeScript's strict checking
 const handler = NextAuth(authOptions as any);
 export { handler as GET, handler as POST };

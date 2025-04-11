@@ -11,7 +11,7 @@ import { authConfig } from "@/lib/auth-config";
 import type { Session, User } from "next-auth";
 import type { JWT } from "next-auth/jwt";
 
-// Configure your auth providers and options
+// Use inferred typing
 export const authOptions = {
   pages: {
     signIn: '/auth/login',
@@ -19,35 +19,31 @@ export const authOptions = {
   },
   callbacks: {
     async jwt({ token, user }: { token: JWT; user?: User }) {
+      // Enable debug logging
       console.log("JWT callback - user:", user);
       console.log("JWT callback - token before:", token);
       
       if (user) {
         token.id = user.id;
         token.email = user.email;
+        token.name = user.name;
         token.role = user.role;
       }
       
       console.log("JWT callback - token after:", token);
       return token;
     },
-    async session({ session, token }: { session: Session; token: JWT }) {
-      console.log("Session callback - token:", token);
-      console.log("Session callback - session before:", session);
-      
+    session({ session, token }: { session: any; token: JWT }) {
       if (token && session.user) {
-        session.user.id = token.id;
-        session.user.email = token.email;
-        session.user.role = token.role;
+        session.user.id = token.id as string;
+        session.user.email = token.email as string;
+        session.user.name = token.name as string || undefined;
+        session.user.role = token.role as UserRole;
       }
-      
-      console.log("Session callback - session after:", session);
       return session;
     },
     async redirect({ url, baseUrl }: { url: string; baseUrl: string }) {
-      // Allow relative URLs
       if (url.startsWith("/")) return `${baseUrl}${url}`;
-      // Allow same-origin URLs
       else if (new URL(url).origin === baseUrl) return url;
       return baseUrl + "/dashboard";
     }
@@ -59,27 +55,38 @@ export const authOptions = {
         email: { label: "Email", type: "email" },
         password: { label: "Password", type: "password" }
       },
-      async authorize(credentials, request) {
+      async authorize(credentials) {
         if (!credentials?.email || !credentials?.password) {
           return null;
         }
 
-        const user = await getUserByEmail(credentials.email as string);
+        const user = await getUserByEmail(credentials.email);
         if (!user || !user.password) return null;
 
         const passwordMatch = await bcrypt.compare(
-          credentials.password as string,
+          credentials.password,
           user.password
         );
 
         if (!passwordMatch) return null;
+        
+        // Log successful login with role info
+        console.log("User authenticated:", { 
+          id: user.id, 
+          email: user.email, 
+          role: user.role 
+        });
+        
         return user;
       }
     })
   ],
   adapter: PrismaAdapter(db),
-  session: { strategy: "jwt" }
-} as const;
+  session: {
+    strategy: "jwt" as const
+  },
+  debug: process.env.NODE_ENV === "development",
+} as any;
 
 // Type for the session including user id and role
 declare module "next-auth" {
@@ -95,6 +102,7 @@ declare module "next-auth" {
   interface User {
     id: string;
     email: string;
+    name?: string;
     role: UserRole;
   }
 }
@@ -141,7 +149,7 @@ export async function auth() {
   return session;
 }
 
-async function getSession() {
+async function getSession(): Promise<Session | null> {
   // Cast authConfig to any to bypass strict type checking
   return await getServerSession(authConfig as any);
 }
