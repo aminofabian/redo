@@ -14,7 +14,6 @@ export default function AdminLayout({
       <div>
         <DashboardNav />
         <div className="flex pt-[57px]">
-          <AdminSidebar />
           <main className="flex-1 min-h-[calc(100vh-57px)] bg-gray-50 p-3">
             {children}
           </main>

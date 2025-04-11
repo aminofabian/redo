@@ -512,7 +512,9 @@ export default function AdminSidebar() {
                           <Avatar className="h-10 w-10">
                             <AvatarImage src={user.image || ''} />
                             <AvatarFallback>
-                              {user.name.split(' ').map(n => n?.[0] || '').join('').toUpperCase() || 'U'}
+                              {user.name 
+                                ? user.name.split(' ').map(n => n?.[0] || '').join('').toUpperCase() 
+                                : 'U'}
                             </AvatarFallback>
                           </Avatar>
                           <div className="flex-1 min-w-0">

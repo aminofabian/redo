@@ -88,8 +88,18 @@ export function DashboardOverview() {
     );
   }
 
-  if (!data) {
-    return null;
+  if (!data || !data.recentActivity) {
+    return (
+      <div className="p-6 text-center text-amber-500">
+        <p>No dashboard data is available. This could happen if your database is empty.</p>
+        <p className="text-sm text-gray-500 mt-2">
+          Try adding some products and users to see stats here.
+        </p>
+        <Button variant="outline" className="mt-4" onClick={() => window.location.reload()}>
+          Refresh
+        </Button>
+      </div>
+    );
   }
 
   return (

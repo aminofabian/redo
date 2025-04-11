@@ -1,41 +1,57 @@
 "use server";
 import * as z from "zod";
-import { RegisterSchema } from "@/schemas";
-import bcryptjs from "bcryptjs";
+import bcrypt from "bcryptjs";
+import { createUser } from "@/lib/db-adapter";
+import { v4 as uuidv4 } from "uuid";
 import db from "@/lib/db";
+import { RegisterSchema } from "@/schemas";
 import { getUserByEmail } from "@/data/user";
-import { generateVerificationToken } from "@/lib/token";
+import { generateVerificationToken } from "@/lib/tokens";
 import { sendVerificationEmail } from "@/lib/mail";
 
 export const register = async (values: z.infer<typeof RegisterSchema>) => {
   const validatedFields = RegisterSchema.safeParse(values);
 
   if (!validatedFields.success) {
-    return { error: "Invalid fields" };
+    return { error: "Invalid fields!" };
   }
-  const { email, firstName, lastName, password } = validatedFields.data;
-  const hashedPassword = await bcryptjs.hash(password, 10);
 
+  const { email, password, firstName, lastName } = validatedFields.data;
+  
+  const hashedPassword = await bcrypt.hash(password, 10);
+  
+  // Check if user already exists
   const existingUser = await getUserByEmail(email);
-
+  
   if (existingUser) {
-    return {
-      error: "Email already in use",
-    };
+    return { error: "Email already in use!" };
   }
-
-  await db.user.create({
-    data: {
-      email,
+  
+  try {
+    // Use custom function to create user without relying on Prisma defaults
+    const user = await createUser({
+      id: uuidv4(),
+      name: `${firstName} ${lastName}`,
       firstName,
       lastName,
+      email,
       password: hashedPassword,
-      isTwoFactorEnabled: false,
-    },
-  });
-  const verificationToken = await generateVerificationToken(email);
-
-  await sendVerificationEmail(verificationToken.email, verificationToken.token);
-
-  return { success: "Confirmation Email Sent" };
+      role: "USER",
+      isTwoFactorEnabled: false
+    });
+    
+    // Generate verification token
+    const verificationToken = await generateVerificationToken(email);
+    
+    // Send verification email
+    await sendVerificationEmail(
+      verificationToken.email,
+      verificationToken.token
+    );
+    
+    return { success: "Confirmation email sent!" };
+  } catch (error) {
+    console.error("REGISTER_ERROR", error);
+    return { error: "Something went wrong during registration." };
+  }
 };

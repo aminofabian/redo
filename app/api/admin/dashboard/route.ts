@@ -13,8 +13,8 @@ type Order = {
 type User = {
   id: string;
   name: string;
-  image: string;
-  createdAt: Date;
+  image: string | null;
+  emailVerified: Date | null;
 }
 
 type Review = {
@@ -24,106 +24,190 @@ type Review = {
   createdAt: Date;
 }
 
+type Purchase = {
+  id: string;
+  user: {
+    id: string;
+    name: string | null;
+    image: string | null;
+  };
+  product: {
+    title: string;
+  };
+  createdAt: Date;
+};
+
 export async function GET(request: NextRequest) {
   try {
-    // Verify admin authentication
+    // Verify admin access
     const session = await auth();
-    if (!session?.user || session.user.role !== "ADMIN") {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    if (!session || session.user.role !== "ADMIN") {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 403 });
     }
 
-    // Get current date and date from a week/month ago for comparisons
+    // Get current date and timestamps for time-based queries
     const now = new Date();
-    const oneWeekAgo = new Date(now);
-    oneWeekAgo.setDate(now.getDate() - 7);
-    
     const oneMonthAgo = new Date(now);
     oneMonthAgo.setMonth(now.getMonth() - 1);
     
-    // Get total products count
-    const totalProducts = await prismadb.product.count();
-    
-    // Get products created in the last week
-    const newProductsThisWeek = await prismadb.product.count({
-      where: {
-        createdAt: {
-          gte: oneWeekAgo
-        }
-      }
-    });
-    
-    // Get total users count
-    const totalUsers = await prismadb.user.count();
-    
-    // Get users registered in the last month
-    const newUsersThisMonth = await prismadb.user.count({
-      where: {
-        createdAt: {
-          gte: oneMonthAgo
-        }
-      }
-    });
-    
-    // Get total sales amount
-    const orders: Order[] = await prismadb.order.findMany({
-      select: {
-        totalAmount: true,
-        createdAt: true
-      }
-    });
-    
-    const totalSales = orders.reduce((sum: number, order: Order) => sum + Number(order.totalAmount), 0);
-    
-    // Get sales from last month
-    const lastMonthOrders = orders.filter((order: Order) => order.createdAt >= oneMonthAgo);
-    const lastMonthSales = lastMonthOrders.reduce((sum: number, order: Order) => sum + Number(order.totalAmount), 0);
-    
-    // Get sales from two months ago for comparison
     const twoMonthsAgo = new Date(oneMonthAgo);
-    twoMonthsAgo.setMonth(twoMonthsAgo.getMonth() - 1);
+    twoMonthsAgo.setMonth(oneMonthAgo.getMonth() - 1);
     
-    const twoMonthsAgoOrders = orders.filter(
-      order => order.createdAt >= twoMonthsAgo && order.createdAt < oneMonthAgo
-    );
-    const twoMonthsAgoSales = twoMonthsAgoOrders.reduce((sum, order) => sum + Number(order.totalAmount), 0);
+    const oneWeekAgo = new Date(now);
+    oneWeekAgo.setDate(now.getDate() - 7);
+
+    // Fetch all required data
+    const [
+      totalProducts,
+      newProductsThisWeek,
+      totalUsers,
+      newUsersThisMonth,
+      currentMonthSales,
+      previousMonthSales,
+      currentMonthOrders,
+      previousMonthOrders,
+      recentActivity,
+    ] = await Promise.all([
+      // Total products
+      prismadb.product.count(),
+      
+      // New products this week
+      prismadb.product.count({
+        where: {
+          createdAt: { gte: oneWeekAgo }
+        }
+      }),
+      
+      // Total users
+      prismadb.user.count(),
+      
+      // New users this month
+      prismadb.user.count({
+        where: {
+          emailVerified: { gte: oneMonthAgo }
+        }
+      }),
+      
+      // Current month sales
+      prismadb.purchase.aggregate({
+        _sum: {
+          amount: true
+        },
+        where: {
+          createdAt: {
+            gte: oneMonthAgo
+          },
+          status: "completed"
+        }
+      }),
+      
+      // Previous month sales
+      prismadb.purchase.aggregate({
+        _sum: {
+          amount: true
+        },
+        where: {
+          createdAt: {
+            gte: twoMonthsAgo,
+            lt: oneMonthAgo
+          },
+          status: "completed"
+        }
+      }),
+      
+      // Current month orders count
+      prismadb.purchase.count({
+        where: {
+          createdAt: {
+            gte: oneMonthAgo
+          },
+          status: "completed"
+        }
+      }),
+      
+      // Previous month orders count
+      prismadb.purchase.count({
+        where: {
+          createdAt: {
+            gte: twoMonthsAgo,
+            lt: oneMonthAgo
+          },
+          status: "completed"
+        }
+      }),
+      
+      // Recent activity
+      prismadb.purchase.findMany({
+        take: 5,
+        orderBy: {
+          createdAt: 'desc'
+        },
+        include: {
+          user: {
+            select: {
+              id: true,
+              name: true,
+              image: true
+            }
+          },
+          product: {
+            select: {
+              title: true
+            }
+          }
+        }
+      })
+    ]);
+
+    // Calculate percentage changes
+    const currentMonthSalesTotal = currentMonthSales._sum.amount?.toNumber() || 0;
+    const prevMonthSalesTotal = previousMonthSales._sum.amount?.toNumber() || 0;
     
-    // Calculate sales percentage change
-    const salesPercentChange = twoMonthsAgoSales > 0 
-      ? ((lastMonthSales - twoMonthsAgoSales) / twoMonthsAgoSales) * 100 
+    const salesPercentChange = prevMonthSalesTotal > 0 
+      ? ((currentMonthSalesTotal - prevMonthSalesTotal) / prevMonthSalesTotal) * 100 
       : 0;
     
-    // Calculate average order value
-    const avgOrderValue = orders.length > 0 ? totalSales / orders.length : 0;
-    const lastMonthAvgOrderValue = lastMonthOrders.length > 0 
-      ? lastMonthSales / lastMonthOrders.length 
-      : 0;
-    const twoMonthsAgoAvgOrderValue = twoMonthsAgoOrders.length > 0 
-      ? twoMonthsAgoSales / twoMonthsAgoOrders.length 
+    const currentAvgOrderValue = currentMonthOrders > 0 
+      ? currentMonthSalesTotal / currentMonthOrders 
       : 0;
     
-    // Calculate average order value percentage change
-    const avgOrderValuePercentChange = twoMonthsAgoAvgOrderValue > 0 
-      ? ((lastMonthAvgOrderValue - twoMonthsAgoAvgOrderValue) / twoMonthsAgoAvgOrderValue) * 100 
+    const prevAvgOrderValue = previousMonthOrders > 0 
+      ? prevMonthSalesTotal / previousMonthOrders 
       : 0;
     
-    // Get recent activity
-    const recentActivity = await getRecentActivity();
-    
+    const avgOrderValuePercentChange = prevAvgOrderValue > 0 
+      ? ((currentAvgOrderValue - prevAvgOrderValue) / prevAvgOrderValue) * 100 
+      : 0;
+
+    // Transform recent activity data
+    const formattedActivity = recentActivity.map((purchase: Purchase) => ({
+      id: purchase.id,
+      type: 'purchase',
+      user: {
+        id: purchase.user.id,
+        name: purchase.user.name || 'Anonymous User',
+        image: purchase.user.image
+      },
+      productName: purchase.product.title,
+      timestamp: purchase.createdAt
+    }));
+
+    // Return the formatted dashboard data
     return NextResponse.json({
       totalProducts,
       newProductsThisWeek,
       totalUsers,
       newUsersThisMonth,
-      totalSales,
+      totalSales: currentMonthSalesTotal,
       salesPercentChange,
-      avgOrderValue,
+      avgOrderValue: currentAvgOrderValue,
       avgOrderValuePercentChange,
-      recentActivity
+      recentActivity: formattedActivity
     });
   } catch (error) {
-    console.error('Error fetching dashboard data:', error);
+    console.error("Error fetching admin dashboard data:", error);
     return NextResponse.json(
-      { error: 'Failed to fetch dashboard data' },
+      { error: "Failed to load dashboard data" },
       { status: 500 }
     );
   }
@@ -160,13 +244,16 @@ async function getRecentActivity() {
   const recentRegistrations = await prismadb.user.findMany({
     take: 5,
     orderBy: {
-      createdAt: 'desc'
+      emailVerified: 'desc'
+    },
+    where: {
+      emailVerified: { not: null }
     },
     select: {
       id: true,
       name: true,
       image: true,
-      createdAt: true
+      emailVerified: true
     }
   });
   
@@ -208,7 +295,7 @@ async function getRecentActivity() {
         name: user.name,
         image: user.image
       },
-      timestamp: user.createdAt,
+      timestamp: user.emailVerified,
       id: `reg-${user.id}`
     })),
     ...recentReviews.map((review: Review) => ({

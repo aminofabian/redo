@@ -24,7 +24,8 @@ const nextConfig = {
       'alexawriters.s3.eu-north-1.amazonaws.com',
       'alexawriters.s3.amazonaws.com',
       's3.eu-north-1.amazonaws.com',
-      's3.amazonaws.com'
+      's3.amazonaws.com',
+      'images.unsplash.com'
     ],
     // Additional safety with remote patterns
     remotePatterns: [

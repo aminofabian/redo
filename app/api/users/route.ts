@@ -1,38 +1,48 @@
 import { NextRequest, NextResponse } from 'next/server';
-import prisma from '@/lib/db';
+import prismadb from '@/lib/db';
 import { auth } from '@/auth';
-import { Session } from 'next-auth';
 
 export async function GET(request: NextRequest) {
   try {
-    const session = await auth() as Session | null;
-    
-    // Check if user is logged in
-    if (!session?.user) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    // Check authentication
+    const session = await auth();
+    if (!session || session.user.role !== "ADMIN") {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 403 });
     }
+
+    // Get search parameter
+    const searchParams = request.nextUrl.searchParams;
+    const search = searchParams.get('search') || '';
     
-    // Simplified query without filters or complex selections
-    const users = await prisma.user.findMany({
-      take: 10, // Limit to 10
+    // Find users without referencing createdAt
+    const users = await prismadb.user.findMany({
+      where: {
+        OR: [
+          { name: { contains: search, mode: 'insensitive' } },
+          { email: { contains: search, mode: 'insensitive' } }
+        ]
+      },
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        role: true,
+        emailVerified: true,
+        image: true,
+        // Don't include createdAt
+      },
+      // Don't order by createdAt
+      orderBy: {
+        email: 'asc' // Order by email instead
+      },
+      take: 50
     });
-    
-    console.log(`Found ${users.length} users`);
-    
-    // Return simplified user objects
-    return NextResponse.json(
-      users.map(user => ({
-        id: user.id,
-        name: user.firstName ? `${user.firstName} ${user.lastName || ''}` : 'User',
-        email: user.email,
-        role: user.role,
-        verified: !!user.emailVerified
-      }))
-    );
+
+    return NextResponse.json(users);
   } catch (error) {
-    console.error('Error:', error);
+    console.error('Error fetching users:', error);
     return NextResponse.json(
-      { error: 'Failed to fetch users', details: String(error) },
+      { error: "Failed to fetch users" },
       { status: 500 }
     );
   }
