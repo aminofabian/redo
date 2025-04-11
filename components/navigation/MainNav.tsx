@@ -339,8 +339,12 @@ export default function MainNav() {
       <div className="flex h-16 items-center justify-between px-4 md:px-6 max-w-7xl mx-auto">
         {/* Logo Container */}
         <div className="flex-shrink-0 flex items-center">
-          <Link href="/" className="font-bold text-xl text-[#1e2c51]">
-            RN Resources
+          <Link href="/" className="flex items-center">
+            <img 
+              src="/logo.png" 
+              alt="RN Resources Logo" 
+              className="h-8 w-auto"
+            />
           </Link>
         </div>
         
