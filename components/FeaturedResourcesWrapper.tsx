@@ -1,5 +1,5 @@
 "use client";
-import { Product, ProductImage } from "@prisma/client";
+import type { Product, ProductImage } from "@/types";
 import NursingproductsSection from "./ui/NursingResources";
 
 interface Props {

@@ -12,7 +12,7 @@ import MainNav from "@/components/navigation/MainNav";
 import WhatsAppButton from "@/components/ui/WhatsAppButton";
 import FloatingButtons from "@/components/ui/FloatingButtons";
 import HeroWrapper from "@/components/HeroWrapper";
-import { Product, ProductImage, CategoryProduct } from "@prisma/client";
+import { type ProductWithImages } from "@/types/db";
 
 // Dynamic imports for components that need client-only rendering
 const FeaturedResourcesWrapper = dynamic(() => import('@/components/FeaturedResourcesWrapper'), {
@@ -33,12 +33,7 @@ const CategoryShowcase = dynamic(() => import('@/components/CategoryShowcase'), 
 });
 
 interface HomeClientProps {
-  initialProducts: (Product & { 
-    images: ProductImage[];
-    categories: (CategoryProduct & {
-      category: { slug: string }
-    })[];
-  })[];
+  initialProducts: ProductWithImages[];
 }
 
 export default function HomeClient({ initialProducts }: HomeClientProps) {

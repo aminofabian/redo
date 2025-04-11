@@ -65,6 +65,8 @@ model User {
   reviews       Review[]
   createdProducts Product[] @relation("CreatedProducts")
   purchases     Purchase[]
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
  
   @@map("users")
 }

@@ -16,6 +16,12 @@ import { CartProvider } from '@/lib/CartContext';
 
 const inter = Inter({ subsets: ["latin"] });
 
+export const viewport = {
+  width: "device-width",
+  initialScale: 1,
+  maximumScale: 5,
+};
+
 export const metadata: Metadata = {
   title: "RN Student Resources | Nursing Education & Study Materials",
   description: "Join over 50,000+ nursing students who've achieved their goals with our comprehensive study materials and practice tests",
@@ -51,7 +57,6 @@ export const metadata: Metadata = {
     images: ["/twitter-image.jpg"],
     creator: "@yourtwitterhandle",
   },
-  viewport: "width=device-width, initial-scale=1, maximum-scale=5",
   themeColor: [
     { media: "(prefers-color-scheme: light)", color: "#ffffff" },
     { media: "(prefers-color-scheme: dark)", color: "#5d8e9a" },

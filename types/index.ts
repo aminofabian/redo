@@ -1,3 +1,5 @@
+import { Prisma } from '@prisma/client'
+
 export interface Product {
   id: string;
   slug: string;
@@ -32,4 +34,10 @@ export interface TopSeller {
   image: string;
   price: number;
   viewCount: number;
-} 
+}
+
+export type ProductWithImages = Prisma.ProductGetPayload<{
+  include: { images: true }
+}>
+
+export type ProductImage = Prisma.ProductImageGetPayload<{}> 

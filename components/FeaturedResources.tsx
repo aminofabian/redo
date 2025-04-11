@@ -1,8 +1,7 @@
 "use client";
 
-import { Product } from '@prisma/client';
+import type { Product, ProductImage } from '.prisma/client';
 import NursingResourcesSection from "./ui/NursingResources";
-import { ProductImage } from '@prisma/client';
 
 export default function FeaturedResources({ 
   products 
