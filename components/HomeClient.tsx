@@ -12,6 +12,7 @@ import MainNav from "@/components/navigation/MainNav";
 import WhatsAppButton from "@/components/ui/WhatsAppButton";
 import FloatingButtons from "@/components/ui/FloatingButtons";
 import HeroWrapper from "@/components/HeroWrapper";
+import { Product, ProductImage, CategoryProduct } from "@prisma/client";
 
 // Dynamic imports for components that need client-only rendering
 const FeaturedResourcesWrapper = dynamic(() => import('@/components/FeaturedResourcesWrapper'), {
@@ -31,7 +32,16 @@ const CategoryShowcase = dynamic(() => import('@/components/CategoryShowcase'), 
   ),
 });
 
-export default function HomeClient() {
+interface HomeClientProps {
+  initialProducts: (Product & { 
+    images: ProductImage[];
+    categories: (CategoryProduct & {
+      category: { slug: string }
+    })[];
+  })[];
+}
+
+export default function HomeClient({ initialProducts }: HomeClientProps) {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
@@ -70,9 +80,12 @@ export default function HomeClient() {
             <HeroWrapper />
           </Suspense>
           <Features />
-          <DiscoverNursing />
+          <DiscoverNursing products={initialProducts.filter(p => p.featured)} />
           <CategoryShowcase />
-          <FeaturedResourcesWrapper />
+          <Suspense fallback={<div>Loading...</div>}>
+            {/* @ts-ignore - Products will be passed from parent */}
+            <FeaturedResourcesWrapper products={initialProducts} />
+          </Suspense>
           <BlogSection />
           <FAQ />
           <FindBestResources />

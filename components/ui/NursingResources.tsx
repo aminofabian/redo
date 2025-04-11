@@ -1,10 +1,10 @@
-"use client";
-
 import { motion } from "framer-motion";
 import { ArrowRight, Clock, MapPin, Users, BookOpen, Star } from "lucide-react";
 import { Button } from "./button";
 import Image from "next/image";
 import Link from "next/link";
+import prisma from "@/lib/db";
+import { Product, ProductImage } from "@prisma/client";
 
 // Update the Resource type to match our database structure
 type Resource = {
@@ -25,8 +25,44 @@ type Resource = {
   tags: string[];
 };
 
-// Update the component to accept products as props
-const NursingproductsSection = ({ products }: { products: Resource[] }) => {
+// Remove the data fetching from this component
+const NursingproductsSection = ({ 
+  products 
+}: { 
+  products: (Product & { images: ProductImage[] })[] 
+}) => {
+  if (!products || products.length === 0) {
+    return (
+      <div className="bg-[#fdfbf7] py-16 text-center">
+        <h2>No products available</h2>
+      </div>
+    );
+  }
+
+  // Transform the database products to match our Resource type
+  const transformedProducts: Resource[] = products.map((product: Product & { images: ProductImage[] }) => {
+    // Calculate final price based on discount type
+    const originalPrice = Number(product.price);
+    let finalPrice = Number(product.finalPrice); // Use the finalPrice field from DB
+
+    return {
+      id: product.id.toString(),
+      slug: product.slug,
+      title: product.title,
+      originalPrice: originalPrice,
+      price: finalPrice,
+      discountPercent: product.discountPercent || 0,
+      image: product.images.find(img => img.isPrimary)?.url || product.images[0]?.url || '/images/default-product.jpg',
+      rating: "4.5",
+      reviews: 0,
+      lastUpdated: product.updatedAt?.toLocaleDateString(),
+      tags: ["Nursing Resource"],
+      duration: "Lifetime Access",
+      questions: "Study Material",
+      students: "0+ Students"
+    };
+  });
+
   return (
     <div className="bg-[#fdfbf7] py-16">
       <div className="max-w-7xl mx-auto px-4">
@@ -43,7 +79,7 @@ const NursingproductsSection = ({ products }: { products: Resource[] }) => {
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-          {products.map((resource, index) => (
+          {transformedProducts.map((resource, index) => (
             <motion.div
               key={resource.id}
               initial={{ opacity: 0, y: 20 }}
@@ -56,6 +92,7 @@ const NursingproductsSection = ({ products }: { products: Resource[] }) => {
                   src={resource.image}
                   alt={resource.title}
                   fill
+                  sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
                   className="object-cover group-hover:scale-105 transition-transform duration-300"
                 />
                 {resource.discountPercent && (
@@ -102,20 +139,12 @@ const NursingproductsSection = ({ products }: { products: Resource[] }) => {
 
                   <div className="flex items-center justify-between">
                     <div>
-                      {resource.originalPrice > resource.price ? (
-                        <>
-                          <span className="text-sm text-gray-500 line-through">
-                            ${resource.originalPrice.toFixed(2)}
-                          </span>
-                          <span className="ml-2 text-lg font-bold text-[#1e2c51]">
-                            ${resource.price.toFixed(2)}
-                          </span>
-                        </>
-                      ) : (
-                        <span className="text-lg font-bold text-[#1e2c51]">
-                          ${resource.price.toFixed(2)}
-                        </span>
-                      )}
+                      <span className="text-sm text-gray-500 line-through">
+                        ${resource.originalPrice.toFixed(2)}
+                      </span>
+                      <span className="ml-2 text-lg font-bold text-[#1e2c51]">
+                        ${resource.price.toFixed(2)}
+                      </span>
                     </div>
                     <Link href={`/products/${resource.slug}`}>
                       <button className="bg-[#5d8e9a] hover:bg-[#537f8a] text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors">

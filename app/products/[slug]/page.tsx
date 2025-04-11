@@ -12,6 +12,15 @@ import PackageSelector from './PackageSelector';
 import { CartSidebar } from "@/components/ui/CartSidebar";
 import { Toaster } from "sonner";
 import { AddToPackageButton } from './AddToPackageButton';
+import { Prisma } from "@prisma/client";
+
+type RelatedProduct = Prisma.ProductGetPayload<{
+  include: {
+    images: true;
+    categories: { include: { category: true } };
+    reviews: true;
+  };
+}>;
 
 export async function generateMetadata({ params }: { params: { slug: string } }): Promise<Metadata> {
   console.log('Fetching metadata for slug:', params.slug);
@@ -79,6 +88,39 @@ export async function generateStaticParams() {
   }));
 }
 
+async function getRelatedProducts(productId: number, categoryIds: string[], limit = 4): Promise<RelatedProduct[]> {
+  return await prisma.product.findMany({
+    where: {
+      AND: [
+        { isPublished: true },
+        { id: { not: productId } },
+        {
+          categories: {
+            some: {
+              categoryId: {
+                in: categoryIds
+              }
+            }
+          }
+        }
+      ]
+    },
+    include: {
+      images: true,
+      categories: {
+        include: {
+          category: true
+        }
+      },
+      reviews: true
+    },
+    take: limit,
+    orderBy: {
+      viewCount: 'desc'
+    }
+  });
+}
+
 export default async function ProductPage({ params }: { params: { slug: string } }) {
   const { slug } = params;
   console.log('Page received slug:', slug);
@@ -121,6 +163,9 @@ export default async function ProductPage({ params }: { params: { slug: string }
     discountAmount: product.discountAmount,
     discountPercent: product.discountPercent
   });
+  
+  const categoryIds = categories.map(category => category.id);
+  const relatedProducts = await getRelatedProducts(product.id, categoryIds);
   
   return (
     <div className="max-w-7xl mx-auto p-6">
@@ -272,6 +317,51 @@ export default async function ProductPage({ params }: { params: { slug: string }
           )}
         </div>
       </div>
+      {relatedProducts.length > 0 && (
+        <div className="mt-12 bg-white p-6 rounded-lg shadow-sm border">
+          <h2 className="text-2xl font-bold mb-6">Related Products</h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            {relatedProducts.map((relatedProduct) => {
+              const primaryImage = relatedProduct.images.find((img: { isPrimary: boolean; url: string }) => img.isPrimary) || relatedProduct.images[0];
+              const avgRating = relatedProduct.reviews.length > 0
+                ? (relatedProduct.reviews.reduce((sum: number, review: { rating: number }) => sum + review.rating, 0) / relatedProduct.reviews.length).toFixed(1)
+                : "0.0";
+
+              return (
+                <a 
+                  key={relatedProduct.id} 
+                  href={`/products/${relatedProduct.slug}`}
+                  className="group bg-white rounded-lg shadow-sm border hover:shadow-md transition-shadow"
+                >
+                  <div className="relative aspect-video">
+                    <Image
+                      src={primaryImage?.url || "/placeholder-image.jpg"}
+                      alt={relatedProduct.title}
+                      fill
+                      className="object-cover rounded-t-lg"
+                    />
+                  </div>
+                  <div className="p-4">
+                    <h3 className="font-semibold text-lg mb-2 line-clamp-2 group-hover:text-blue-600 transition-colors">
+                      {relatedProduct.title}
+                    </h3>
+                    <div className="flex items-center justify-between">
+                      <span className="text-lg font-bold">
+                        ${Number(relatedProduct.finalPrice).toFixed(2)}
+                      </span>
+                      <div className="flex items-center text-sm text-gray-600">
+                        <span className="text-yellow-400">★</span>
+                        <span className="ml-1">{avgRating}</span>
+                        <span className="ml-1">({relatedProduct.reviews.length})</span>
+                      </div>
+                    </div>
+                  </div>
+                </a>
+              );
+            })}
+          </div>
+        </div>
+      )}
       <Toaster position="bottom-right" />
     </div>
   );

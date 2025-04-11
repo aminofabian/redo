@@ -165,7 +165,7 @@ export default function ProductDetails({ product }: ProductProps) {
               </div>
             </div>
             
-            <Button className="w-full">Add to Cart</Button>
+            <Button className="w-full text-white">Add to Cart</Button>
             
             <div className="mt-4 text-sm text-muted-foreground">
               <div className="flex flex-col space-y-3">

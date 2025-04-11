@@ -51,6 +51,7 @@ export function ProductDrawer({
   const [uploadingImages, setUploadingImages] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [finalPrice, setFinalPrice] = useState<number | null>(null);
+  const [isFeatured, setIsFeatured] = useState(false);
   
   // Add this internal formData state
   const [formData, setFormData] = useState({
@@ -252,7 +253,7 @@ export function ProductDrawer({
       const imageData = uploadedImageUrls.map((url, index) => ({
         url,
         alt: formData.title ? `${formData.title} image ${index + 1}` : `Product image ${index + 1}`,
-        isPrimary: index === 0 // First image is primary
+        isPrimary: index === 0
       }));
       
       const response = await fetch("/api/products", {
@@ -266,7 +267,8 @@ export function ProductDrawer({
           isUnlimitedAccess,
           isUnlimitedDownloads,
           inStock,
-          images: imageData, // Structured image data for database
+          featured: isFeatured,
+          images: imageData,
         }),
       });
 
@@ -581,6 +583,26 @@ export function ProductDrawer({
                     In Stock
                   </label>
                 </div>
+              </div>
+
+              {/* Featured Product */}
+              <div>
+                <div className="flex items-center space-x-2">
+                  <Checkbox 
+                    id="featured" 
+                    checked={isFeatured}
+                    onCheckedChange={(checked) => setIsFeatured(checked as boolean)}
+                  />
+                  <label
+                    htmlFor="featured"
+                    className="text-sm font-medium leading-none"
+                  >
+                    Featured Product
+                  </label>
+                </div>
+                <p className="text-xs text-gray-500 mt-1">
+                  Featured products appear in highlighted sections
+                </p>
               </div>
             </div>
           </div>

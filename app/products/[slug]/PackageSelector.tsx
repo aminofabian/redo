@@ -112,9 +112,9 @@ export default function PackageSelector({ product }: PackageSelectorProps) {
     <div className="space-y-3">
       <Button 
         onClick={handleSinglePurchase}
-        className="w-full flex items-center justify-center bg-blue-600 hover:bg-blue-700"
+        className="w-full flex items-center justify-center bg-blue-600 hover:bg-blue-700 text-white"
       >
-        <ShoppingCart className="mr-2 h-4 w-4" />
+        <ShoppingCart className="mr-2 h-4 w-4 text-white" />
         Add to Cart - ${product.finalPrice.toFixed(2)}
       </Button>
       

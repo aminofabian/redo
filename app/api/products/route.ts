@@ -34,7 +34,8 @@ export async function POST(request: NextRequest) {
           (rawProductData.downloadLimit ? parseInt(rawProductData.downloadLimit) : null),
         inStock: rawProductData.inStock,
         isPublished: true,
-        downloadUrl: rawProductData.downloadLink
+        downloadUrl: rawProductData.downloadLink,
+        featured: rawProductData.featured,
       };
       
       // Calculate the final price based on discount if applicable
