@@ -2,37 +2,95 @@ import { Suspense } from "react";
 import ResourcesClient from "./ResourcesClient";
 import prisma from "@/lib/db";
 import { Skeleton } from "@/components/ui/skeleton";
+import { revalidatePath } from 'next/cache';
+import { Prisma } from "@prisma/client";
+
+type ProductWithRelations = Prisma.ProductGetPayload<{
+  include: {
+    images: true;
+    categories: { include: { category: true } };
+    reviews: { include: { user: { select: { firstName: true; lastName: true; image: true } } } };
+  };
+}>;
 
 // Server component to fetch products
 export default async function ResourcesPage() {
-  // Fetch products with related data
-  const products = await prisma.product.findMany({
-    where: {
-      isPublished: true,
-    },
-    include: {
-      images: true,
-      categories: {
-        include: {
-          category: true
-        }
+  let products: ProductWithRelations[] = [];
+  
+  try {
+    // Fetch products with related data
+    products = await prisma.product.findMany({
+      where: {
+        isPublished: true,
       },
-      reviews: {
-        include: {
-          user: {
-            select: {
-              firstName: true,
-              lastName: true,
-              image: true
+      include: {
+        images: true,
+        categories: {
+          include: {
+            category: true
+          }
+        },
+        reviews: {
+          include: {
+            user: {
+              select: {
+                firstName: true,
+                lastName: true,
+                image: true
+              }
             }
           }
         }
+      },
+      orderBy: {
+        createdAt: 'desc'
       }
-    },
-    orderBy: {
-      createdAt: 'desc'
+    });
+  } catch (error) {
+    // Log the error for debugging
+    console.error('Error fetching products:', error);
+    
+    // Attempt to reconnect to the database
+    try {
+      await prisma.$disconnect();
+      await prisma.$connect();
+      
+      // Retry the query once
+      products = await prisma.product.findMany({
+        where: {
+          isPublished: true,
+        },
+        include: {
+          images: true,
+          categories: {
+            include: {
+              category: true
+            }
+          },
+          reviews: {
+            include: {
+              user: {
+                select: {
+                  firstName: true,
+                  lastName: true,
+                  image: true
+                }
+              }
+            }
+          }
+        },
+        orderBy: {
+          createdAt: 'desc'
+        }
+      });
+    } catch (retryError) {
+      console.error('Error retrying product fetch:', retryError);
+      // If retry fails, return empty array to prevent page crash
+      products = [];
+      // Revalidate the page after a short delay
+      revalidatePath('/products');
     }
-  });
+  }
 
   // Map database products to the format expected by the UI
   const resources = products.map(product => {
@@ -76,7 +134,13 @@ export default async function ResourcesPage() {
 
   return (
     <Suspense fallback={<ResourcesSkeleton />}>
-      <ResourcesClient initialResources={resources} />
+      {products.length === 0 ? (
+        <div className="text-center py-10">
+          <p className="text-gray-500">Unable to load products. Please try again later.</p>
+        </div>
+      ) : (
+        <ResourcesClient initialResources={resources} />
+      )}
     </Suspense>
   );
 }
