@@ -4,25 +4,70 @@ import prisma from "../../../lib/db";
 import { getProductBySlug, getAllProducts, generateProductSlug, extractIdFromSlug } from "../../../lib/products";
 import Image from "next/image";
 import { Button } from "@/components/ui/button";
-import { CalendarIcon, Clock, Download, DollarSign, ShoppingCart, Tag, Users } from "lucide-react";
+import { CalendarIcon, Clock, Download, DollarSign, ShoppingCart, Tag, Users, Package } from "lucide-react";
 import { formatDistanceToNow } from 'date-fns';
 import EditSlugButton from "./EditSlugButton";
+import ProductImageGallery from './ProductImageGallery';
+import PackageSelector from './PackageSelector';
+import { CartSidebar } from "@/components/ui/CartSidebar";
+import { Toaster } from "sonner";
+import { AddToPackageButton } from './AddToPackageButton';
 
 export async function generateMetadata({ params }: { params: { slug: string } }): Promise<Metadata> {
+  console.log('Fetching metadata for slug:', params.slug);
+  
   const product = await prisma.product.findUnique({
-    where: { slug: params.slug }
+    where: { slug: params.slug },
+    include: {
+      images: true,
+      categories: {
+        include: {
+          category: true
+        }
+      }
+    }
   });
   
+  console.log('Product found:', product ? 'yes' : 'no', product?.id);
+  
   if (!product) {
+    console.log('Product not found for slug:', params.slug);
     return {
-      title: "Resource Not Found",
-      description: "The requested resource could not be found."
+      title: "Resource Not Found | RN Student Resources",
+      description: "The requested resource could not be found.",
+      robots: "noindex"
     };
   }
+
+  const price = product.finalPrice.toNumber();
+  const categories = product.categories.map(c => c.category.name).join(", ");
   
   return {
     title: `${product.title} | RN Student Resources`,
-    description: product.description || "",
+    description: product.description || `Get ${product.title} for ${formatPrice(price)}. Access study materials and resources for nursing students.`,
+    keywords: [`nursing resources`, `study materials`, categories, product.title].filter(Boolean).join(", "),
+    openGraph: {
+      title: product.title,
+      description: product.description || `Get ${product.title} for ${formatPrice(price)}`,
+      type: "website",
+      images: product.images?.length ? [
+        {
+          url: product.images[0].url,
+          width: 1200,
+          height: 630,
+          alt: product.title
+        }
+      ] : [],
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: product.title,
+      description: product.description || `Get ${product.title} for ${formatPrice(price)}`,
+      images: product.images?.length ? [product.images[0].url] : undefined,
+    },
+    alternates: {
+      canonical: `/products/${product.slug}`
+    }
   };
 }
 
@@ -56,10 +101,13 @@ export default async function ProductPage({ params }: { params: { slug: string }
   }
   
   // Calculate various display values
-  const hasDiscount = product.discountAmount && product.discountAmount.toNumber() > 0;
+  const hasDiscount = (product.discountAmount?.toNumber() ?? 0) > 0 || (product.discountPercent ?? 0) > 0;
+  const originalPrice = product.price?.toNumber() ?? 0;
+  const finalPrice = product.finalPrice?.toNumber() ?? 0;
+  const discountAmount = product.discountAmount?.toNumber() ?? 0;
+  const discountPercent = product.discountPercent ?? Math.round(((originalPrice - finalPrice) / originalPrice) * 100);
   const formattedPrice = formatPrice(product.price);
   const formattedFinalPrice = formatPrice(product.finalPrice);
-  const discountText = product.discountPercent ? `${product.discountPercent}% off` : '';
   const createdAt = new Date(product.createdAt);
   const updatedAt = new Date(product.updatedAt);
   const timeAgo = formatDistanceToNow(updatedAt, { addSuffix: true });
@@ -77,24 +125,10 @@ export default async function ProductPage({ params }: { params: { slug: string }
   return (
     <div className="max-w-7xl mx-auto p-6">
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        {/* Left column - Images */}
+        {/* Left column - Images and main product info */}
         <div className="lg:col-span-2">
           <div className="bg-white p-6 rounded-lg shadow-sm border mb-6">
-            <div className="flex items-center justify-between mb-4">
-              <h1 className="text-3xl font-bold">{product.title}</h1>
-              
-              <EditSlugButton product={{
-                id: String(product.id),
-                slug: product.slug
-              }} />
-            </div>
-            
-            <div className="text-sm text-gray-500 mb-4 flex items-center">
-              <span className="mr-2">URL:</span>
-              <code className="bg-gray-100 px-2 py-1 rounded">
-                /products/{product.slug}
-              </code>
-            </div>
+            <h1 className="text-3xl font-bold mb-4">{product.title}</h1>
             
             <div className="flex flex-wrap gap-2 mb-4">
               {categories.map(category => (
@@ -104,52 +138,37 @@ export default async function ProductPage({ params }: { params: { slug: string }
               ))}
             </div>
             
-            <div className="flex items-center text-sm text-gray-500 mb-6">
-              <Clock className="h-4 w-4 mr-1" />
-              <span>Updated {timeAgo}</span>
-              <span className="mx-2">•</span>
-              <Users className="h-4 w-4 mr-1" />
-              <span>{product.purchaseCount} purchases</span>
-              <span className="mx-2">•</span>
-              <Tag className="h-4 w-4 mr-1" />
-              <span>ID: #{product.id}</span>
-            </div>
-            
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {/* Main image */}
-              <div className="aspect-video relative rounded-md overflow-hidden border bg-gray-50">
-                {product.images && product.images.length > 0 ? (
-                  <Image 
-                    src={product.images.find(img => img.isPrimary)?.url || product.images[0].url}
-                    alt={product.title}
-                    fill
-                    className="object-cover"
-                  />
-                ) : (
-                  <div className="flex items-center justify-center h-full">
-                    <p className="text-gray-400">No image available</p>
-                  </div>
-                )}
+              {/* Replace the old image component with the new gallery */}
+              <div>
+                <ProductImageGallery 
+                  images={product.images || []} 
+                  productTitle={product.title} 
+                />
               </div>
               
               {/* Product info */}
-              <div>
-                <div className="mb-4">
-                  {hasDiscount ? (
-                    <>
-                      <div className="flex flex-col">
-                        <p className="text-3xl font-bold text-green-700">{formattedFinalPrice}</p>
-                        <p className="text-lg text-gray-500 line-through">Original: {formattedPrice}</p>
-                      </div>
-                      <div className="mt-2 inline-block">
-                        <span className="bg-green-100 text-green-800 text-sm font-medium px-3 py-1.5 rounded-md">
-                          {discountText ? `SAVE ${discountText}` : `SAVE ${formatPrice(product.price.toNumber() - product.finalPrice.toNumber())}`}
+              <div className="relative">
+                <div className="mb-6">
+                  <div className="flex items-baseline gap-2 mb-1">
+                    <span className="text-2xl font-bold">${finalPrice.toFixed(2)}</span>
+                    {hasDiscount && (
+                      <>
+                        <span className="text-gray-500 line-through text-sm">${originalPrice.toFixed(2)}</span>
+                        <span className="bg-green-100 text-green-800 text-xs px-2 py-0.5 rounded">
+                          Save {discountPercent}%
                         </span>
-                      </div>
-                    </>
-                  ) : (
-                    <p className="text-3xl font-bold text-gray-900">{formattedPrice}</p>
+                      </>
+                    )}
+                  </div>
+                  {hasDiscount && (
+                    <div className="text-sm text-green-600 font-medium">
+                      You save ${(originalPrice - finalPrice).toFixed(2)}
+                    </div>
                   )}
+                  <div className="text-sm text-gray-600 mt-1">
+                    or ${(finalPrice / 3).toFixed(2)}/mo
+                  </div>
                 </div>
                 
                 <div className="space-y-4 mb-6">
@@ -172,17 +191,22 @@ export default async function ProductPage({ params }: { params: { slug: string }
                 </div>
                 
                 <div className="space-y-3">
-                  <Button className="w-full flex items-center justify-center">
-                    <ShoppingCart className="mr-2 h-4 w-4" />
-                    Add to Cart
-                  </Button>
-                  
-                  {product.downloadUrl && (
-                    <Button variant="outline" className="w-full flex items-center justify-center">
-                      <Download className="mr-2 h-4 w-4" />
-                      Preview
-                    </Button>
-                  )}
+                  <PackageSelector 
+                    product={{
+                      id: product.id,
+                      title: product.title,
+                      price: product.price.toNumber(),
+                      finalPrice: product.finalPrice.toNumber()
+                    }}
+                  />
+                  <AddToPackageButton 
+                    product={{
+                      id: product.id,
+                      title: product.title,
+                      price: product.price.toNumber(),
+                      finalPrice: product.finalPrice.toNumber()
+                    }}
+                  />
                 </div>
               </div>
             </div>
@@ -199,43 +223,14 @@ export default async function ProductPage({ params }: { params: { slug: string }
               )}
             </div>
           </div>
-          
-          {/* Additional images */}
-          {product.images && product.images.length > 1 && (
-            <div className="bg-white p-6 rounded-lg shadow-sm border mt-6">
-              <h2 className="text-xl font-bold mb-4">Gallery</h2>
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                {product.images.map(image => (
-                  <div key={image.id} className="aspect-video relative rounded-md overflow-hidden border">
-                    <Image 
-                      src={image.url}
-                      alt={image.alt || product.title}
-                      fill
-                      className="object-cover"
-                    />
-                    {image.isPrimary && (
-                      <div className="absolute bottom-1 right-1 bg-blue-500 text-white text-xs px-2 py-0.5 rounded-full">
-                        Primary
-                      </div>
-                    )}
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
         </div>
         
-        {/* Right column - Sidebar */}
+        {/* Right column - Product details */}
         <div>
-          {/* Product details */}
+          <CartSidebar />
           <div className="bg-white p-6 rounded-lg shadow-sm border mb-6">
             <h2 className="text-xl font-bold mb-4">Product Details</h2>
             <dl className="space-y-4">
-              <div>
-                <dt className="text-sm text-gray-500">Product ID</dt>
-                <dd>#{product.id}</dd>
-              </div>
-              
               <div>
                 <dt className="text-sm text-gray-500">Created</dt>
                 <dd>{formatDate(createdAt)}</dd>
@@ -244,19 +239,6 @@ export default async function ProductPage({ params }: { params: { slug: string }
               <div>
                 <dt className="text-sm text-gray-500">Last Updated</dt>
                 <dd>{formatDate(updatedAt)}</dd>
-              </div>
-              
-              <div>
-                <dt className="text-sm text-gray-500">Status</dt>
-                <dd>
-                  <span className={`px-2 py-1 text-xs rounded-full ${
-                    product.isPublished 
-                      ? "bg-green-100 text-green-800" 
-                      : "bg-gray-100 text-gray-800"
-                  }`}>
-                    {product.isPublished ? "Published" : "Draft"}
-                  </span>
-                </dd>
               </div>
               
               {product.featured && (
@@ -270,34 +252,6 @@ export default async function ProductPage({ params }: { params: { slug: string }
                 </div>
               )}
             </dl>
-          </div>
-          
-          {/* Analytics */}
-          <div className="bg-white p-6 rounded-lg shadow-sm border mb-6">
-            <h2 className="text-xl font-bold mb-4">Analytics</h2>
-            <div className="space-y-4">
-              <div className="grid grid-cols-2 gap-4">
-                <div className="bg-gray-50 p-3 rounded">
-                  <p className="text-sm text-gray-500">Views</p>
-                  <p className="text-xl font-medium">{product.viewCount}</p>
-                </div>
-                <div className="bg-gray-50 p-3 rounded">
-                  <p className="text-sm text-gray-500">Downloads</p>
-                  <p className="text-xl font-medium">{product.downloadCount}</p>
-                </div>
-              </div>
-              
-              <div className="grid grid-cols-2 gap-4">
-                <div className="bg-gray-50 p-3 rounded">
-                  <p className="text-sm text-gray-500">Purchases</p>
-                  <p className="text-xl font-medium">{product.purchaseCount}</p>
-                </div>
-                <div className="bg-gray-50 p-3 rounded">
-                  <p className="text-sm text-gray-500">Revenue</p>
-                  <p className="text-xl font-medium">{formatPrice(product.totalRevenue)}</p>
-                </div>
-              </div>
-            </div>
           </div>
           
           {/* Categories */}
@@ -318,14 +272,7 @@ export default async function ProductPage({ params }: { params: { slug: string }
           )}
         </div>
       </div>
-      
-      {/* Product views count */}
-      {product.viewCount > 0 && (
-        <div className="flex justify-between border-b pb-2">
-          <span className="text-muted-foreground">Views:</span>
-          <span className="font-medium">{product.viewCount} people viewed this resource</span>
-        </div>
-      )}
+      <Toaster position="bottom-right" />
     </div>
   );
 }

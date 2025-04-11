@@ -12,6 +12,7 @@ import { Button } from "@/components/ui/button";
 import { Navbar } from "@/components/navbar";
 import { AuthProvider } from "@/components/providers/session-provider";
 import { Toaster } from 'react-hot-toast';
+import { CartProvider } from '@/lib/CartContext';
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -91,11 +92,13 @@ export default function RootLayout({
       </head>
       <body className={cn(inter.className, "min-h-screen")}>
         <AuthProvider>
-          <MobileOptimizations />
-          <Navbar />
-          <main>{children}</main>
-          <JsonLd />
-          <Toaster position="bottom-right" />
+          <CartProvider>
+            <MobileOptimizations />
+            <Navbar />
+            <main>{children}</main>
+            <JsonLd />
+            <Toaster position="bottom-right" />
+          </CartProvider>
         </AuthProvider>
       </body>
     </html>

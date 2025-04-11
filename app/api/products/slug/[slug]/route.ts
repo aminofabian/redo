@@ -11,7 +11,12 @@ export async function GET(
     const product = await prisma.product.findUnique({
       where: { slug },
       include: {
-        // Your includes here
+        images: true,
+        categories: {
+          include: {
+            category: true
+          }
+        }
       }
     });
     
