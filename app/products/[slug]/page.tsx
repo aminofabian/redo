@@ -8,7 +8,7 @@ import PackageSelector from './PackageSelector';
 import { CartSidebar } from "@/components/ui/CartSidebar";
 import { Toaster } from "sonner";
 import { AddToPackageButton } from './AddToPackageButton';
-import type { Product } from "@/types/products";
+import type { Product, SerializableProduct } from "@/types/products";
 
 type RelatedProduct = Product;
 
@@ -116,6 +116,17 @@ async function getRelatedProducts(productId: number, categoryIds: string[], limi
   });
 }
 
+function serializeProduct(product: Product): SerializableProduct {
+  return {
+    ...product,
+    price: product.price.toNumber(),
+    finalPrice: product.finalPrice.toNumber(),
+    discountAmount: product.discountAmount?.toNumber() ?? null,
+    createdAt: product.createdAt.toISOString(),
+    updatedAt: product.updatedAt.toISOString(),
+  };
+}
+
 export default async function ProductPage({ params }: { params: { slug: string } }) {
   const { slug } = params;
   console.log('Page received slug:', slug);
@@ -137,30 +148,32 @@ export default async function ProductPage({ params }: { params: { slug: string }
     );
   }
   
+  const serializedProduct = serializeProduct(product);
+  
   // Calculate various display values
-  const hasDiscount = (product.discountAmount?.toNumber() ?? 0) > 0 || (product.discountPercent ?? 0) > 0;
-  const originalPrice = product.price?.toNumber() ?? 0;
-  const finalPrice = product.finalPrice?.toNumber() ?? 0;
-  const discountAmount = product.discountAmount?.toNumber() ?? 0;
-  const discountPercent = product.discountPercent ?? Math.round(((originalPrice - finalPrice) / originalPrice) * 100);
-  const formattedPrice = formatPrice(product.price);
-  const formattedFinalPrice = formatPrice(product.finalPrice);
-  const createdAt = new Date(product.createdAt);
-  const updatedAt = new Date(product.updatedAt);
+  const hasDiscount = (serializedProduct.discountAmount ?? 0) > 0 || (serializedProduct.discountPercent ?? 0) > 0;
+  const originalPrice = serializedProduct.price ?? 0;
+  const finalPrice = serializedProduct.finalPrice ?? 0;
+  const discountAmount = serializedProduct.discountAmount ?? 0;
+  const discountPercent = serializedProduct.discountPercent ?? Math.round(((originalPrice - finalPrice) / originalPrice) * 100);
+  const formattedPrice = formatPrice(serializedProduct.price);
+  const formattedFinalPrice = formatPrice(serializedProduct.finalPrice);
+  const createdAt = new Date(serializedProduct.createdAt);
+  const updatedAt = new Date(serializedProduct.updatedAt);
   const timeAgo = formatDistanceToNow(updatedAt, { addSuffix: true });
   
   // Get categories from the product
-  const categories = product.categories.map((c: { category: { name: string } }) => c.category.name);
+  const categories = serializedProduct.categories.map(c => c.category);
   
   console.log("Product price data:", {
-    price: product.price,
-    finalPrice: product.finalPrice,
-    discountAmount: product.discountAmount,
-    discountPercent: product.discountPercent
+    price: serializedProduct.price,
+    finalPrice: serializedProduct.finalPrice,
+    discountAmount: serializedProduct.discountAmount,
+    discountPercent: serializedProduct.discountPercent
   });
   
-  const categoryIds = categories.map((category: { id: string }) => category.id);
-  const relatedProducts = await getRelatedProducts(product.id, categoryIds);
+  const categoryIds = categories.map(cat => cat.id);
+  const relatedProducts = await getRelatedProducts(serializedProduct.id, categoryIds);
   
   return (
     <div className="max-w-7xl mx-auto p-6">
@@ -168,10 +181,10 @@ export default async function ProductPage({ params }: { params: { slug: string }
         {/* Left column - Images and main product info */}
         <div className="lg:col-span-2">
           <div className="bg-white p-6 rounded-lg shadow-sm border mb-6">
-            <h1 className="text-3xl font-bold mb-4">{product.title}</h1>
+            <h1 className="text-3xl font-bold mb-4">{serializedProduct.title}</h1>
             
             <div className="flex flex-wrap gap-2 mb-4">
-              {categories.map((category: { id: string; name: string; parentId?: string }) => (
+              {categories.map(category => (
                 <span key={category.id} className="px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded-full">
                   {category.name}
                 </span>
@@ -182,8 +195,8 @@ export default async function ProductPage({ params }: { params: { slug: string }
               {/* Replace the old image component with the new gallery */}
               <div>
                 <ProductImageGallery 
-                  images={product.images || []} 
-                  productTitle={product.title} 
+                  images={serializedProduct.images || []} 
+                  productTitle={serializedProduct.title} 
                 />
               </div>
               
@@ -214,18 +227,18 @@ export default async function ProductPage({ params }: { params: { slug: string }
                 <div className="space-y-4 mb-6">
                   <div>
                     <h3 className="text-sm text-gray-500 mb-1">Access Duration</h3>
-                    <p>{product.accessDuration ? `${product.accessDuration} days` : "Unlimited"}</p>
+                    <p>{serializedProduct.accessDuration ? `${serializedProduct.accessDuration} days` : "Unlimited"}</p>
                   </div>
                   
                   <div>
                     <h3 className="text-sm text-gray-500 mb-1">Download Limit</h3>
-                    <p>{product.downloadLimit ? `${product.downloadLimit} downloads` : "Unlimited"}</p>
+                    <p>{serializedProduct.downloadLimit ? `${serializedProduct.downloadLimit} downloads` : "Unlimited"}</p>
                   </div>
                   
                   <div>
                     <h3 className="text-sm text-gray-500 mb-1">Availability</h3>
-                    <p className={product.inStock ? "text-green-600" : "text-red-600"}>
-                      {product.inStock ? "In Stock" : "Out of Stock"}
+                    <p className={serializedProduct.inStock ? "text-green-600" : "text-red-600"}>
+                      {serializedProduct.inStock ? "In Stock" : "Out of Stock"}
                     </p>
                   </div>
                 </div>
@@ -233,18 +246,18 @@ export default async function ProductPage({ params }: { params: { slug: string }
                 <div className="space-y-3">
                   <PackageSelector 
                     product={{
-                      id: product.id,
-                      title: product.title,
-                      price: product.price.toNumber(),
-                      finalPrice: product.finalPrice.toNumber()
+                      id: serializedProduct.id,
+                      title: serializedProduct.title,
+                      price: serializedProduct.price,
+                      finalPrice: serializedProduct.finalPrice
                     }}
                   />
                   <AddToPackageButton 
                     product={{
-                      id: product.id,
-                      title: product.title,
-                      price: product.price.toNumber(),
-                      finalPrice: product.finalPrice.toNumber()
+                      id: serializedProduct.id,
+                      title: serializedProduct.title,
+                      price: serializedProduct.price,
+                      finalPrice: serializedProduct.finalPrice
                     }}
                   />
                 </div>
@@ -256,8 +269,8 @@ export default async function ProductPage({ params }: { params: { slug: string }
           <div className="bg-white p-6 rounded-lg shadow-sm border">
             <h2 className="text-xl font-bold mb-4">Description</h2>
             <div className="prose max-w-none">
-              {product.description ? (
-                <p>{product.description}</p>
+              {serializedProduct.description ? (
+                <p>{serializedProduct.description}</p>
               ) : (
                 <p className="text-gray-500 italic">No description available for this product.</p>
               )}
@@ -281,7 +294,7 @@ export default async function ProductPage({ params }: { params: { slug: string }
                 <dd>{formatDate(updatedAt)}</dd>
               </div>
               
-              {product.featured && (
+              {serializedProduct.featured && (
                 <div>
                   <dt className="text-sm text-gray-500">Featured</dt>
                   <dd>
@@ -299,7 +312,7 @@ export default async function ProductPage({ params }: { params: { slug: string }
             <div className="bg-white p-6 rounded-lg shadow-sm border">
               <h2 className="text-xl font-bold mb-4">Categories</h2>
               <div className="space-y-2">
-                {categories.map((category: { id: string; name: string; parentId?: string }) => (
+                {categories.map((category: { id: string; name: string; parentId?: string | null }) => (
                   <div key={category.id} className="p-3 border rounded flex justify-between items-center">
                     <span>{category.name}</span>
                     {category.parentId && (

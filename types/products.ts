@@ -21,24 +21,32 @@ export type ProductReview = {
   };
 };
 
-export type Product = {
+export type SerializableProduct = {
   id: number;
   title: string;
   slug: string | null;
   description: string | null;
-  price: { toNumber(): number };
-  finalPrice: { toNumber(): number };
+  price: number;
+  finalPrice: number;
   discountPercent: number | null;
-  discountAmount: { toNumber(): number } | null;
+  discountAmount: number | null;
   accessDuration: number | null;
   downloadLimit: number | null;
   isPublished: boolean;
   featured: boolean;
   inStock?: boolean;
   viewCount: number;
-  createdAt: Date;
-  updatedAt: Date;
+  createdAt: string;
+  updatedAt: string;
   images: ProductImage[];
   categories: ProductCategory[];
   reviews: ProductReview[];
+};
+
+export type Product = Omit<SerializableProduct, 'createdAt' | 'updatedAt' | 'price' | 'finalPrice' | 'discountAmount'> & {
+  createdAt: Date;
+  updatedAt: Date;
+  price: { toNumber(): number };
+  finalPrice: { toNumber(): number };
+  discountAmount: { toNumber(): number } | null;
 }; 
