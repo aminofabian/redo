@@ -5,7 +5,6 @@ import { BeatLoader, ClimbingBoxLoader } from 'react-spinners';
 import {  useSearchParams
 } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
-import { getToken } from "next-auth/jwt";
 import { newVerification } from "@/actions/new-verification";
 import FormError from "../common/FormError";
 import FormSuccess from "../common/FormSuccess";

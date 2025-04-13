@@ -3,7 +3,6 @@ import { PrismaAdapter } from "@auth/prisma-adapter";
 import bcrypt from "bcryptjs";
 import db from "@/lib/db";
 import { getUserByEmail } from "@/data/user";
-import { UserRole } from "@prisma/client";
 import { JWT } from "next-auth/jwt";
 import { Session, User } from "next-auth";
 

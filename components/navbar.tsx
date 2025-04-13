@@ -16,6 +16,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { CartIndicator } from "@/components/ui/CartIndicator";
 
 // Create a separate component that uses the session
 function NavbarContent() {
@@ -50,82 +51,85 @@ function NavbarContent() {
 
         {/* Desktop Navigation */}
         <nav className="hidden md:flex items-center gap-6">
-          {navItems.map((item) => (
-            <Link
-              key={item.path}
-              href={item.path}
-              className={cn(
-                "text-sm font-medium transition-colors hover:text-[#1e2c51]",
-                isActive(item.path) 
-                  ? "text-[#1e2c51] font-semibold" 
-                  : "text-gray-600"
-              )}
-            >
-              {item.name}
-            </Link>
-          ))}
-          
-          {!session && authItems.map((item) => (
-            <Link
-              key={item.path}
-              href={item.path}
-              className={cn(
-                "text-sm font-medium transition-colors hover:text-[#1e2c51]",
-                isActive(item.path) 
-                  ? "text-[#1e2c51] font-semibold" 
-                  : "text-gray-600"
-              )}
-            >
-              {item.name}
-            </Link>
-          ))}
-          
-          {session && (
-            <>
+          <div className="flex items-center gap-4">
+            <CartIndicator />
+            {navItems.map((item) => (
               <Link
-                href="/dashboard"
+                key={item.path}
+                href={item.path}
                 className={cn(
                   "text-sm font-medium transition-colors hover:text-[#1e2c51]",
-                  isActive("/dashboard") 
+                  isActive(item.path) 
                     ? "text-[#1e2c51] font-semibold" 
                     : "text-gray-600"
                 )}
               >
-                Dashboard
+                {item.name}
               </Link>
-              
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <div className="flex items-center gap-2 cursor-pointer">
-                    <Avatar className="h-8 w-8">
-                      <AvatarImage src={session?.user?.image || ""} />
-                      <AvatarFallback className="bg-[#1e2c51] text-white">
-                        {firstName.charAt(0)}
-                      </AvatarFallback>
-                    </Avatar>
-                  </div>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end">
-                  <DropdownMenuLabel>{session.user?.name || firstName}</DropdownMenuLabel>
-                  <DropdownMenuSeparator />
-                  <DropdownMenuItem asChild>
-                    <Link href="/profile">Profile</Link>
-                  </DropdownMenuItem>
-                  <DropdownMenuItem asChild>
-                    <Link href="/settings">Settings</Link>
-                  </DropdownMenuItem>
-                  <DropdownMenuSeparator />
-                  <DropdownMenuItem 
-                    className="text-red-600" 
-                    onClick={() => signOut({ callbackUrl: '/' })}
-                  >
-                    <LogOut className="w-4 h-4 mr-2" />
-                    Logout
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
-            </>
-          )}
+            ))}
+            
+            {!session && authItems.map((item) => (
+              <Link
+                key={item.path}
+                href={item.path}
+                className={cn(
+                  "text-sm font-medium transition-colors hover:text-[#1e2c51]",
+                  isActive(item.path) 
+                    ? "text-[#1e2c51] font-semibold" 
+                    : "text-gray-600"
+                )}
+              >
+                {item.name}
+              </Link>
+            ))}
+            
+            {session && (
+              <>
+                <Link
+                  href="/dashboard"
+                  className={cn(
+                    "text-sm font-medium transition-colors hover:text-[#1e2c51]",
+                    isActive("/dashboard") 
+                      ? "text-[#1e2c51] font-semibold" 
+                      : "text-gray-600"
+                  )}
+                >
+                  Dashboard
+                </Link>
+                
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <div className="flex items-center gap-2 cursor-pointer">
+                      <Avatar className="h-8 w-8">
+                        <AvatarImage src={session?.user?.image || ""} />
+                        <AvatarFallback className="bg-[#1e2c51] text-white">
+                          {firstName.charAt(0)}
+                        </AvatarFallback>
+                      </Avatar>
+                    </div>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end">
+                    <DropdownMenuLabel>{session.user?.name || firstName}</DropdownMenuLabel>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem asChild>
+                      <Link href="/profile">Profile</Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem asChild>
+                      <Link href="/settings">Settings</Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem 
+                      className="text-red-600" 
+                      onClick={() => signOut({ callbackUrl: '/' })}
+                    >
+                      <LogOut className="w-4 h-4 mr-2" />
+                      Logout
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              </>
+            )}
+          </div>
         </nav>
 
         {/* Mobile Menu Button */}

@@ -85,7 +85,7 @@ export function ProductDrawer({
       
       setFormData(prev => ({
         ...prev,
-        link: `www.instudentresources.com/products/${url}`
+        link: `www.rnstudentresources.com/products/${url}`
       }));
     }
   }, [formData.title]);
@@ -157,7 +157,7 @@ export function ProductDrawer({
         
         setFormData(prev => ({
           ...prev,
-          link: `www.instudentresources.com/products/${formattedName}`
+          link: `www.rnstudentresources.com/products/${formattedName}`
         }));
       }
     }
