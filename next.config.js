@@ -20,22 +20,18 @@ const nextConfig = {
   
   // Add Images configuration to allow the S3 bucket domain
   images: {
-    domains: [
-      'alexawriters.s3.eu-north-1.amazonaws.com',
-      'alexawriters.s3.amazonaws.com',
-      's3.eu-north-1.amazonaws.com',
-      's3.amazonaws.com',
-      'images.unsplash.com'
-    ],
-    // Additional safety with remote patterns
+    // Remove or comment out the old domains config
+    // domains: ['example.com'],
+    
+    // Add the new remotePatterns config
     remotePatterns: [
       {
         protocol: 'https',
-        hostname: '**.amazonaws.com',
+        hostname: 'alexawriters.s3.eu-north-1.amazonaws.com',
         port: '',
         pathname: '/**',
       },
-    ]
+    ],
   }
 }
 
