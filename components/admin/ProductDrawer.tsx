@@ -66,6 +66,9 @@ export function ProductDrawer({
     link: ''
   });
 
+  // Add a state to track if URL has been manually edited
+  const [urlManuallyEdited, setUrlManuallyEdited] = useState(false);
+
   // Handle form changes locally
   const handleFormChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
@@ -73,11 +76,16 @@ export function ProductDrawer({
       ...prev,
       [name]: value
     }));
+    
+    // Track if the URL field was manually edited
+    if (name === 'link') {
+      setUrlManuallyEdited(true);
+    }
   };
 
-  // Auto-generate URL from title
+  // Auto-generate URL from title only if not manually edited
   useEffect(() => {
-    if (formData.title) {
+    if (formData.title && !urlManuallyEdited) {
       const url = formData.title
         .toLowerCase()
         .replace(/[^a-z0-9]+/g, '-')
@@ -88,7 +96,7 @@ export function ProductDrawer({
         link: `www.rnstudentresources.com/products/${url}`
       }));
     }
-  }, [formData.title]);
+  }, [formData.title, urlManuallyEdited]);
 
   // Calculate final price when price or discount changes
   useEffect(() => {
@@ -328,11 +336,12 @@ export function ProductDrawer({
                       name="link"
                       value={formData.link}
                       onChange={handleFormChange}
-                      className="pl-10 bg-gray-50 text-gray-700 font-medium"
-                      readOnly 
+                      className="pl-10 bg-white text-gray-700 font-medium"
                     />
                   </div>
-                  <p className="text-xs text-gray-500 mt-1">URL is automatically generated from the product name</p>
+                  <p className="text-xs text-gray-500 mt-1">
+                    URL is automatically generated from the product name but can be manually edited
+                  </p>
                 </div>
 
                 <div>
