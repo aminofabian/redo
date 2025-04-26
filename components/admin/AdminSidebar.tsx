@@ -16,7 +16,8 @@ import {
   Clock,
   AlertCircle,
   Filter,
-  Loader2
+  Loader2,
+  CreditCard
 } from "lucide-react";
 import { useState, useEffect } from "react";
 import { Input } from "@/components/ui/input";
@@ -27,6 +28,9 @@ import { FilterSidebar } from "./FilterSidebar";
 import { ProductDrawer } from "./ProductDrawer";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+import PaymentGatewaySidebar from "./PaymentGatewaySidebar";
 
 // Updated interface for real product data
 interface Product {
@@ -98,6 +102,8 @@ export default function AdminSidebar() {
   // Add at the top with other state
   const [users, setUsers] = useState<User[]>([]);
 
+  const router = useRouter();
+
   useEffect(() => {
     // Fetch product counts
     async function fetchProductCounts() {
@@ -149,6 +155,7 @@ export default function AdminSidebar() {
       title: "Overview",
       icon: LayoutGrid,
       href: "/admin",
+      directNav: true,
       badge: "",
     },
     {
@@ -204,6 +211,13 @@ export default function AdminSidebar() {
       title: "Settings",
       icon: Settings,
       href: "/admin/settings",
+      badge: "",
+    },
+    {
+      title: "Payment Settings",
+      icon: CreditCard,
+      href: "#",
+      directNav: false,
       badge: "",
     }
   ];
@@ -374,8 +388,11 @@ export default function AdminSidebar() {
               key={item.title}
               onClick={() => {
                 setActiveMenu(item.title);
-                // Clear any selected item when switching menus
                 setSelectedItem(null);
+                // For direct navigation items like Dashboard, keep the navigation
+                if (item.directNav) {
+                  router.push(item.href);
+                }
               }}
               className={cn(
                 "flex items-center gap-3 w-full px-3 py-2 text-sm font-medium rounded-md",
@@ -534,6 +551,10 @@ export default function AdminSidebar() {
                     ))
                   )}
                 </div>
+              )}
+
+              {activeMenu === "Payment Settings" && (
+                <PaymentGatewaySidebar />
               )}
             </div>
           </motion.div>

@@ -1,6 +1,6 @@
 'use server';
 
-import prisma from "@/lib/db";
+import { db } from "@/lib/db";
 
 const categoryImages = [
   '/categories/national-cancer-institute-NFvdKIhxYlU-unsplash.jpg',
@@ -34,8 +34,147 @@ type CategoryWithProducts = {
   }[];
 }
 
-export async function getCategories() {
-  const categories = await prisma.category.findMany({
+export async function getCategories(options?: {
+  parentId?: string | null;
+  level?: number;
+  includeInactive?: boolean;
+  limit?: number;
+}) {
+  const { parentId = null, level, includeInactive = false, limit } = options || {};
+  
+  try {
+    const categories = await db.category.findMany({
+      where: {
+        parentId,
+        level: level,
+        ...(includeInactive ? {} : { isActive: true }),
+      },
+      include: {
+        _count: {
+          select: {
+            products: true,
+            children: true
+          }
+        },
+        children: {
+          where: includeInactive ? {} : { isActive: true },
+          include: {
+            _count: {
+              select: { products: true }
+            }
+          }
+        }
+      },
+      orderBy: {
+        name: 'asc',
+      },
+      ...(limit ? { take: limit } : {})
+    });
+
+    return categories;
+  } catch (error) {
+    console.error("Failed to fetch categories:", error);
+    return [];
+  }
+}
+
+// Function to get full category hierarchy as a tree
+export async function getCategoryTree() {
+  try {
+    // Adjust query for current DB state - don't filter on fields that might not exist yet
+    const rootCategories = await db.category.findMany({
+      where: {
+        parentId: null, // Use this instead of level: 1
+      },
+      include: {
+        _count: {
+          select: { products: true }
+        }
+      },
+      orderBy: {
+        name: 'asc',
+      }
+    });
+
+    // Then fetch children for each root category
+    const result = await Promise.all(
+      rootCategories.map(async (rootCategory) => {
+        const children = await getChildrenRecursive(rootCategory.id);
+        return {
+          ...rootCategory,
+          children
+        };
+      })
+    );
+
+    return result;
+  } catch (error) {
+    console.error("Failed to fetch category tree:", error);
+    return [];
+  }
+}
+
+// Helper function to get children recursively
+async function getChildrenRecursive(parentId: string) {
+  const children = await db.category.findMany({
+    where: {
+      parentId,
+      isActive: true
+    },
+    include: {
+      _count: {
+        select: { products: true }
+      }
+    },
+    orderBy: {
+      name: 'asc',
+    }
+  });
+
+  if (children.length === 0) return [];
+
+  const result = await Promise.all(
+    children.map(async (child) => {
+      const grandchildren = await getChildrenRecursive(child.id);
+      return {
+        ...child,
+        children: grandchildren
+      };
+    })
+  );
+
+  return result;
+}
+
+// Get category by path
+export async function getCategoryByPath(path: string) {
+  try {
+    const category = await db.category.findFirst({
+      where: {
+        path,
+        isActive: true
+      },
+      include: {
+        parent: true,
+        children: {
+          where: { isActive: true },
+          orderBy: { name: 'asc' }
+        },
+        _count: {
+          select: { products: true }
+        }
+      }
+    });
+
+    return category;
+  } catch (error) {
+    console.error(`Failed to fetch category with path ${path}:`, error);
+    return null;
+  }
+}
+
+export async function getAllCategoriesWithStats() {
+  const categories = await db.category.findMany({
     select: {
       id: true,
       name: true,

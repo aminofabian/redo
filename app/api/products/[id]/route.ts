@@ -10,8 +10,13 @@ type Image = {
 type Purchase = {
   id: string;
   userId: string;
-  amount: number;
+  amount: any;
   createdAt: Date;
+  status?: string;
+  updatedAt?: Date;
+  productId?: number;
+  accessExpires?: Date | null;
+  downloadsLeft?: number | null;
 }
 
 type ProductWithRelations = {
@@ -99,11 +104,11 @@ export async function GET(
         isPrimary: img.isPrimary
       })),
       categories: product.categories.map((pc: { category: { name: string } }) => pc.category.name),
-      orders: product.purchases.map((purchase: Purchase) => ({
+      orders: product.purchases.map((purchase: any) => ({
         order: {
           id: purchase.id,
           userId: purchase.userId,
-          totalAmount: purchase.amount,
+          totalAmount: Number(purchase.amount),
           createdAt: purchase.createdAt
         }
       })),

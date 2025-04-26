@@ -38,14 +38,16 @@ export interface User {
 
 type AdminItem = Product | User | null;
 
-interface AdminContextType {
+type AdminContextType = {
   activeMenu: string;
-  setActiveMenu: (menu: string) => void;
-  selectedItem: AdminItem;
-  setSelectedItem: (item: AdminItem) => void;
+  setActiveMenu: React.Dispatch<React.SetStateAction<string>>;
+  selectedItem: any;
+  setSelectedItem: React.Dispatch<React.SetStateAction<any>>;
   sidebarFilter: string;
-  setSidebarFilter: (filter: string) => void;
-}
+  setSidebarFilter: React.Dispatch<React.SetStateAction<string>>;
+  paymentGateways: any[];
+  setPaymentGateways: React.Dispatch<React.SetStateAction<any[]>>;
+};
 
 export const AdminContext = createContext<AdminContextType>({
   activeMenu: "Overview",
@@ -54,12 +56,15 @@ export const AdminContext = createContext<AdminContextType>({
   setSelectedItem: () => {},
   sidebarFilter: "",
   setSidebarFilter: () => {},
+  paymentGateways: [],
+  setPaymentGateways: () => {},
 });
 
 export function AdminProvider({ children }: { children: ReactNode }) {
   const [activeMenu, setActiveMenu] = useState("Overview");
   const [selectedItem, setSelectedItem] = useState<AdminItem>(null);
   const [sidebarFilter, setSidebarFilter] = useState("");
+  const [paymentGateways, setPaymentGateways] = useState<any[]>([]);
 
   return (
     <AdminContext.Provider
@@ -70,6 +75,8 @@ export function AdminProvider({ children }: { children: ReactNode }) {
         setSelectedItem,
         sidebarFilter,
         setSidebarFilter,
+        paymentGateways,
+        setPaymentGateways,
       }}
     >
       {children}

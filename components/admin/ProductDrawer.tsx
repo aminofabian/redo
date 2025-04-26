@@ -36,6 +36,7 @@ import {
   DialogFooter,
   DialogTrigger,
 } from "@/components/ui/dialog";
+import { slugify } from "@/lib/utils";
 
 interface ProductDrawerProps {
   open: boolean;
@@ -358,14 +359,11 @@ export function ProductDrawer({
   // Auto-generate URL from title only if not manually edited
   useEffect(() => {
     if (formData.title && !urlManuallyEdited) {
-      const url = formData.title
-        .toLowerCase()
-        .replace(/[^a-z0-9]+/g, '-')
-        .replace(/^-+|-+$/g, '');
+      const slug = slugify(formData.title);
       
       setFormData(prev => ({
         ...prev,
-        link: `www.rnstudentresources.com/products/${url}`
+        link: `www.rnstudentresources.com/products/${slug}`
       }));
     }
   }, [formData.title, urlManuallyEdited]);
@@ -517,25 +515,21 @@ export function ProductDrawer({
   const handleSubmit = async (e: React.FormEvent) => {
     e?.preventDefault();
     
-    // Validation
-    const validationErrors = [];
-    
-    if (!formData.title || formData.title.trim() === '') {
-      validationErrors.push("Product title is required");
-    }
-    
-    if (!formData.finalPrice || isNaN(Number(formData.finalPrice)) || Number(formData.finalPrice) <= 0) {
-      validationErrors.push("Please enter a valid price");
-    }
-    
-    // Display errors if any
-    if (validationErrors.length > 0) {
-      validationErrors.forEach(error => toast.error(error));
+    // Basic validation
+    if (!formData.title || !formData.finalPrice) {
+      toast.error("Product title and price are required");
       return;
     }
     
     try {
       setIsLoading(true);
+      
+      // Generate a slug based on the title
+      const baseSlug = slugify(formData.title);
+      
+      // We'll let the backend append the ID to the slug
+      // The final URL will be like: title-id
+      const productSlug = baseSlug;
       
       // Upload images to S3 and get URLs
       const uploadedImageUrls = await uploadToS3();
@@ -547,46 +541,49 @@ export function ProductDrawer({
         isPrimary: index === 0
       }));
       
-      // Format category paths for API
-      const categoryData = selectedCategoryPaths.map(path => {
-        const parts = path.split('/');
-        return {
-          path,
-          level1: parts[0],
-          level2: parts.length > 1 ? parts[1] : null,
-          level3: parts.length > 2 ? parts[2] : null,
-        };
-      });
+      // Prepare the product data
+      const productData = {
+        title: formData.title,
+        description: formData.description || "",
+        path: productSlug,
+        slug: productSlug,
+        price: parseFloat(formData.regularPrice || formData.finalPrice || "0"),
+        finalPrice: parseFloat(formData.finalPrice || "0"),
+        inStock,
+        featured: isFeatured,
+        images: imageData,
+        categories: selectedCategoryPaths,
+        discountPercent: formData.discountPercent ? parseFloat(formData.discountPercent) : null,
+        discountType: formData.discountType || "percent",
+        accessDuration: formData.accessDuration ? parseInt(formData.accessDuration) : (isUnlimitedAccess ? -1 : null),
+        downloadLimit: formData.downloadLimit ? parseInt(formData.downloadLimit) : (isUnlimitedDownloads ? -1 : null),
+        downloadUrl: formData.downloadLink || null,
+        isPublished: true
+      };
       
-      // Use the calculated regular price as the price field sent to the API
-      const response = await fetch("/api/products", {
+      console.log("Sending product data to API:", productData);
+      
+      // Call the API endpoint
+      const response = await fetch("/api/products-direct", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({
-          ...formData,
-          price: formData.regularPrice, // Use the calculated regular price
-          categoryPaths: selectedCategoryPaths, // Send the full paths
-          categoryData, // Send structured category data
-          isUnlimitedAccess,
-          isUnlimitedDownloads,
-          inStock,
-          featured: isFeatured,
-          images: imageData,
-        }),
+        body: JSON.stringify(productData),
       });
-
+      
       if (!response.ok) {
-        throw new Error("Failed to create product");
+        const errorText = await response.text();
+        console.error("API error:", response.status, errorText);
+        throw new Error(`Failed to create product: ${response.status}`);
       }
-
+      
       toast.success("Product created successfully");
-      router.refresh(); // Refresh the page to show new product
-      onClose(); // Close the drawer
+      router.refresh();
+      onClose();
     } catch (error) {
       console.error("Error creating product:", error);
-      toast.error("Failed to create product");
+      toast.error("Failed to create product. Please check the console for details.");
     } finally {
       setIsLoading(false);
     }

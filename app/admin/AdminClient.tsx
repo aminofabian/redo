@@ -52,6 +52,7 @@ import { UserDashboard } from "@/components/admin/UserDashboard";
 import { FilterSidebar } from "@/components/admin/FilterSidebar";
 import { Header } from "@/components/admin/Header";
 import { DashboardOverview } from "@/components/admin/DashboardOverview";
+import PaymentGatewaySettings from '@/components/admin/PaymentGatewaySettings';
 
 // Define ProductImage type
 type ProductImage = {
@@ -121,7 +122,7 @@ function mapProductToProductType(product: Product): ProductType {
 
 // Main content component
 function AdminContent() {
-  const { activeMenu, selectedItem } = useAdmin();
+  const { activeMenu, selectedItem, setSelectedItem } = useAdmin();
   const [isAddProductOpen, setIsAddProductOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
 
@@ -154,6 +155,19 @@ function AdminContent() {
             />
           ) : activeMenu === "Users" && selectedItem && isUser(selectedItem) ? (
             <UserDashboard user={selectedItem} />
+          ) : activeMenu === "Payment Settings" && selectedItem?.type === 'payment-gateway' ? (
+            <div className="p-6">
+              <h1 className="text-2xl font-bold mb-6">Payment Gateway Settings</h1>
+              <PaymentGatewaySettings 
+                initialGateways={selectedItem.gateways}
+                onSave={(updatedGateways) => {
+                  setSelectedItem({
+                    ...selectedItem,
+                    gateways: updatedGateways
+                  });
+                }}
+              />
+            </div>
           ) : (
             <div className="flex items-center justify-center h-full text-gray-500">
               <p>Select an item from the sidebar to view details</p>

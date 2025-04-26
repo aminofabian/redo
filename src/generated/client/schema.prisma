@@ -15,11 +15,6 @@ datasource db {
   relationMode = "prisma"
 }
 
-enum UserRole {
-  USER
-  ADMIN
-}
-
 model Session {
   id           String   @id @default(cuid())
   sessionToken String   @unique
@@ -113,9 +108,10 @@ model Product {
   downloadUrl String?
 
   // Relationships
-  categories CategoryProduct[]
-  reviews    Review[]
-  purchases  Purchase[]
+  categories   CategoryProduct[]
+  reviews      Review[]
+  purchases    Purchase[]
+  CategoryPath CategoryPath[]
 
   // Analytics & Metrics
   viewCount     Int     @default(0)
@@ -126,8 +122,8 @@ model Product {
   // Metadata
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
-  createdBy   User     @relation("CreatedProducts", fields: [createdById], references: [id])
-  createdById String
+  createdBy   User?    @relation("CreatedProducts", fields: [createdById], references: [id])
+  createdById String?
 
   @@index([createdById])
   @@index([slug])
@@ -152,6 +148,9 @@ model Category {
   name        String            @unique
   slug        String            @unique
   description String?
+  path        String // Store the full path e.g. "university/chamberlain/nr322"
+  level       Int               @default(1) // Track the depth level (1=root, 2=child, etc)
+  isActive    Boolean           @default(true)
   products    CategoryProduct[]
   parent      Category?         @relation("CategoryHierarchy", fields: [parentId], references: [id], onDelete: Restrict, onUpdate: Restrict)
   parentId    String?
@@ -159,6 +158,11 @@ model Category {
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+
+  @@unique([name, parentId]) // Allow same name at different levels
+  @@unique([slug, parentId]) // Allow same slug at different levels
+  @@index([path]) // Index for path lookups
+  @@index([level]) // Index for level queries
 }
 
 model CategoryProduct {
@@ -170,6 +174,90 @@ model CategoryProduct {
   @@id([productId, categoryId])
   @@index([productId])
   @@index([categoryId])
+}
+
+model PaymentGateway {
+  id       String  @id @default(cuid())
+  name     String // "PAYPAL" or "STRIPE"
+  isActive Boolean @default(false)
+
+  // Enhanced config storage
+  config Json // Securely store configuration details
+
+  // Encryption details
+  encryptionKey String? @db.Text // For encrypting sensitive data
+  encryptionIV  String? @db.Text // Initialization vector for encryption
+
+  // Merchant information
+  merchantId    String?
+  businessName  String?
+  businessEmail String?
+
+  // Environment settings
+  environment String @default("test") // "test" or "production"
+
+  // General configuration
+  description String?
+  notes       String? @db.Text
+
+  // API endpoints for custom configurations
+  apiEndpoint String?
+  webhookUrl  String?
+
+  // Supported payment methods
+  supportsCreditCards Boolean @default(true)
+  supportsDirectDebit Boolean @default(false)
+
+  // Track gateway usage
+  transactions Transaction[]
+
+  // Meta data
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([name])
+}
+
+model Transaction {
+  id       String  @id @default(cuid())
+  amount   Decimal @db.Decimal(10, 2)
+  currency String  @default("USD")
+  status   String // "pending", "completed", "failed", "refunded"
+
+  // Enhanced payment details
+  paymentMethod String? // "credit_card", "paypal", etc.
+  paymentType   String? // "one-time", "subscription", etc.
+
+  // External IDs
+  paymentGateway       PaymentGateway @relation(fields: [gatewayId], references: [id])
+  gatewayId            String
+  gatewayTransactionId String? // ID returned by the payment gateway
+  gatewayCustomerId    String? // Customer ID in the payment gateway
+
+  // Receipt information
+  receiptUrl   String?
+  receiptEmail String?
+
+  // Related records
+  purchase   Purchase? @relation(fields: [purchaseId], references: [id])
+  purchaseId String?
+
+  // Error tracking
+  errorMessage String? @db.Text
+  errorCode    String?
+
+  // Metadata
+  metadata Json? // Additional data from payment provider
+
+  // Timestamps
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  completedAt DateTime?
+
+  @@index([gatewayId])
+  @@index([purchaseId])
+  @@index([status])
+  @@index([createdAt])
 }
 
 model Purchase {
@@ -185,6 +273,9 @@ model Purchase {
   downloadsLeft Int?
 
   status String @default("completed") // pending, completed, refunded
+
+  // Link to payment transactions
+  transactions Transaction[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -216,4 +307,22 @@ model PackageDiscount {
   isActive  Boolean  @default(true)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+}
+
+// Optional - if you want to store category tree flat paths
+model CategoryPath {
+  id        String  @id @default(cuid())
+  product   Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+  productId Int
+  path      String // Full path string e.g. "university/chamberlain/nr322"
+  level1    String? // First level segment (e.g. "university")
+  level2    String? // Second level segment (e.g. "chamberlain")
+  level3    String? // Third level segment (e.g. "nr322")
+  level4    String? // For deeper hierarchies if needed
+  level5    String? // For deeper hierarchies if needed
+
+  @@unique([productId, path])
+  @@index([productId])
+  @@index([path])
+  @@index([level1, level2, level3]) // For hierarchical filtering
 }

@@ -205,6 +205,9 @@ exports.Prisma.CategoryScalarFieldEnum = {
   name: 'name',
   slug: 'slug',
   description: 'description',
+  path: 'path',
+  level: 'level',
+  isActive: 'isActive',
   parentId: 'parentId',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
@@ -213,6 +216,48 @@ exports.Prisma.CategoryScalarFieldEnum = {
 exports.Prisma.CategoryProductScalarFieldEnum = {
   productId: 'productId',
   categoryId: 'categoryId'
+};
+
+exports.Prisma.PaymentGatewayScalarFieldEnum = {
+  id: 'id',
+  name: 'name',
+  isActive: 'isActive',
+  config: 'config',
+  encryptionKey: 'encryptionKey',
+  encryptionIV: 'encryptionIV',
+  merchantId: 'merchantId',
+  businessName: 'businessName',
+  businessEmail: 'businessEmail',
+  environment: 'environment',
+  description: 'description',
+  notes: 'notes',
+  apiEndpoint: 'apiEndpoint',
+  webhookUrl: 'webhookUrl',
+  supportsCreditCards: 'supportsCreditCards',
+  supportsDirectDebit: 'supportsDirectDebit',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.TransactionScalarFieldEnum = {
+  id: 'id',
+  amount: 'amount',
+  currency: 'currency',
+  status: 'status',
+  paymentMethod: 'paymentMethod',
+  paymentType: 'paymentType',
+  gatewayId: 'gatewayId',
+  gatewayTransactionId: 'gatewayTransactionId',
+  gatewayCustomerId: 'gatewayCustomerId',
+  receiptUrl: 'receiptUrl',
+  receiptEmail: 'receiptEmail',
+  purchaseId: 'purchaseId',
+  errorMessage: 'errorMessage',
+  errorCode: 'errorCode',
+  metadata: 'metadata',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt',
+  completedAt: 'completedAt'
 };
 
 exports.Prisma.PurchaseScalarFieldEnum = {
@@ -246,9 +291,29 @@ exports.Prisma.PackageDiscountScalarFieldEnum = {
   updatedAt: 'updatedAt'
 };
 
+exports.Prisma.CategoryPathScalarFieldEnum = {
+  id: 'id',
+  productId: 'productId',
+  path: 'path',
+  level1: 'level1',
+  level2: 'level2',
+  level3: 'level3',
+  level4: 'level4',
+  level5: 'level5'
+};
+
 exports.Prisma.SortOrder = {
   asc: 'asc',
   desc: 'desc'
+};
+
+exports.Prisma.JsonNullValueInput = {
+  JsonNull: Prisma.JsonNull
+};
+
+exports.Prisma.NullableJsonNullValueInput = {
+  DbNull: Prisma.DbNull,
+  JsonNull: Prisma.JsonNull
 };
 
 exports.Prisma.QueryMode = {
@@ -259,6 +324,12 @@ exports.Prisma.QueryMode = {
 exports.Prisma.NullsOrder = {
   first: 'first',
   last: 'last'
+};
+
+exports.Prisma.JsonNullValueFilter = {
+  DbNull: Prisma.DbNull,
+  JsonNull: Prisma.JsonNull,
+  AnyNull: Prisma.AnyNull
 };
 
 
@@ -272,9 +343,12 @@ exports.Prisma.ModelName = {
   ProductImage: 'ProductImage',
   Category: 'Category',
   CategoryProduct: 'CategoryProduct',
+  PaymentGateway: 'PaymentGateway',
+  Transaction: 'Transaction',
   Purchase: 'Purchase',
   Review: 'Review',
-  PackageDiscount: 'PackageDiscount'
+  PackageDiscount: 'PackageDiscount',
+  CategoryPath: 'CategoryPath'
 };
 
 /**

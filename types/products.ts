@@ -49,4 +49,5 @@ export type Product = Omit<SerializableProduct, 'createdAt' | 'updatedAt' | 'pri
   price: { toNumber(): number };
   finalPrice: { toNumber(): number };
   discountAmount: { toNumber(): number } | null;
+  reviews?: any[];
 }; 

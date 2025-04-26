@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import prisma from "@/lib/db";
+import { db } from "@/lib/db";
 import type { PrismaClient } from "@prisma/client";
 
 type Category = Awaited<ReturnType<PrismaClient['category']['findFirst']>>
@@ -36,10 +36,12 @@ export async function GET() {
 
     console.log("Fetching fresh category stats data");
     // Alternative approach using separate count queries
-    const categories = await prisma.category.findMany();
+    const categories = await db.category.findMany({
+      where: {} // No filters to return all categories
+    });
     const categoryCounts = await Promise.all(
       categories.map((category: Category) => 
-        prisma.product.count({
+        db.product.count({
           where: {
             categories: {
               some: { categoryId: category!.id }
@@ -50,7 +52,7 @@ export async function GET() {
     );
 
     // Get total products count for percentage calculation
-    const totalProducts = await prisma.product.count({
+    const totalProducts = await db.product.count({
       where: { isPublished: true }
     });
 
@@ -60,7 +62,7 @@ export async function GET() {
         .filter((category): category is NonNullable<typeof category> => category !== null)
         .map(async (category, index) => {
           // Find products in this category
-          const productsInCategory = await prisma.product.findMany({
+          const productsInCategory = await db.product.findMany({
             where: {
               isPublished: true,
               categories: {
@@ -80,7 +82,7 @@ export async function GET() {
           });
 
           // Get average price for this category
-          const avgPriceResult = await prisma.product.aggregate({
+          const avgPriceResult = await db.product.aggregate({
             where: {
               isPublished: true,
               categories: {

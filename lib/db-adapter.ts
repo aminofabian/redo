@@ -15,7 +15,7 @@ export const createUser = async (data: any) => {
         ${data.name}, 
         ${data.email}, 
         ${data.password}, 
-        ${data.role || 'USER'}::public."UserRole", 
+        ${data.role || 'USER'}, 
         ${data.firstName || null}, 
         ${data.lastName || null}, 
         ${data.isTwoFactorEnabled || false}, 

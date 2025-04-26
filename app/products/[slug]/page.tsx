@@ -15,7 +15,7 @@ type RelatedProduct = Product;
 type BaseProduct = {
   id: number;
   slug: string | null;
-  category: { id: string; name: string };
+  categories?: { category: { id: string; name: string } }[];
 };
 
 export async function generateMetadata({ params }: { params: { slug: string } }): Promise<Metadata> {
@@ -78,7 +78,7 @@ export async function generateMetadata({ params }: { params: { slug: string } })
 
 export async function generateStaticParams() {
   const products = await getAllProducts();
-  return products.map((product: BaseProduct) => ({
+  return products.map((product) => ({
     slug: generateProductSlug(product),
   }));
 }
@@ -107,7 +107,11 @@ async function getRelatedProducts(productId: number, categoryIds: string[], limi
           category: true
         }
       },
-      reviews: true
+      reviews: {
+        include: {
+          user: true
+        }
+      }
     },
     take: limit,
     orderBy: {
@@ -118,7 +122,7 @@ async function getRelatedProducts(productId: number, categoryIds: string[], limi
   return products.map((product: Product) => serializeProduct(product));
 }
 
-function serializeProduct(product: Product): SerializableProduct {
+function serializeProduct(product: any): SerializableProduct {
   return {
     ...product,
     price: product.price?.toNumber() ?? 0,
@@ -126,26 +130,19 @@ function serializeProduct(product: Product): SerializableProduct {
     discountAmount: product.discountAmount?.toNumber() ?? null,
     createdAt: product.createdAt?.toISOString() ?? new Date().toISOString(),
     updatedAt: product.updatedAt?.toISOString() ?? new Date().toISOString(),
-    images: product.images?.map(img => ({
+    images: product.images?.map((img: any) => ({
       id: img.id,
       url: img.url,
       isPrimary: img.isPrimary
     })) ?? [],
-    categories: product.categories?.map(cat => ({
+    categories: product.categories?.map((cat: any) => ({
       category: {
         id: cat.category.id,
         name: cat.category.name,
         parentId: cat.category.parentId
       }
     })) ?? [],
-    reviews: product.reviews?.map(review => ({
-      rating: review.rating,
-      user: {
-        firstName: review.user?.firstName ?? null,
-        lastName: review.user?.lastName ?? null,
-        image: review.user?.image ?? null
-      }
-    })) ?? []
+    reviews: [] // Default to empty array when reviews don't exist
   };
 }
 

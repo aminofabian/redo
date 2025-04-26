@@ -232,7 +232,24 @@ export const authOptions = {
       
       return session;
     },
-    // ...other callbacks
+    async jwt({ token, user }) {
+      if (user) {
+        token.role = user.role;
+        token.id = user.id;
+      } else {
+        // This ensures the role is always fresh from the database
+        // even for existing tokens
+        const freshUser = await prisma.user.findUnique({
+          where: { id: token.id as string },
+          select: { role: true }
+        });
+        
+        if (freshUser) {
+          token.role = freshUser.role;
+        }
+      }
+      return token;
+    },
   },
   // ...other options
 };

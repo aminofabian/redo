@@ -1,7 +1,7 @@
 import Hero from "@/components/ui/Hero";
-import { getCategories } from "@/app/actions/getCategories";
+import { getCategoryTree } from "@/app/actions/getCategories";
 
 export default async function HeroWrapper() {
-  const categories = await getCategories();
-  return <Hero categories={categories} />;
+  const categoryTree = await getCategoryTree();
+  return <Hero categoryTree={categoryTree} />;
 } 

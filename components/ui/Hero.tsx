@@ -41,7 +41,7 @@ const triggers = [
 ];
 
 // Update the Hero component to use database categories
-const Hero = ({ categories }: { categories: CategoryItem[] }) => {
+const Hero = ({ categories = [] }: { categories?: CategoryItem[] }) => {
   console.log("HERO: Component rendering");
   console.log(`HERO: Received ${categories?.length || 0} categories from parent`);
   
@@ -112,7 +112,7 @@ const Hero = ({ categories }: { categories: CategoryItem[] }) => {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5, delay: 0.3 }}
         >
-          {categories.map((category, index) => (
+          {(categories || []).map((category, index) => (
             <motion.div
               key={category.id}
               className="group relative bg-white rounded-xl overflow-hidden shadow-md hover:shadow-xl transition-all duration-300 cursor-pointer"

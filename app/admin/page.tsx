@@ -2,6 +2,7 @@
 import { auth } from "@/auth";
 import { redirect } from "next/navigation";
 import AdminClient from "./AdminClient";
+import PaymentGatewaySettings from '@/components/admin/PaymentGatewaySettings';
 
 // 1. Create an interface that matches your session structure
 export default async function AdminPage() {

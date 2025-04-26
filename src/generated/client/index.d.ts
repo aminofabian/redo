@@ -59,6 +59,16 @@ export type Category = $Result.DefaultSelection<Prisma.$CategoryPayload>
  */
 export type CategoryProduct = $Result.DefaultSelection<Prisma.$CategoryProductPayload>
 /**
+ * Model PaymentGateway
+ * 
+ */
+export type PaymentGateway = $Result.DefaultSelection<Prisma.$PaymentGatewayPayload>
+/**
+ * Model Transaction
+ * 
+ */
+export type Transaction = $Result.DefaultSelection<Prisma.$TransactionPayload>
+/**
  * Model Purchase
  * 
  */
@@ -73,23 +83,11 @@ export type Review = $Result.DefaultSelection<Prisma.$ReviewPayload>
  * 
  */
 export type PackageDiscount = $Result.DefaultSelection<Prisma.$PackageDiscountPayload>
-
 /**
- * Enums
+ * Model CategoryPath
+ * 
  */
-export namespace $Enums {
-  export const UserRole: {
-  USER: 'USER',
-  ADMIN: 'ADMIN'
-};
-
-export type UserRole = (typeof UserRole)[keyof typeof UserRole]
-
-}
-
-export type UserRole = $Enums.UserRole
-
-export const UserRole: typeof $Enums.UserRole
+export type CategoryPath = $Result.DefaultSelection<Prisma.$CategoryPathPayload>
 
 /**
  * ##  Prisma Client ʲˢ
@@ -307,6 +305,26 @@ export class PrismaClient<
   get categoryProduct(): Prisma.CategoryProductDelegate<ExtArgs, ClientOptions>;
 
   /**
+   * `prisma.paymentGateway`: Exposes CRUD operations for the **PaymentGateway** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more PaymentGateways
+    * const paymentGateways = await prisma.paymentGateway.findMany()
+    * ```
+    */
+  get paymentGateway(): Prisma.PaymentGatewayDelegate<ExtArgs, ClientOptions>;
+
+  /**
+   * `prisma.transaction`: Exposes CRUD operations for the **Transaction** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more Transactions
+    * const transactions = await prisma.transaction.findMany()
+    * ```
+    */
+  get transaction(): Prisma.TransactionDelegate<ExtArgs, ClientOptions>;
+
+  /**
    * `prisma.purchase`: Exposes CRUD operations for the **Purchase** model.
     * Example usage:
     * ```ts
@@ -335,6 +353,16 @@ export class PrismaClient<
     * ```
     */
   get packageDiscount(): Prisma.PackageDiscountDelegate<ExtArgs, ClientOptions>;
+
+  /**
+   * `prisma.categoryPath`: Exposes CRUD operations for the **CategoryPath** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more CategoryPaths
+    * const categoryPaths = await prisma.categoryPath.findMany()
+    * ```
+    */
+  get categoryPath(): Prisma.CategoryPathDelegate<ExtArgs, ClientOptions>;
 }
 
 export namespace Prisma {
@@ -784,9 +812,12 @@ export namespace Prisma {
     ProductImage: 'ProductImage',
     Category: 'Category',
     CategoryProduct: 'CategoryProduct',
+    PaymentGateway: 'PaymentGateway',
+    Transaction: 'Transaction',
     Purchase: 'Purchase',
     Review: 'Review',
-    PackageDiscount: 'PackageDiscount'
+    PackageDiscount: 'PackageDiscount',
+    CategoryPath: 'CategoryPath'
   };
 
   export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -805,7 +836,7 @@ export namespace Prisma {
       omit: GlobalOmitOptions
     }
     meta: {
-      modelProps: "session" | "account" | "user" | "verificationToken" | "passwordResetToken" | "product" | "productImage" | "category" | "categoryProduct" | "purchase" | "review" | "packageDiscount"
+      modelProps: "session" | "account" | "user" | "verificationToken" | "passwordResetToken" | "product" | "productImage" | "category" | "categoryProduct" | "paymentGateway" | "transaction" | "purchase" | "review" | "packageDiscount" | "categoryPath"
       txIsolationLevel: Prisma.TransactionIsolationLevel
     }
     model: {
@@ -1475,6 +1506,154 @@ export namespace Prisma {
           }
         }
       }
+      PaymentGateway: {
+        payload: Prisma.$PaymentGatewayPayload<ExtArgs>
+        fields: Prisma.PaymentGatewayFieldRefs
+        operations: {
+          findUnique: {
+            args: Prisma.PaymentGatewayFindUniqueArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$PaymentGatewayPayload> | null
+          }
+          findUniqueOrThrow: {
+            args: Prisma.PaymentGatewayFindUniqueOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$PaymentGatewayPayload>
+          }
+          findFirst: {
+            args: Prisma.PaymentGatewayFindFirstArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$PaymentGatewayPayload> | null
+          }
+          findFirstOrThrow: {
+            args: Prisma.PaymentGatewayFindFirstOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$PaymentGatewayPayload>
+          }
+          findMany: {
+            args: Prisma.PaymentGatewayFindManyArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$PaymentGatewayPayload>[]
+          }
+          create: {
+            args: Prisma.PaymentGatewayCreateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$PaymentGatewayPayload>
+          }
+          createMany: {
+            args: Prisma.PaymentGatewayCreateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          createManyAndReturn: {
+            args: Prisma.PaymentGatewayCreateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$PaymentGatewayPayload>[]
+          }
+          delete: {
+            args: Prisma.PaymentGatewayDeleteArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$PaymentGatewayPayload>
+          }
+          update: {
+            args: Prisma.PaymentGatewayUpdateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$PaymentGatewayPayload>
+          }
+          deleteMany: {
+            args: Prisma.PaymentGatewayDeleteManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateMany: {
+            args: Prisma.PaymentGatewayUpdateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateManyAndReturn: {
+            args: Prisma.PaymentGatewayUpdateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$PaymentGatewayPayload>[]
+          }
+          upsert: {
+            args: Prisma.PaymentGatewayUpsertArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$PaymentGatewayPayload>
+          }
+          aggregate: {
+            args: Prisma.PaymentGatewayAggregateArgs<ExtArgs>
+            result: $Utils.Optional<AggregatePaymentGateway>
+          }
+          groupBy: {
+            args: Prisma.PaymentGatewayGroupByArgs<ExtArgs>
+            result: $Utils.Optional<PaymentGatewayGroupByOutputType>[]
+          }
+          count: {
+            args: Prisma.PaymentGatewayCountArgs<ExtArgs>
+            result: $Utils.Optional<PaymentGatewayCountAggregateOutputType> | number
+          }
+        }
+      }
+      Transaction: {
+        payload: Prisma.$TransactionPayload<ExtArgs>
+        fields: Prisma.TransactionFieldRefs
+        operations: {
+          findUnique: {
+            args: Prisma.TransactionFindUniqueArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$TransactionPayload> | null
+          }
+          findUniqueOrThrow: {
+            args: Prisma.TransactionFindUniqueOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$TransactionPayload>
+          }
+          findFirst: {
+            args: Prisma.TransactionFindFirstArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$TransactionPayload> | null
+          }
+          findFirstOrThrow: {
+            args: Prisma.TransactionFindFirstOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$TransactionPayload>
+          }
+          findMany: {
+            args: Prisma.TransactionFindManyArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$TransactionPayload>[]
+          }
+          create: {
+            args: Prisma.TransactionCreateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$TransactionPayload>
+          }
+          createMany: {
+            args: Prisma.TransactionCreateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          createManyAndReturn: {
+            args: Prisma.TransactionCreateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$TransactionPayload>[]
+          }
+          delete: {
+            args: Prisma.TransactionDeleteArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$TransactionPayload>
+          }
+          update: {
+            args: Prisma.TransactionUpdateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$TransactionPayload>
+          }
+          deleteMany: {
+            args: Prisma.TransactionDeleteManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateMany: {
+            args: Prisma.TransactionUpdateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateManyAndReturn: {
+            args: Prisma.TransactionUpdateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$TransactionPayload>[]
+          }
+          upsert: {
+            args: Prisma.TransactionUpsertArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$TransactionPayload>
+          }
+          aggregate: {
+            args: Prisma.TransactionAggregateArgs<ExtArgs>
+            result: $Utils.Optional<AggregateTransaction>
+          }
+          groupBy: {
+            args: Prisma.TransactionGroupByArgs<ExtArgs>
+            result: $Utils.Optional<TransactionGroupByOutputType>[]
+          }
+          count: {
+            args: Prisma.TransactionCountArgs<ExtArgs>
+            result: $Utils.Optional<TransactionCountAggregateOutputType> | number
+          }
+        }
+      }
       Purchase: {
         payload: Prisma.$PurchasePayload<ExtArgs>
         fields: Prisma.PurchaseFieldRefs
@@ -1697,6 +1876,80 @@ export namespace Prisma {
           }
         }
       }
+      CategoryPath: {
+        payload: Prisma.$CategoryPathPayload<ExtArgs>
+        fields: Prisma.CategoryPathFieldRefs
+        operations: {
+          findUnique: {
+            args: Prisma.CategoryPathFindUniqueArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$CategoryPathPayload> | null
+          }
+          findUniqueOrThrow: {
+            args: Prisma.CategoryPathFindUniqueOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$CategoryPathPayload>
+          }
+          findFirst: {
+            args: Prisma.CategoryPathFindFirstArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$CategoryPathPayload> | null
+          }
+          findFirstOrThrow: {
+            args: Prisma.CategoryPathFindFirstOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$CategoryPathPayload>
+          }
+          findMany: {
+            args: Prisma.CategoryPathFindManyArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$CategoryPathPayload>[]
+          }
+          create: {
+            args: Prisma.CategoryPathCreateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$CategoryPathPayload>
+          }
+          createMany: {
+            args: Prisma.CategoryPathCreateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          createManyAndReturn: {
+            args: Prisma.CategoryPathCreateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$CategoryPathPayload>[]
+          }
+          delete: {
+            args: Prisma.CategoryPathDeleteArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$CategoryPathPayload>
+          }
+          update: {
+            args: Prisma.CategoryPathUpdateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$CategoryPathPayload>
+          }
+          deleteMany: {
+            args: Prisma.CategoryPathDeleteManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateMany: {
+            args: Prisma.CategoryPathUpdateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateManyAndReturn: {
+            args: Prisma.CategoryPathUpdateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$CategoryPathPayload>[]
+          }
+          upsert: {
+            args: Prisma.CategoryPathUpsertArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$CategoryPathPayload>
+          }
+          aggregate: {
+            args: Prisma.CategoryPathAggregateArgs<ExtArgs>
+            result: $Utils.Optional<AggregateCategoryPath>
+          }
+          groupBy: {
+            args: Prisma.CategoryPathGroupByArgs<ExtArgs>
+            result: $Utils.Optional<CategoryPathGroupByOutputType>[]
+          }
+          count: {
+            args: Prisma.CategoryPathCountArgs<ExtArgs>
+            result: $Utils.Optional<CategoryPathCountAggregateOutputType> | number
+          }
+        }
+      }
     }
   } & {
     other: {
@@ -1790,9 +2043,12 @@ export namespace Prisma {
     productImage?: ProductImageOmit
     category?: CategoryOmit
     categoryProduct?: CategoryProductOmit
+    paymentGateway?: PaymentGatewayOmit
+    transaction?: TransactionOmit
     purchase?: PurchaseOmit
     review?: ReviewOmit
     packageDiscount?: PackageDiscountOmit
+    categoryPath?: CategoryPathOmit
   }
 
   /* Types for Logging */
@@ -1958,6 +2214,7 @@ export namespace Prisma {
     categories: number
     reviews: number
     purchases: number
+    CategoryPath: number
   }
 
   export type ProductCountOutputTypeSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
@@ -1965,6 +2222,7 @@ export namespace Prisma {
     categories?: boolean | ProductCountOutputTypeCountCategoriesArgs
     reviews?: boolean | ProductCountOutputTypeCountReviewsArgs
     purchases?: boolean | ProductCountOutputTypeCountPurchasesArgs
+    CategoryPath?: boolean | ProductCountOutputTypeCountCategoryPathArgs
   }
 
   // Custom InputTypes
@@ -2006,6 +2264,13 @@ export namespace Prisma {
     where?: PurchaseWhereInput
   }
 
+  /**
+   * ProductCountOutputType without action
+   */
+  export type ProductCountOutputTypeCountCategoryPathArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: CategoryPathWhereInput
+  }
+
 
   /**
    * Count Type CategoryCountOutputType
@@ -2044,6 +2309,68 @@ export namespace Prisma {
    */
   export type CategoryCountOutputTypeCountChildrenArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     where?: CategoryWhereInput
+  }
+
+
+  /**
+   * Count Type PaymentGatewayCountOutputType
+   */
+
+  export type PaymentGatewayCountOutputType = {
+    transactions: number
+  }
+
+  export type PaymentGatewayCountOutputTypeSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    transactions?: boolean | PaymentGatewayCountOutputTypeCountTransactionsArgs
+  }
+
+  // Custom InputTypes
+  /**
+   * PaymentGatewayCountOutputType without action
+   */
+  export type PaymentGatewayCountOutputTypeDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the PaymentGatewayCountOutputType
+     */
+    select?: PaymentGatewayCountOutputTypeSelect<ExtArgs> | null
+  }
+
+  /**
+   * PaymentGatewayCountOutputType without action
+   */
+  export type PaymentGatewayCountOutputTypeCountTransactionsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: TransactionWhereInput
+  }
+
+
+  /**
+   * Count Type PurchaseCountOutputType
+   */
+
+  export type PurchaseCountOutputType = {
+    transactions: number
+  }
+
+  export type PurchaseCountOutputTypeSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    transactions?: boolean | PurchaseCountOutputTypeCountTransactionsArgs
+  }
+
+  // Custom InputTypes
+  /**
+   * PurchaseCountOutputType without action
+   */
+  export type PurchaseCountOutputTypeDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the PurchaseCountOutputType
+     */
+    select?: PurchaseCountOutputTypeSelect<ExtArgs> | null
+  }
+
+  /**
+   * PurchaseCountOutputType without action
+   */
+  export type PurchaseCountOutputTypeCountTransactionsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: TransactionWhereInput
   }
 
 
@@ -7819,7 +8146,7 @@ export namespace Prisma {
     totalRevenue: Decimal
     createdAt: Date
     updatedAt: Date
-    createdById: string
+    createdById: string | null
     _count: ProductCountAggregateOutputType | null
     _avg: ProductAvgAggregateOutputType | null
     _sum: ProductSumAggregateOutputType | null
@@ -7868,7 +8195,8 @@ export namespace Prisma {
     categories?: boolean | Product$categoriesArgs<ExtArgs>
     reviews?: boolean | Product$reviewsArgs<ExtArgs>
     purchases?: boolean | Product$purchasesArgs<ExtArgs>
-    createdBy?: boolean | UserDefaultArgs<ExtArgs>
+    CategoryPath?: boolean | Product$CategoryPathArgs<ExtArgs>
+    createdBy?: boolean | Product$createdByArgs<ExtArgs>
     _count?: boolean | ProductCountOutputTypeDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["product"]>
 
@@ -7895,7 +8223,7 @@ export namespace Prisma {
     createdAt?: boolean
     updatedAt?: boolean
     createdById?: boolean
-    createdBy?: boolean | UserDefaultArgs<ExtArgs>
+    createdBy?: boolean | Product$createdByArgs<ExtArgs>
   }, ExtArgs["result"]["product"]>
 
   export type ProductSelectUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
@@ -7921,7 +8249,7 @@ export namespace Prisma {
     createdAt?: boolean
     updatedAt?: boolean
     createdById?: boolean
-    createdBy?: boolean | UserDefaultArgs<ExtArgs>
+    createdBy?: boolean | Product$createdByArgs<ExtArgs>
   }, ExtArgs["result"]["product"]>
 
   export type ProductSelectScalar = {
@@ -7955,14 +8283,15 @@ export namespace Prisma {
     categories?: boolean | Product$categoriesArgs<ExtArgs>
     reviews?: boolean | Product$reviewsArgs<ExtArgs>
     purchases?: boolean | Product$purchasesArgs<ExtArgs>
-    createdBy?: boolean | UserDefaultArgs<ExtArgs>
+    CategoryPath?: boolean | Product$CategoryPathArgs<ExtArgs>
+    createdBy?: boolean | Product$createdByArgs<ExtArgs>
     _count?: boolean | ProductCountOutputTypeDefaultArgs<ExtArgs>
   }
   export type ProductIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
-    createdBy?: boolean | UserDefaultArgs<ExtArgs>
+    createdBy?: boolean | Product$createdByArgs<ExtArgs>
   }
   export type ProductIncludeUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
-    createdBy?: boolean | UserDefaultArgs<ExtArgs>
+    createdBy?: boolean | Product$createdByArgs<ExtArgs>
   }
 
   export type $ProductPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
@@ -7972,7 +8301,8 @@ export namespace Prisma {
       categories: Prisma.$CategoryProductPayload<ExtArgs>[]
       reviews: Prisma.$ReviewPayload<ExtArgs>[]
       purchases: Prisma.$PurchasePayload<ExtArgs>[]
-      createdBy: Prisma.$UserPayload<ExtArgs>
+      CategoryPath: Prisma.$CategoryPathPayload<ExtArgs>[]
+      createdBy: Prisma.$UserPayload<ExtArgs> | null
     }
     scalars: $Extensions.GetPayloadResult<{
       id: number
@@ -7996,7 +8326,7 @@ export namespace Prisma {
       totalRevenue: Prisma.Decimal
       createdAt: Date
       updatedAt: Date
-      createdById: string
+      createdById: string | null
     }, ExtArgs["result"]["product"]>
     composites: {}
   }
@@ -8395,7 +8725,8 @@ export namespace Prisma {
     categories<T extends Product$categoriesArgs<ExtArgs> = {}>(args?: Subset<T, Product$categoriesArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$CategoryProductPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     reviews<T extends Product$reviewsArgs<ExtArgs> = {}>(args?: Subset<T, Product$reviewsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$ReviewPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     purchases<T extends Product$purchasesArgs<ExtArgs> = {}>(args?: Subset<T, Product$purchasesArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$PurchasePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
-    createdBy<T extends UserDefaultArgs<ExtArgs> = {}>(args?: Subset<T, UserDefaultArgs<ExtArgs>>): Prisma__UserClient<$Result.GetResult<Prisma.$UserPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
+    CategoryPath<T extends Product$CategoryPathArgs<ExtArgs> = {}>(args?: Subset<T, Product$CategoryPathArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$CategoryPathPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+    createdBy<T extends Product$createdByArgs<ExtArgs> = {}>(args?: Subset<T, Product$createdByArgs<ExtArgs>>): Prisma__UserClient<$Result.GetResult<Prisma.$UserPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
     /**
      * Attaches callbacks for the resolution and/or rejection of the Promise.
      * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -8936,6 +9267,49 @@ export namespace Prisma {
     take?: number
     skip?: number
     distinct?: PurchaseScalarFieldEnum | PurchaseScalarFieldEnum[]
+  }
+
+  /**
+   * Product.CategoryPath
+   */
+  export type Product$CategoryPathArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the CategoryPath
+     */
+    select?: CategoryPathSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the CategoryPath
+     */
+    omit?: CategoryPathOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: CategoryPathInclude<ExtArgs> | null
+    where?: CategoryPathWhereInput
+    orderBy?: CategoryPathOrderByWithRelationInput | CategoryPathOrderByWithRelationInput[]
+    cursor?: CategoryPathWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: CategoryPathScalarFieldEnum | CategoryPathScalarFieldEnum[]
+  }
+
+  /**
+   * Product.createdBy
+   */
+  export type Product$createdByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the User
+     */
+    select?: UserSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the User
+     */
+    omit?: UserOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: UserInclude<ExtArgs> | null
+    where?: UserWhereInput
   }
 
   /**
@@ -10068,8 +10442,18 @@ export namespace Prisma {
 
   export type AggregateCategory = {
     _count: CategoryCountAggregateOutputType | null
+    _avg: CategoryAvgAggregateOutputType | null
+    _sum: CategorySumAggregateOutputType | null
     _min: CategoryMinAggregateOutputType | null
     _max: CategoryMaxAggregateOutputType | null
+  }
+
+  export type CategoryAvgAggregateOutputType = {
+    level: number | null
+  }
+
+  export type CategorySumAggregateOutputType = {
+    level: number | null
   }
 
   export type CategoryMinAggregateOutputType = {
@@ -10077,6 +10461,9 @@ export namespace Prisma {
     name: string | null
     slug: string | null
     description: string | null
+    path: string | null
+    level: number | null
+    isActive: boolean | null
     parentId: string | null
     createdAt: Date | null
     updatedAt: Date | null
@@ -10087,6 +10474,9 @@ export namespace Prisma {
     name: string | null
     slug: string | null
     description: string | null
+    path: string | null
+    level: number | null
+    isActive: boolean | null
     parentId: string | null
     createdAt: Date | null
     updatedAt: Date | null
@@ -10097,6 +10487,9 @@ export namespace Prisma {
     name: number
     slug: number
     description: number
+    path: number
+    level: number
+    isActive: number
     parentId: number
     createdAt: number
     updatedAt: number
@@ -10104,11 +10497,22 @@ export namespace Prisma {
   }
 
 
+  export type CategoryAvgAggregateInputType = {
+    level?: true
+  }
+
+  export type CategorySumAggregateInputType = {
+    level?: true
+  }
+
   export type CategoryMinAggregateInputType = {
     id?: true
     name?: true
     slug?: true
     description?: true
+    path?: true
+    level?: true
+    isActive?: true
     parentId?: true
     createdAt?: true
     updatedAt?: true
@@ -10119,6 +10523,9 @@ export namespace Prisma {
     name?: true
     slug?: true
     description?: true
+    path?: true
+    level?: true
+    isActive?: true
     parentId?: true
     createdAt?: true
     updatedAt?: true
@@ -10129,6 +10536,9 @@ export namespace Prisma {
     name?: true
     slug?: true
     description?: true
+    path?: true
+    level?: true
+    isActive?: true
     parentId?: true
     createdAt?: true
     updatedAt?: true
@@ -10173,6 +10583,18 @@ export namespace Prisma {
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
      * 
+     * Select which fields to average
+    **/
+    _avg?: CategoryAvgAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to sum
+    **/
+    _sum?: CategorySumAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
      * Select which fields to find the minimum value
     **/
     _min?: CategoryMinAggregateInputType
@@ -10203,6 +10625,8 @@ export namespace Prisma {
     take?: number
     skip?: number
     _count?: CategoryCountAggregateInputType | true
+    _avg?: CategoryAvgAggregateInputType
+    _sum?: CategorySumAggregateInputType
     _min?: CategoryMinAggregateInputType
     _max?: CategoryMaxAggregateInputType
   }
@@ -10212,10 +10636,15 @@ export namespace Prisma {
     name: string
     slug: string
     description: string | null
+    path: string
+    level: number
+    isActive: boolean
     parentId: string | null
     createdAt: Date
     updatedAt: Date
     _count: CategoryCountAggregateOutputType | null
+    _avg: CategoryAvgAggregateOutputType | null
+    _sum: CategorySumAggregateOutputType | null
     _min: CategoryMinAggregateOutputType | null
     _max: CategoryMaxAggregateOutputType | null
   }
@@ -10239,6 +10668,9 @@ export namespace Prisma {
     name?: boolean
     slug?: boolean
     description?: boolean
+    path?: boolean
+    level?: boolean
+    isActive?: boolean
     parentId?: boolean
     createdAt?: boolean
     updatedAt?: boolean
@@ -10253,6 +10685,9 @@ export namespace Prisma {
     name?: boolean
     slug?: boolean
     description?: boolean
+    path?: boolean
+    level?: boolean
+    isActive?: boolean
     parentId?: boolean
     createdAt?: boolean
     updatedAt?: boolean
@@ -10264,6 +10699,9 @@ export namespace Prisma {
     name?: boolean
     slug?: boolean
     description?: boolean
+    path?: boolean
+    level?: boolean
+    isActive?: boolean
     parentId?: boolean
     createdAt?: boolean
     updatedAt?: boolean
@@ -10275,12 +10713,15 @@ export namespace Prisma {
     name?: boolean
     slug?: boolean
     description?: boolean
+    path?: boolean
+    level?: boolean
+    isActive?: boolean
     parentId?: boolean
     createdAt?: boolean
     updatedAt?: boolean
   }
 
-  export type CategoryOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "name" | "slug" | "description" | "parentId" | "createdAt" | "updatedAt", ExtArgs["result"]["category"]>
+  export type CategoryOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "name" | "slug" | "description" | "path" | "level" | "isActive" | "parentId" | "createdAt" | "updatedAt", ExtArgs["result"]["category"]>
   export type CategoryInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     products?: boolean | Category$productsArgs<ExtArgs>
     parent?: boolean | Category$parentArgs<ExtArgs>
@@ -10306,6 +10747,9 @@ export namespace Prisma {
       name: string
       slug: string
       description: string | null
+      path: string
+      level: number
+      isActive: boolean
       parentId: string | null
       createdAt: Date
       updatedAt: Date
@@ -10739,6 +11183,9 @@ export namespace Prisma {
     readonly name: FieldRef<"Category", 'String'>
     readonly slug: FieldRef<"Category", 'String'>
     readonly description: FieldRef<"Category", 'String'>
+    readonly path: FieldRef<"Category", 'String'>
+    readonly level: FieldRef<"Category", 'Int'>
+    readonly isActive: FieldRef<"Category", 'Boolean'>
     readonly parentId: FieldRef<"Category", 'String'>
     readonly createdAt: FieldRef<"Category", 'DateTime'>
     readonly updatedAt: FieldRef<"Category", 'DateTime'>
@@ -12285,6 +12732,2525 @@ export namespace Prisma {
 
 
   /**
+   * Model PaymentGateway
+   */
+
+  export type AggregatePaymentGateway = {
+    _count: PaymentGatewayCountAggregateOutputType | null
+    _min: PaymentGatewayMinAggregateOutputType | null
+    _max: PaymentGatewayMaxAggregateOutputType | null
+  }
+
+  export type PaymentGatewayMinAggregateOutputType = {
+    id: string | null
+    name: string | null
+    isActive: boolean | null
+    encryptionKey: string | null
+    encryptionIV: string | null
+    merchantId: string | null
+    businessName: string | null
+    businessEmail: string | null
+    environment: string | null
+    description: string | null
+    notes: string | null
+    apiEndpoint: string | null
+    webhookUrl: string | null
+    supportsCreditCards: boolean | null
+    supportsDirectDebit: boolean | null
+    createdAt: Date | null
+    updatedAt: Date | null
+  }
+
+  export type PaymentGatewayMaxAggregateOutputType = {
+    id: string | null
+    name: string | null
+    isActive: boolean | null
+    encryptionKey: string | null
+    encryptionIV: string | null
+    merchantId: string | null
+    businessName: string | null
+    businessEmail: string | null
+    environment: string | null
+    description: string | null
+    notes: string | null
+    apiEndpoint: string | null
+    webhookUrl: string | null
+    supportsCreditCards: boolean | null
+    supportsDirectDebit: boolean | null
+    createdAt: Date | null
+    updatedAt: Date | null
+  }
+
+  export type PaymentGatewayCountAggregateOutputType = {
+    id: number
+    name: number
+    isActive: number
+    config: number
+    encryptionKey: number
+    encryptionIV: number
+    merchantId: number
+    businessName: number
+    businessEmail: number
+    environment: number
+    description: number
+    notes: number
+    apiEndpoint: number
+    webhookUrl: number
+    supportsCreditCards: number
+    supportsDirectDebit: number
+    createdAt: number
+    updatedAt: number
+    _all: number
+  }
+
+
+  export type PaymentGatewayMinAggregateInputType = {
+    id?: true
+    name?: true
+    isActive?: true
+    encryptionKey?: true
+    encryptionIV?: true
+    merchantId?: true
+    businessName?: true
+    businessEmail?: true
+    environment?: true
+    description?: true
+    notes?: true
+    apiEndpoint?: true
+    webhookUrl?: true
+    supportsCreditCards?: true
+    supportsDirectDebit?: true
+    createdAt?: true
+    updatedAt?: true
+  }
+
+  export type PaymentGatewayMaxAggregateInputType = {
+    id?: true
+    name?: true
+    isActive?: true
+    encryptionKey?: true
+    encryptionIV?: true
+    merchantId?: true
+    businessName?: true
+    businessEmail?: true
+    environment?: true
+    description?: true
+    notes?: true
+    apiEndpoint?: true
+    webhookUrl?: true
+    supportsCreditCards?: true
+    supportsDirectDebit?: true
+    createdAt?: true
+    updatedAt?: true
+  }
+
+  export type PaymentGatewayCountAggregateInputType = {
+    id?: true
+    name?: true
+    isActive?: true
+    config?: true
+    encryptionKey?: true
+    encryptionIV?: true
+    merchantId?: true
+    businessName?: true
+    businessEmail?: true
+    environment?: true
+    description?: true
+    notes?: true
+    apiEndpoint?: true
+    webhookUrl?: true
+    supportsCreditCards?: true
+    supportsDirectDebit?: true
+    createdAt?: true
+    updatedAt?: true
+    _all?: true
+  }
+
+  export type PaymentGatewayAggregateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which PaymentGateway to aggregate.
+     */
+    where?: PaymentGatewayWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of PaymentGateways to fetch.
+     */
+    orderBy?: PaymentGatewayOrderByWithRelationInput | PaymentGatewayOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the start position
+     */
+    cursor?: PaymentGatewayWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` PaymentGateways from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` PaymentGateways.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Count returned PaymentGateways
+    **/
+    _count?: true | PaymentGatewayCountAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the minimum value
+    **/
+    _min?: PaymentGatewayMinAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the maximum value
+    **/
+    _max?: PaymentGatewayMaxAggregateInputType
+  }
+
+  export type GetPaymentGatewayAggregateType<T extends PaymentGatewayAggregateArgs> = {
+        [P in keyof T & keyof AggregatePaymentGateway]: P extends '_count' | 'count'
+      ? T[P] extends true
+        ? number
+        : GetScalarType<T[P], AggregatePaymentGateway[P]>
+      : GetScalarType<T[P], AggregatePaymentGateway[P]>
+  }
+
+
+
+
+  export type PaymentGatewayGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: PaymentGatewayWhereInput
+    orderBy?: PaymentGatewayOrderByWithAggregationInput | PaymentGatewayOrderByWithAggregationInput[]
+    by: PaymentGatewayScalarFieldEnum[] | PaymentGatewayScalarFieldEnum
+    having?: PaymentGatewayScalarWhereWithAggregatesInput
+    take?: number
+    skip?: number
+    _count?: PaymentGatewayCountAggregateInputType | true
+    _min?: PaymentGatewayMinAggregateInputType
+    _max?: PaymentGatewayMaxAggregateInputType
+  }
+
+  export type PaymentGatewayGroupByOutputType = {
+    id: string
+    name: string
+    isActive: boolean
+    config: JsonValue
+    encryptionKey: string | null
+    encryptionIV: string | null
+    merchantId: string | null
+    businessName: string | null
+    businessEmail: string | null
+    environment: string
+    description: string | null
+    notes: string | null
+    apiEndpoint: string | null
+    webhookUrl: string | null
+    supportsCreditCards: boolean
+    supportsDirectDebit: boolean
+    createdAt: Date
+    updatedAt: Date
+    _count: PaymentGatewayCountAggregateOutputType | null
+    _min: PaymentGatewayMinAggregateOutputType | null
+    _max: PaymentGatewayMaxAggregateOutputType | null
+  }
+
+  type GetPaymentGatewayGroupByPayload<T extends PaymentGatewayGroupByArgs> = Prisma.PrismaPromise<
+    Array<
+      PickEnumerable<PaymentGatewayGroupByOutputType, T['by']> &
+        {
+          [P in ((keyof T) & (keyof PaymentGatewayGroupByOutputType))]: P extends '_count'
+            ? T[P] extends boolean
+              ? number
+              : GetScalarType<T[P], PaymentGatewayGroupByOutputType[P]>
+            : GetScalarType<T[P], PaymentGatewayGroupByOutputType[P]>
+        }
+      >
+    >
+
+
+  export type PaymentGatewaySelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    name?: boolean
+    isActive?: boolean
+    config?: boolean
+    encryptionKey?: boolean
+    encryptionIV?: boolean
+    merchantId?: boolean
+    businessName?: boolean
+    businessEmail?: boolean
+    environment?: boolean
+    description?: boolean
+    notes?: boolean
+    apiEndpoint?: boolean
+    webhookUrl?: boolean
+    supportsCreditCards?: boolean
+    supportsDirectDebit?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+    transactions?: boolean | PaymentGateway$transactionsArgs<ExtArgs>
+    _count?: boolean | PaymentGatewayCountOutputTypeDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["paymentGateway"]>
+
+  export type PaymentGatewaySelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    name?: boolean
+    isActive?: boolean
+    config?: boolean
+    encryptionKey?: boolean
+    encryptionIV?: boolean
+    merchantId?: boolean
+    businessName?: boolean
+    businessEmail?: boolean
+    environment?: boolean
+    description?: boolean
+    notes?: boolean
+    apiEndpoint?: boolean
+    webhookUrl?: boolean
+    supportsCreditCards?: boolean
+    supportsDirectDebit?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+  }, ExtArgs["result"]["paymentGateway"]>
+
+  export type PaymentGatewaySelectUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    name?: boolean
+    isActive?: boolean
+    config?: boolean
+    encryptionKey?: boolean
+    encryptionIV?: boolean
+    merchantId?: boolean
+    businessName?: boolean
+    businessEmail?: boolean
+    environment?: boolean
+    description?: boolean
+    notes?: boolean
+    apiEndpoint?: boolean
+    webhookUrl?: boolean
+    supportsCreditCards?: boolean
+    supportsDirectDebit?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+  }, ExtArgs["result"]["paymentGateway"]>
+
+  export type PaymentGatewaySelectScalar = {
+    id?: boolean
+    name?: boolean
+    isActive?: boolean
+    config?: boolean
+    encryptionKey?: boolean
+    encryptionIV?: boolean
+    merchantId?: boolean
+    businessName?: boolean
+    businessEmail?: boolean
+    environment?: boolean
+    description?: boolean
+    notes?: boolean
+    apiEndpoint?: boolean
+    webhookUrl?: boolean
+    supportsCreditCards?: boolean
+    supportsDirectDebit?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+  }
+
+  export type PaymentGatewayOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "name" | "isActive" | "config" | "encryptionKey" | "encryptionIV" | "merchantId" | "businessName" | "businessEmail" | "environment" | "description" | "notes" | "apiEndpoint" | "webhookUrl" | "supportsCreditCards" | "supportsDirectDebit" | "createdAt" | "updatedAt", ExtArgs["result"]["paymentGateway"]>
+  export type PaymentGatewayInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    transactions?: boolean | PaymentGateway$transactionsArgs<ExtArgs>
+    _count?: boolean | PaymentGatewayCountOutputTypeDefaultArgs<ExtArgs>
+  }
+  export type PaymentGatewayIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {}
+  export type PaymentGatewayIncludeUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {}
+
+  export type $PaymentGatewayPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    name: "PaymentGateway"
+    objects: {
+      transactions: Prisma.$TransactionPayload<ExtArgs>[]
+    }
+    scalars: $Extensions.GetPayloadResult<{
+      id: string
+      name: string
+      isActive: boolean
+      config: Prisma.JsonValue
+      encryptionKey: string | null
+      encryptionIV: string | null
+      merchantId: string | null
+      businessName: string | null
+      businessEmail: string | null
+      environment: string
+      description: string | null
+      notes: string | null
+      apiEndpoint: string | null
+      webhookUrl: string | null
+      supportsCreditCards: boolean
+      supportsDirectDebit: boolean
+      createdAt: Date
+      updatedAt: Date
+    }, ExtArgs["result"]["paymentGateway"]>
+    composites: {}
+  }
+
+  type PaymentGatewayGetPayload<S extends boolean | null | undefined | PaymentGatewayDefaultArgs> = $Result.GetResult<Prisma.$PaymentGatewayPayload, S>
+
+  type PaymentGatewayCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> =
+    Omit<PaymentGatewayFindManyArgs, 'select' | 'include' | 'distinct' | 'omit'> & {
+      select?: PaymentGatewayCountAggregateInputType | true
+    }
+
+  export interface PaymentGatewayDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> {
+    [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['PaymentGateway'], meta: { name: 'PaymentGateway' } }
+    /**
+     * Find zero or one PaymentGateway that matches the filter.
+     * @param {PaymentGatewayFindUniqueArgs} args - Arguments to find a PaymentGateway
+     * @example
+     * // Get one PaymentGateway
+     * const paymentGateway = await prisma.paymentGateway.findUnique({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUnique<T extends PaymentGatewayFindUniqueArgs>(args: SelectSubset<T, PaymentGatewayFindUniqueArgs<ExtArgs>>): Prisma__PaymentGatewayClient<$Result.GetResult<Prisma.$PaymentGatewayPayload<ExtArgs>, T, "findUnique", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find one PaymentGateway that matches the filter or throw an error with `error.code='P2025'`
+     * if no matches were found.
+     * @param {PaymentGatewayFindUniqueOrThrowArgs} args - Arguments to find a PaymentGateway
+     * @example
+     * // Get one PaymentGateway
+     * const paymentGateway = await prisma.paymentGateway.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUniqueOrThrow<T extends PaymentGatewayFindUniqueOrThrowArgs>(args: SelectSubset<T, PaymentGatewayFindUniqueOrThrowArgs<ExtArgs>>): Prisma__PaymentGatewayClient<$Result.GetResult<Prisma.$PaymentGatewayPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first PaymentGateway that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {PaymentGatewayFindFirstArgs} args - Arguments to find a PaymentGateway
+     * @example
+     * // Get one PaymentGateway
+     * const paymentGateway = await prisma.paymentGateway.findFirst({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirst<T extends PaymentGatewayFindFirstArgs>(args?: SelectSubset<T, PaymentGatewayFindFirstArgs<ExtArgs>>): Prisma__PaymentGatewayClient<$Result.GetResult<Prisma.$PaymentGatewayPayload<ExtArgs>, T, "findFirst", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first PaymentGateway that matches the filter or
+     * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {PaymentGatewayFindFirstOrThrowArgs} args - Arguments to find a PaymentGateway
+     * @example
+     * // Get one PaymentGateway
+     * const paymentGateway = await prisma.paymentGateway.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirstOrThrow<T extends PaymentGatewayFindFirstOrThrowArgs>(args?: SelectSubset<T, PaymentGatewayFindFirstOrThrowArgs<ExtArgs>>): Prisma__PaymentGatewayClient<$Result.GetResult<Prisma.$PaymentGatewayPayload<ExtArgs>, T, "findFirstOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find zero or more PaymentGateways that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {PaymentGatewayFindManyArgs} args - Arguments to filter and select certain fields only.
+     * @example
+     * // Get all PaymentGateways
+     * const paymentGateways = await prisma.paymentGateway.findMany()
+     * 
+     * // Get first 10 PaymentGateways
+     * const paymentGateways = await prisma.paymentGateway.findMany({ take: 10 })
+     * 
+     * // Only select the `id`
+     * const paymentGatewayWithIdOnly = await prisma.paymentGateway.findMany({ select: { id: true } })
+     * 
+     */
+    findMany<T extends PaymentGatewayFindManyArgs>(args?: SelectSubset<T, PaymentGatewayFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$PaymentGatewayPayload<ExtArgs>, T, "findMany", GlobalOmitOptions>>
+
+    /**
+     * Create a PaymentGateway.
+     * @param {PaymentGatewayCreateArgs} args - Arguments to create a PaymentGateway.
+     * @example
+     * // Create one PaymentGateway
+     * const PaymentGateway = await prisma.paymentGateway.create({
+     *   data: {
+     *     // ... data to create a PaymentGateway
+     *   }
+     * })
+     * 
+     */
+    create<T extends PaymentGatewayCreateArgs>(args: SelectSubset<T, PaymentGatewayCreateArgs<ExtArgs>>): Prisma__PaymentGatewayClient<$Result.GetResult<Prisma.$PaymentGatewayPayload<ExtArgs>, T, "create", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Create many PaymentGateways.
+     * @param {PaymentGatewayCreateManyArgs} args - Arguments to create many PaymentGateways.
+     * @example
+     * // Create many PaymentGateways
+     * const paymentGateway = await prisma.paymentGateway.createMany({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *     
+     */
+    createMany<T extends PaymentGatewayCreateManyArgs>(args?: SelectSubset<T, PaymentGatewayCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create many PaymentGateways and returns the data saved in the database.
+     * @param {PaymentGatewayCreateManyAndReturnArgs} args - Arguments to create many PaymentGateways.
+     * @example
+     * // Create many PaymentGateways
+     * const paymentGateway = await prisma.paymentGateway.createManyAndReturn({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Create many PaymentGateways and only return the `id`
+     * const paymentGatewayWithIdOnly = await prisma.paymentGateway.createManyAndReturn({
+     *   select: { id: true },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    createManyAndReturn<T extends PaymentGatewayCreateManyAndReturnArgs>(args?: SelectSubset<T, PaymentGatewayCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$PaymentGatewayPayload<ExtArgs>, T, "createManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Delete a PaymentGateway.
+     * @param {PaymentGatewayDeleteArgs} args - Arguments to delete one PaymentGateway.
+     * @example
+     * // Delete one PaymentGateway
+     * const PaymentGateway = await prisma.paymentGateway.delete({
+     *   where: {
+     *     // ... filter to delete one PaymentGateway
+     *   }
+     * })
+     * 
+     */
+    delete<T extends PaymentGatewayDeleteArgs>(args: SelectSubset<T, PaymentGatewayDeleteArgs<ExtArgs>>): Prisma__PaymentGatewayClient<$Result.GetResult<Prisma.$PaymentGatewayPayload<ExtArgs>, T, "delete", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Update one PaymentGateway.
+     * @param {PaymentGatewayUpdateArgs} args - Arguments to update one PaymentGateway.
+     * @example
+     * // Update one PaymentGateway
+     * const paymentGateway = await prisma.paymentGateway.update({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    update<T extends PaymentGatewayUpdateArgs>(args: SelectSubset<T, PaymentGatewayUpdateArgs<ExtArgs>>): Prisma__PaymentGatewayClient<$Result.GetResult<Prisma.$PaymentGatewayPayload<ExtArgs>, T, "update", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Delete zero or more PaymentGateways.
+     * @param {PaymentGatewayDeleteManyArgs} args - Arguments to filter PaymentGateways to delete.
+     * @example
+     * // Delete a few PaymentGateways
+     * const { count } = await prisma.paymentGateway.deleteMany({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     * 
+     */
+    deleteMany<T extends PaymentGatewayDeleteManyArgs>(args?: SelectSubset<T, PaymentGatewayDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more PaymentGateways.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {PaymentGatewayUpdateManyArgs} args - Arguments to update one or more rows.
+     * @example
+     * // Update many PaymentGateways
+     * const paymentGateway = await prisma.paymentGateway.updateMany({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    updateMany<T extends PaymentGatewayUpdateManyArgs>(args: SelectSubset<T, PaymentGatewayUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more PaymentGateways and returns the data updated in the database.
+     * @param {PaymentGatewayUpdateManyAndReturnArgs} args - Arguments to update many PaymentGateways.
+     * @example
+     * // Update many PaymentGateways
+     * const paymentGateway = await prisma.paymentGateway.updateManyAndReturn({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Update zero or more PaymentGateways and only return the `id`
+     * const paymentGatewayWithIdOnly = await prisma.paymentGateway.updateManyAndReturn({
+     *   select: { id: true },
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    updateManyAndReturn<T extends PaymentGatewayUpdateManyAndReturnArgs>(args: SelectSubset<T, PaymentGatewayUpdateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$PaymentGatewayPayload<ExtArgs>, T, "updateManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Create or update one PaymentGateway.
+     * @param {PaymentGatewayUpsertArgs} args - Arguments to update or create a PaymentGateway.
+     * @example
+     * // Update or create a PaymentGateway
+     * const paymentGateway = await prisma.paymentGateway.upsert({
+     *   create: {
+     *     // ... data to create a PaymentGateway
+     *   },
+     *   update: {
+     *     // ... in case it already exists, update
+     *   },
+     *   where: {
+     *     // ... the filter for the PaymentGateway we want to update
+     *   }
+     * })
+     */
+    upsert<T extends PaymentGatewayUpsertArgs>(args: SelectSubset<T, PaymentGatewayUpsertArgs<ExtArgs>>): Prisma__PaymentGatewayClient<$Result.GetResult<Prisma.$PaymentGatewayPayload<ExtArgs>, T, "upsert", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+
+    /**
+     * Count the number of PaymentGateways.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {PaymentGatewayCountArgs} args - Arguments to filter PaymentGateways to count.
+     * @example
+     * // Count the number of PaymentGateways
+     * const count = await prisma.paymentGateway.count({
+     *   where: {
+     *     // ... the filter for the PaymentGateways we want to count
+     *   }
+     * })
+    **/
+    count<T extends PaymentGatewayCountArgs>(
+      args?: Subset<T, PaymentGatewayCountArgs>,
+    ): Prisma.PrismaPromise<
+      T extends $Utils.Record<'select', any>
+        ? T['select'] extends true
+          ? number
+          : GetScalarType<T['select'], PaymentGatewayCountAggregateOutputType>
+        : number
+    >
+
+    /**
+     * Allows you to perform aggregations operations on a PaymentGateway.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {PaymentGatewayAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   _avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+    **/
+    aggregate<T extends PaymentGatewayAggregateArgs>(args: Subset<T, PaymentGatewayAggregateArgs>): Prisma.PrismaPromise<GetPaymentGatewayAggregateType<T>>
+
+    /**
+     * Group by PaymentGateway.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {PaymentGatewayGroupByArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   _count: {
+     *     _all: true
+     *   },
+     * })
+     * 
+    **/
+    groupBy<
+      T extends PaymentGatewayGroupByArgs,
+      HasSelectOrTake extends Or<
+        Extends<'skip', Keys<T>>,
+        Extends<'take', Keys<T>>
+      >,
+      OrderByArg extends True extends HasSelectOrTake
+        ? { orderBy: PaymentGatewayGroupByArgs['orderBy'] }
+        : { orderBy?: PaymentGatewayGroupByArgs['orderBy'] },
+      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
+      ByFields extends MaybeTupleToUnion<T['by']>,
+      ByValid extends Has<ByFields, OrderFields>,
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      ByEmpty extends T['by'] extends never[] ? True : False,
+      InputErrors extends ByEmpty extends True
+      ? `Error: "by" must not be empty.`
+      : HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
+            ? never
+            : P extends string
+            ? `Error: Field "${P}" used in "having" needs to be provided in "by".`
+            : [
+                Error,
+                'Field ',
+                P,
+                ` in "having" needs to be provided in "by"`,
+              ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+        }[OrderFields]
+    >(args: SubsetIntersection<T, PaymentGatewayGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetPaymentGatewayGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
+  /**
+   * Fields of the PaymentGateway model
+   */
+  readonly fields: PaymentGatewayFieldRefs;
+  }
+
+  /**
+   * The delegate class that acts as a "Promise-like" for PaymentGateway.
+   * Why is this prefixed with `Prisma__`?
+   * Because we want to prevent naming conflicts as mentioned in
+   * https://github.com/prisma/prisma-client-js/issues/707
+   */
+  export interface Prisma__PaymentGatewayClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
+    readonly [Symbol.toStringTag]: "PrismaPromise"
+    transactions<T extends PaymentGateway$transactionsArgs<ExtArgs> = {}>(args?: Subset<T, PaymentGateway$transactionsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$TransactionPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+    /**
+     * Attaches callbacks for the resolution and/or rejection of the Promise.
+     * @param onfulfilled The callback to execute when the Promise is resolved.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of which ever callback is executed.
+     */
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>
+    /**
+     * Attaches a callback for only the rejection of the Promise.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of the callback.
+     */
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>
+    /**
+     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+     * resolved value cannot be modified from the callback.
+     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+     * @returns A Promise for the completion of the callback.
+     */
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>
+  }
+
+
+
+
+  /**
+   * Fields of the PaymentGateway model
+   */
+  interface PaymentGatewayFieldRefs {
+    readonly id: FieldRef<"PaymentGateway", 'String'>
+    readonly name: FieldRef<"PaymentGateway", 'String'>
+    readonly isActive: FieldRef<"PaymentGateway", 'Boolean'>
+    readonly config: FieldRef<"PaymentGateway", 'Json'>
+    readonly encryptionKey: FieldRef<"PaymentGateway", 'String'>
+    readonly encryptionIV: FieldRef<"PaymentGateway", 'String'>
+    readonly merchantId: FieldRef<"PaymentGateway", 'String'>
+    readonly businessName: FieldRef<"PaymentGateway", 'String'>
+    readonly businessEmail: FieldRef<"PaymentGateway", 'String'>
+    readonly environment: FieldRef<"PaymentGateway", 'String'>
+    readonly description: FieldRef<"PaymentGateway", 'String'>
+    readonly notes: FieldRef<"PaymentGateway", 'String'>
+    readonly apiEndpoint: FieldRef<"PaymentGateway", 'String'>
+    readonly webhookUrl: FieldRef<"PaymentGateway", 'String'>
+    readonly supportsCreditCards: FieldRef<"PaymentGateway", 'Boolean'>
+    readonly supportsDirectDebit: FieldRef<"PaymentGateway", 'Boolean'>
+    readonly createdAt: FieldRef<"PaymentGateway", 'DateTime'>
+    readonly updatedAt: FieldRef<"PaymentGateway", 'DateTime'>
+  }
+    
+
+  // Custom InputTypes
+  /**
+   * PaymentGateway findUnique
+   */
+  export type PaymentGatewayFindUniqueArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the PaymentGateway
+     */
+    select?: PaymentGatewaySelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the PaymentGateway
+     */
+    omit?: PaymentGatewayOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: PaymentGatewayInclude<ExtArgs> | null
+    /**
+     * Filter, which PaymentGateway to fetch.
+     */
+    where: PaymentGatewayWhereUniqueInput
+  }
+
+  /**
+   * PaymentGateway findUniqueOrThrow
+   */
+  export type PaymentGatewayFindUniqueOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the PaymentGateway
+     */
+    select?: PaymentGatewaySelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the PaymentGateway
+     */
+    omit?: PaymentGatewayOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: PaymentGatewayInclude<ExtArgs> | null
+    /**
+     * Filter, which PaymentGateway to fetch.
+     */
+    where: PaymentGatewayWhereUniqueInput
+  }
+
+  /**
+   * PaymentGateway findFirst
+   */
+  export type PaymentGatewayFindFirstArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the PaymentGateway
+     */
+    select?: PaymentGatewaySelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the PaymentGateway
+     */
+    omit?: PaymentGatewayOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: PaymentGatewayInclude<ExtArgs> | null
+    /**
+     * Filter, which PaymentGateway to fetch.
+     */
+    where?: PaymentGatewayWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of PaymentGateways to fetch.
+     */
+    orderBy?: PaymentGatewayOrderByWithRelationInput | PaymentGatewayOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for PaymentGateways.
+     */
+    cursor?: PaymentGatewayWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` PaymentGateways from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` PaymentGateways.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of PaymentGateways.
+     */
+    distinct?: PaymentGatewayScalarFieldEnum | PaymentGatewayScalarFieldEnum[]
+  }
+
+  /**
+   * PaymentGateway findFirstOrThrow
+   */
+  export type PaymentGatewayFindFirstOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the PaymentGateway
+     */
+    select?: PaymentGatewaySelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the PaymentGateway
+     */
+    omit?: PaymentGatewayOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: PaymentGatewayInclude<ExtArgs> | null
+    /**
+     * Filter, which PaymentGateway to fetch.
+     */
+    where?: PaymentGatewayWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of PaymentGateways to fetch.
+     */
+    orderBy?: PaymentGatewayOrderByWithRelationInput | PaymentGatewayOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for PaymentGateways.
+     */
+    cursor?: PaymentGatewayWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` PaymentGateways from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` PaymentGateways.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of PaymentGateways.
+     */
+    distinct?: PaymentGatewayScalarFieldEnum | PaymentGatewayScalarFieldEnum[]
+  }
+
+  /**
+   * PaymentGateway findMany
+   */
+  export type PaymentGatewayFindManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the PaymentGateway
+     */
+    select?: PaymentGatewaySelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the PaymentGateway
+     */
+    omit?: PaymentGatewayOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: PaymentGatewayInclude<ExtArgs> | null
+    /**
+     * Filter, which PaymentGateways to fetch.
+     */
+    where?: PaymentGatewayWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of PaymentGateways to fetch.
+     */
+    orderBy?: PaymentGatewayOrderByWithRelationInput | PaymentGatewayOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for listing PaymentGateways.
+     */
+    cursor?: PaymentGatewayWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` PaymentGateways from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` PaymentGateways.
+     */
+    skip?: number
+    distinct?: PaymentGatewayScalarFieldEnum | PaymentGatewayScalarFieldEnum[]
+  }
+
+  /**
+   * PaymentGateway create
+   */
+  export type PaymentGatewayCreateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the PaymentGateway
+     */
+    select?: PaymentGatewaySelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the PaymentGateway
+     */
+    omit?: PaymentGatewayOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: PaymentGatewayInclude<ExtArgs> | null
+    /**
+     * The data needed to create a PaymentGateway.
+     */
+    data: XOR<PaymentGatewayCreateInput, PaymentGatewayUncheckedCreateInput>
+  }
+
+  /**
+   * PaymentGateway createMany
+   */
+  export type PaymentGatewayCreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to create many PaymentGateways.
+     */
+    data: PaymentGatewayCreateManyInput | PaymentGatewayCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * PaymentGateway createManyAndReturn
+   */
+  export type PaymentGatewayCreateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the PaymentGateway
+     */
+    select?: PaymentGatewaySelectCreateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the PaymentGateway
+     */
+    omit?: PaymentGatewayOmit<ExtArgs> | null
+    /**
+     * The data used to create many PaymentGateways.
+     */
+    data: PaymentGatewayCreateManyInput | PaymentGatewayCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * PaymentGateway update
+   */
+  export type PaymentGatewayUpdateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the PaymentGateway
+     */
+    select?: PaymentGatewaySelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the PaymentGateway
+     */
+    omit?: PaymentGatewayOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: PaymentGatewayInclude<ExtArgs> | null
+    /**
+     * The data needed to update a PaymentGateway.
+     */
+    data: XOR<PaymentGatewayUpdateInput, PaymentGatewayUncheckedUpdateInput>
+    /**
+     * Choose, which PaymentGateway to update.
+     */
+    where: PaymentGatewayWhereUniqueInput
+  }
+
+  /**
+   * PaymentGateway updateMany
+   */
+  export type PaymentGatewayUpdateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to update PaymentGateways.
+     */
+    data: XOR<PaymentGatewayUpdateManyMutationInput, PaymentGatewayUncheckedUpdateManyInput>
+    /**
+     * Filter which PaymentGateways to update
+     */
+    where?: PaymentGatewayWhereInput
+    /**
+     * Limit how many PaymentGateways to update.
+     */
+    limit?: number
+  }
+
+  /**
+   * PaymentGateway updateManyAndReturn
+   */
+  export type PaymentGatewayUpdateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the PaymentGateway
+     */
+    select?: PaymentGatewaySelectUpdateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the PaymentGateway
+     */
+    omit?: PaymentGatewayOmit<ExtArgs> | null
+    /**
+     * The data used to update PaymentGateways.
+     */
+    data: XOR<PaymentGatewayUpdateManyMutationInput, PaymentGatewayUncheckedUpdateManyInput>
+    /**
+     * Filter which PaymentGateways to update
+     */
+    where?: PaymentGatewayWhereInput
+    /**
+     * Limit how many PaymentGateways to update.
+     */
+    limit?: number
+  }
+
+  /**
+   * PaymentGateway upsert
+   */
+  export type PaymentGatewayUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the PaymentGateway
+     */
+    select?: PaymentGatewaySelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the PaymentGateway
+     */
+    omit?: PaymentGatewayOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: PaymentGatewayInclude<ExtArgs> | null
+    /**
+     * The filter to search for the PaymentGateway to update in case it exists.
+     */
+    where: PaymentGatewayWhereUniqueInput
+    /**
+     * In case the PaymentGateway found by the `where` argument doesn't exist, create a new PaymentGateway with this data.
+     */
+    create: XOR<PaymentGatewayCreateInput, PaymentGatewayUncheckedCreateInput>
+    /**
+     * In case the PaymentGateway was found with the provided `where` argument, update it with this data.
+     */
+    update: XOR<PaymentGatewayUpdateInput, PaymentGatewayUncheckedUpdateInput>
+  }
+
+  /**
+   * PaymentGateway delete
+   */
+  export type PaymentGatewayDeleteArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the PaymentGateway
+     */
+    select?: PaymentGatewaySelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the PaymentGateway
+     */
+    omit?: PaymentGatewayOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: PaymentGatewayInclude<ExtArgs> | null
+    /**
+     * Filter which PaymentGateway to delete.
+     */
+    where: PaymentGatewayWhereUniqueInput
+  }
+
+  /**
+   * PaymentGateway deleteMany
+   */
+  export type PaymentGatewayDeleteManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which PaymentGateways to delete
+     */
+    where?: PaymentGatewayWhereInput
+    /**
+     * Limit how many PaymentGateways to delete.
+     */
+    limit?: number
+  }
+
+  /**
+   * PaymentGateway.transactions
+   */
+  export type PaymentGateway$transactionsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Transaction
+     */
+    select?: TransactionSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the Transaction
+     */
+    omit?: TransactionOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: TransactionInclude<ExtArgs> | null
+    where?: TransactionWhereInput
+    orderBy?: TransactionOrderByWithRelationInput | TransactionOrderByWithRelationInput[]
+    cursor?: TransactionWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: TransactionScalarFieldEnum | TransactionScalarFieldEnum[]
+  }
+
+  /**
+   * PaymentGateway without action
+   */
+  export type PaymentGatewayDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the PaymentGateway
+     */
+    select?: PaymentGatewaySelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the PaymentGateway
+     */
+    omit?: PaymentGatewayOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: PaymentGatewayInclude<ExtArgs> | null
+  }
+
+
+  /**
+   * Model Transaction
+   */
+
+  export type AggregateTransaction = {
+    _count: TransactionCountAggregateOutputType | null
+    _avg: TransactionAvgAggregateOutputType | null
+    _sum: TransactionSumAggregateOutputType | null
+    _min: TransactionMinAggregateOutputType | null
+    _max: TransactionMaxAggregateOutputType | null
+  }
+
+  export type TransactionAvgAggregateOutputType = {
+    amount: Decimal | null
+  }
+
+  export type TransactionSumAggregateOutputType = {
+    amount: Decimal | null
+  }
+
+  export type TransactionMinAggregateOutputType = {
+    id: string | null
+    amount: Decimal | null
+    currency: string | null
+    status: string | null
+    paymentMethod: string | null
+    paymentType: string | null
+    gatewayId: string | null
+    gatewayTransactionId: string | null
+    gatewayCustomerId: string | null
+    receiptUrl: string | null
+    receiptEmail: string | null
+    purchaseId: string | null
+    errorMessage: string | null
+    errorCode: string | null
+    createdAt: Date | null
+    updatedAt: Date | null
+    completedAt: Date | null
+  }
+
+  export type TransactionMaxAggregateOutputType = {
+    id: string | null
+    amount: Decimal | null
+    currency: string | null
+    status: string | null
+    paymentMethod: string | null
+    paymentType: string | null
+    gatewayId: string | null
+    gatewayTransactionId: string | null
+    gatewayCustomerId: string | null
+    receiptUrl: string | null
+    receiptEmail: string | null
+    purchaseId: string | null
+    errorMessage: string | null
+    errorCode: string | null
+    createdAt: Date | null
+    updatedAt: Date | null
+    completedAt: Date | null
+  }
+
+  export type TransactionCountAggregateOutputType = {
+    id: number
+    amount: number
+    currency: number
+    status: number
+    paymentMethod: number
+    paymentType: number
+    gatewayId: number
+    gatewayTransactionId: number
+    gatewayCustomerId: number
+    receiptUrl: number
+    receiptEmail: number
+    purchaseId: number
+    errorMessage: number
+    errorCode: number
+    metadata: number
+    createdAt: number
+    updatedAt: number
+    completedAt: number
+    _all: number
+  }
+
+
+  export type TransactionAvgAggregateInputType = {
+    amount?: true
+  }
+
+  export type TransactionSumAggregateInputType = {
+    amount?: true
+  }
+
+  export type TransactionMinAggregateInputType = {
+    id?: true
+    amount?: true
+    currency?: true
+    status?: true
+    paymentMethod?: true
+    paymentType?: true
+    gatewayId?: true
+    gatewayTransactionId?: true
+    gatewayCustomerId?: true
+    receiptUrl?: true
+    receiptEmail?: true
+    purchaseId?: true
+    errorMessage?: true
+    errorCode?: true
+    createdAt?: true
+    updatedAt?: true
+    completedAt?: true
+  }
+
+  export type TransactionMaxAggregateInputType = {
+    id?: true
+    amount?: true
+    currency?: true
+    status?: true
+    paymentMethod?: true
+    paymentType?: true
+    gatewayId?: true
+    gatewayTransactionId?: true
+    gatewayCustomerId?: true
+    receiptUrl?: true
+    receiptEmail?: true
+    purchaseId?: true
+    errorMessage?: true
+    errorCode?: true
+    createdAt?: true
+    updatedAt?: true
+    completedAt?: true
+  }
+
+  export type TransactionCountAggregateInputType = {
+    id?: true
+    amount?: true
+    currency?: true
+    status?: true
+    paymentMethod?: true
+    paymentType?: true
+    gatewayId?: true
+    gatewayTransactionId?: true
+    gatewayCustomerId?: true
+    receiptUrl?: true
+    receiptEmail?: true
+    purchaseId?: true
+    errorMessage?: true
+    errorCode?: true
+    metadata?: true
+    createdAt?: true
+    updatedAt?: true
+    completedAt?: true
+    _all?: true
+  }
+
+  export type TransactionAggregateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which Transaction to aggregate.
+     */
+    where?: TransactionWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of Transactions to fetch.
+     */
+    orderBy?: TransactionOrderByWithRelationInput | TransactionOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the start position
+     */
+    cursor?: TransactionWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` Transactions from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` Transactions.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Count returned Transactions
+    **/
+    _count?: true | TransactionCountAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to average
+    **/
+    _avg?: TransactionAvgAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to sum
+    **/
+    _sum?: TransactionSumAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the minimum value
+    **/
+    _min?: TransactionMinAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the maximum value
+    **/
+    _max?: TransactionMaxAggregateInputType
+  }
+
+  export type GetTransactionAggregateType<T extends TransactionAggregateArgs> = {
+        [P in keyof T & keyof AggregateTransaction]: P extends '_count' | 'count'
+      ? T[P] extends true
+        ? number
+        : GetScalarType<T[P], AggregateTransaction[P]>
+      : GetScalarType<T[P], AggregateTransaction[P]>
+  }
+
+
+
+
+  export type TransactionGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: TransactionWhereInput
+    orderBy?: TransactionOrderByWithAggregationInput | TransactionOrderByWithAggregationInput[]
+    by: TransactionScalarFieldEnum[] | TransactionScalarFieldEnum
+    having?: TransactionScalarWhereWithAggregatesInput
+    take?: number
+    skip?: number
+    _count?: TransactionCountAggregateInputType | true
+    _avg?: TransactionAvgAggregateInputType
+    _sum?: TransactionSumAggregateInputType
+    _min?: TransactionMinAggregateInputType
+    _max?: TransactionMaxAggregateInputType
+  }
+
+  export type TransactionGroupByOutputType = {
+    id: string
+    amount: Decimal
+    currency: string
+    status: string
+    paymentMethod: string | null
+    paymentType: string | null
+    gatewayId: string
+    gatewayTransactionId: string | null
+    gatewayCustomerId: string | null
+    receiptUrl: string | null
+    receiptEmail: string | null
+    purchaseId: string | null
+    errorMessage: string | null
+    errorCode: string | null
+    metadata: JsonValue | null
+    createdAt: Date
+    updatedAt: Date
+    completedAt: Date | null
+    _count: TransactionCountAggregateOutputType | null
+    _avg: TransactionAvgAggregateOutputType | null
+    _sum: TransactionSumAggregateOutputType | null
+    _min: TransactionMinAggregateOutputType | null
+    _max: TransactionMaxAggregateOutputType | null
+  }
+
+  type GetTransactionGroupByPayload<T extends TransactionGroupByArgs> = Prisma.PrismaPromise<
+    Array<
+      PickEnumerable<TransactionGroupByOutputType, T['by']> &
+        {
+          [P in ((keyof T) & (keyof TransactionGroupByOutputType))]: P extends '_count'
+            ? T[P] extends boolean
+              ? number
+              : GetScalarType<T[P], TransactionGroupByOutputType[P]>
+            : GetScalarType<T[P], TransactionGroupByOutputType[P]>
+        }
+      >
+    >
+
+
+  export type TransactionSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    amount?: boolean
+    currency?: boolean
+    status?: boolean
+    paymentMethod?: boolean
+    paymentType?: boolean
+    gatewayId?: boolean
+    gatewayTransactionId?: boolean
+    gatewayCustomerId?: boolean
+    receiptUrl?: boolean
+    receiptEmail?: boolean
+    purchaseId?: boolean
+    errorMessage?: boolean
+    errorCode?: boolean
+    metadata?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+    completedAt?: boolean
+    paymentGateway?: boolean | PaymentGatewayDefaultArgs<ExtArgs>
+    purchase?: boolean | Transaction$purchaseArgs<ExtArgs>
+  }, ExtArgs["result"]["transaction"]>
+
+  export type TransactionSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    amount?: boolean
+    currency?: boolean
+    status?: boolean
+    paymentMethod?: boolean
+    paymentType?: boolean
+    gatewayId?: boolean
+    gatewayTransactionId?: boolean
+    gatewayCustomerId?: boolean
+    receiptUrl?: boolean
+    receiptEmail?: boolean
+    purchaseId?: boolean
+    errorMessage?: boolean
+    errorCode?: boolean
+    metadata?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+    completedAt?: boolean
+    paymentGateway?: boolean | PaymentGatewayDefaultArgs<ExtArgs>
+    purchase?: boolean | Transaction$purchaseArgs<ExtArgs>
+  }, ExtArgs["result"]["transaction"]>
+
+  export type TransactionSelectUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    amount?: boolean
+    currency?: boolean
+    status?: boolean
+    paymentMethod?: boolean
+    paymentType?: boolean
+    gatewayId?: boolean
+    gatewayTransactionId?: boolean
+    gatewayCustomerId?: boolean
+    receiptUrl?: boolean
+    receiptEmail?: boolean
+    purchaseId?: boolean
+    errorMessage?: boolean
+    errorCode?: boolean
+    metadata?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+    completedAt?: boolean
+    paymentGateway?: boolean | PaymentGatewayDefaultArgs<ExtArgs>
+    purchase?: boolean | Transaction$purchaseArgs<ExtArgs>
+  }, ExtArgs["result"]["transaction"]>
+
+  export type TransactionSelectScalar = {
+    id?: boolean
+    amount?: boolean
+    currency?: boolean
+    status?: boolean
+    paymentMethod?: boolean
+    paymentType?: boolean
+    gatewayId?: boolean
+    gatewayTransactionId?: boolean
+    gatewayCustomerId?: boolean
+    receiptUrl?: boolean
+    receiptEmail?: boolean
+    purchaseId?: boolean
+    errorMessage?: boolean
+    errorCode?: boolean
+    metadata?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+    completedAt?: boolean
+  }
+
+  export type TransactionOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "amount" | "currency" | "status" | "paymentMethod" | "paymentType" | "gatewayId" | "gatewayTransactionId" | "gatewayCustomerId" | "receiptUrl" | "receiptEmail" | "purchaseId" | "errorMessage" | "errorCode" | "metadata" | "createdAt" | "updatedAt" | "completedAt", ExtArgs["result"]["transaction"]>
+  export type TransactionInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    paymentGateway?: boolean | PaymentGatewayDefaultArgs<ExtArgs>
+    purchase?: boolean | Transaction$purchaseArgs<ExtArgs>
+  }
+  export type TransactionIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    paymentGateway?: boolean | PaymentGatewayDefaultArgs<ExtArgs>
+    purchase?: boolean | Transaction$purchaseArgs<ExtArgs>
+  }
+  export type TransactionIncludeUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    paymentGateway?: boolean | PaymentGatewayDefaultArgs<ExtArgs>
+    purchase?: boolean | Transaction$purchaseArgs<ExtArgs>
+  }
+
+  export type $TransactionPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    name: "Transaction"
+    objects: {
+      paymentGateway: Prisma.$PaymentGatewayPayload<ExtArgs>
+      purchase: Prisma.$PurchasePayload<ExtArgs> | null
+    }
+    scalars: $Extensions.GetPayloadResult<{
+      id: string
+      amount: Prisma.Decimal
+      currency: string
+      status: string
+      paymentMethod: string | null
+      paymentType: string | null
+      gatewayId: string
+      gatewayTransactionId: string | null
+      gatewayCustomerId: string | null
+      receiptUrl: string | null
+      receiptEmail: string | null
+      purchaseId: string | null
+      errorMessage: string | null
+      errorCode: string | null
+      metadata: Prisma.JsonValue | null
+      createdAt: Date
+      updatedAt: Date
+      completedAt: Date | null
+    }, ExtArgs["result"]["transaction"]>
+    composites: {}
+  }
+
+  type TransactionGetPayload<S extends boolean | null | undefined | TransactionDefaultArgs> = $Result.GetResult<Prisma.$TransactionPayload, S>
+
+  type TransactionCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> =
+    Omit<TransactionFindManyArgs, 'select' | 'include' | 'distinct' | 'omit'> & {
+      select?: TransactionCountAggregateInputType | true
+    }
+
+  export interface TransactionDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> {
+    [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['Transaction'], meta: { name: 'Transaction' } }
+    /**
+     * Find zero or one Transaction that matches the filter.
+     * @param {TransactionFindUniqueArgs} args - Arguments to find a Transaction
+     * @example
+     * // Get one Transaction
+     * const transaction = await prisma.transaction.findUnique({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUnique<T extends TransactionFindUniqueArgs>(args: SelectSubset<T, TransactionFindUniqueArgs<ExtArgs>>): Prisma__TransactionClient<$Result.GetResult<Prisma.$TransactionPayload<ExtArgs>, T, "findUnique", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find one Transaction that matches the filter or throw an error with `error.code='P2025'`
+     * if no matches were found.
+     * @param {TransactionFindUniqueOrThrowArgs} args - Arguments to find a Transaction
+     * @example
+     * // Get one Transaction
+     * const transaction = await prisma.transaction.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUniqueOrThrow<T extends TransactionFindUniqueOrThrowArgs>(args: SelectSubset<T, TransactionFindUniqueOrThrowArgs<ExtArgs>>): Prisma__TransactionClient<$Result.GetResult<Prisma.$TransactionPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first Transaction that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {TransactionFindFirstArgs} args - Arguments to find a Transaction
+     * @example
+     * // Get one Transaction
+     * const transaction = await prisma.transaction.findFirst({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirst<T extends TransactionFindFirstArgs>(args?: SelectSubset<T, TransactionFindFirstArgs<ExtArgs>>): Prisma__TransactionClient<$Result.GetResult<Prisma.$TransactionPayload<ExtArgs>, T, "findFirst", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first Transaction that matches the filter or
+     * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {TransactionFindFirstOrThrowArgs} args - Arguments to find a Transaction
+     * @example
+     * // Get one Transaction
+     * const transaction = await prisma.transaction.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirstOrThrow<T extends TransactionFindFirstOrThrowArgs>(args?: SelectSubset<T, TransactionFindFirstOrThrowArgs<ExtArgs>>): Prisma__TransactionClient<$Result.GetResult<Prisma.$TransactionPayload<ExtArgs>, T, "findFirstOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find zero or more Transactions that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {TransactionFindManyArgs} args - Arguments to filter and select certain fields only.
+     * @example
+     * // Get all Transactions
+     * const transactions = await prisma.transaction.findMany()
+     * 
+     * // Get first 10 Transactions
+     * const transactions = await prisma.transaction.findMany({ take: 10 })
+     * 
+     * // Only select the `id`
+     * const transactionWithIdOnly = await prisma.transaction.findMany({ select: { id: true } })
+     * 
+     */
+    findMany<T extends TransactionFindManyArgs>(args?: SelectSubset<T, TransactionFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$TransactionPayload<ExtArgs>, T, "findMany", GlobalOmitOptions>>
+
+    /**
+     * Create a Transaction.
+     * @param {TransactionCreateArgs} args - Arguments to create a Transaction.
+     * @example
+     * // Create one Transaction
+     * const Transaction = await prisma.transaction.create({
+     *   data: {
+     *     // ... data to create a Transaction
+     *   }
+     * })
+     * 
+     */
+    create<T extends TransactionCreateArgs>(args: SelectSubset<T, TransactionCreateArgs<ExtArgs>>): Prisma__TransactionClient<$Result.GetResult<Prisma.$TransactionPayload<ExtArgs>, T, "create", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Create many Transactions.
+     * @param {TransactionCreateManyArgs} args - Arguments to create many Transactions.
+     * @example
+     * // Create many Transactions
+     * const transaction = await prisma.transaction.createMany({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *     
+     */
+    createMany<T extends TransactionCreateManyArgs>(args?: SelectSubset<T, TransactionCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create many Transactions and returns the data saved in the database.
+     * @param {TransactionCreateManyAndReturnArgs} args - Arguments to create many Transactions.
+     * @example
+     * // Create many Transactions
+     * const transaction = await prisma.transaction.createManyAndReturn({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Create many Transactions and only return the `id`
+     * const transactionWithIdOnly = await prisma.transaction.createManyAndReturn({
+     *   select: { id: true },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    createManyAndReturn<T extends TransactionCreateManyAndReturnArgs>(args?: SelectSubset<T, TransactionCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$TransactionPayload<ExtArgs>, T, "createManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Delete a Transaction.
+     * @param {TransactionDeleteArgs} args - Arguments to delete one Transaction.
+     * @example
+     * // Delete one Transaction
+     * const Transaction = await prisma.transaction.delete({
+     *   where: {
+     *     // ... filter to delete one Transaction
+     *   }
+     * })
+     * 
+     */
+    delete<T extends TransactionDeleteArgs>(args: SelectSubset<T, TransactionDeleteArgs<ExtArgs>>): Prisma__TransactionClient<$Result.GetResult<Prisma.$TransactionPayload<ExtArgs>, T, "delete", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Update one Transaction.
+     * @param {TransactionUpdateArgs} args - Arguments to update one Transaction.
+     * @example
+     * // Update one Transaction
+     * const transaction = await prisma.transaction.update({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    update<T extends TransactionUpdateArgs>(args: SelectSubset<T, TransactionUpdateArgs<ExtArgs>>): Prisma__TransactionClient<$Result.GetResult<Prisma.$TransactionPayload<ExtArgs>, T, "update", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Delete zero or more Transactions.
+     * @param {TransactionDeleteManyArgs} args - Arguments to filter Transactions to delete.
+     * @example
+     * // Delete a few Transactions
+     * const { count } = await prisma.transaction.deleteMany({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     * 
+     */
+    deleteMany<T extends TransactionDeleteManyArgs>(args?: SelectSubset<T, TransactionDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more Transactions.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {TransactionUpdateManyArgs} args - Arguments to update one or more rows.
+     * @example
+     * // Update many Transactions
+     * const transaction = await prisma.transaction.updateMany({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    updateMany<T extends TransactionUpdateManyArgs>(args: SelectSubset<T, TransactionUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more Transactions and returns the data updated in the database.
+     * @param {TransactionUpdateManyAndReturnArgs} args - Arguments to update many Transactions.
+     * @example
+     * // Update many Transactions
+     * const transaction = await prisma.transaction.updateManyAndReturn({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Update zero or more Transactions and only return the `id`
+     * const transactionWithIdOnly = await prisma.transaction.updateManyAndReturn({
+     *   select: { id: true },
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    updateManyAndReturn<T extends TransactionUpdateManyAndReturnArgs>(args: SelectSubset<T, TransactionUpdateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$TransactionPayload<ExtArgs>, T, "updateManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Create or update one Transaction.
+     * @param {TransactionUpsertArgs} args - Arguments to update or create a Transaction.
+     * @example
+     * // Update or create a Transaction
+     * const transaction = await prisma.transaction.upsert({
+     *   create: {
+     *     // ... data to create a Transaction
+     *   },
+     *   update: {
+     *     // ... in case it already exists, update
+     *   },
+     *   where: {
+     *     // ... the filter for the Transaction we want to update
+     *   }
+     * })
+     */
+    upsert<T extends TransactionUpsertArgs>(args: SelectSubset<T, TransactionUpsertArgs<ExtArgs>>): Prisma__TransactionClient<$Result.GetResult<Prisma.$TransactionPayload<ExtArgs>, T, "upsert", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+
+    /**
+     * Count the number of Transactions.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {TransactionCountArgs} args - Arguments to filter Transactions to count.
+     * @example
+     * // Count the number of Transactions
+     * const count = await prisma.transaction.count({
+     *   where: {
+     *     // ... the filter for the Transactions we want to count
+     *   }
+     * })
+    **/
+    count<T extends TransactionCountArgs>(
+      args?: Subset<T, TransactionCountArgs>,
+    ): Prisma.PrismaPromise<
+      T extends $Utils.Record<'select', any>
+        ? T['select'] extends true
+          ? number
+          : GetScalarType<T['select'], TransactionCountAggregateOutputType>
+        : number
+    >
+
+    /**
+     * Allows you to perform aggregations operations on a Transaction.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {TransactionAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   _avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+    **/
+    aggregate<T extends TransactionAggregateArgs>(args: Subset<T, TransactionAggregateArgs>): Prisma.PrismaPromise<GetTransactionAggregateType<T>>
+
+    /**
+     * Group by Transaction.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {TransactionGroupByArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   _count: {
+     *     _all: true
+     *   },
+     * })
+     * 
+    **/
+    groupBy<
+      T extends TransactionGroupByArgs,
+      HasSelectOrTake extends Or<
+        Extends<'skip', Keys<T>>,
+        Extends<'take', Keys<T>>
+      >,
+      OrderByArg extends True extends HasSelectOrTake
+        ? { orderBy: TransactionGroupByArgs['orderBy'] }
+        : { orderBy?: TransactionGroupByArgs['orderBy'] },
+      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
+      ByFields extends MaybeTupleToUnion<T['by']>,
+      ByValid extends Has<ByFields, OrderFields>,
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      ByEmpty extends T['by'] extends never[] ? True : False,
+      InputErrors extends ByEmpty extends True
+      ? `Error: "by" must not be empty.`
+      : HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
+            ? never
+            : P extends string
+            ? `Error: Field "${P}" used in "having" needs to be provided in "by".`
+            : [
+                Error,
+                'Field ',
+                P,
+                ` in "having" needs to be provided in "by"`,
+              ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+        }[OrderFields]
+    >(args: SubsetIntersection<T, TransactionGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetTransactionGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
+  /**
+   * Fields of the Transaction model
+   */
+  readonly fields: TransactionFieldRefs;
+  }
+
+  /**
+   * The delegate class that acts as a "Promise-like" for Transaction.
+   * Why is this prefixed with `Prisma__`?
+   * Because we want to prevent naming conflicts as mentioned in
+   * https://github.com/prisma/prisma-client-js/issues/707
+   */
+  export interface Prisma__TransactionClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
+    readonly [Symbol.toStringTag]: "PrismaPromise"
+    paymentGateway<T extends PaymentGatewayDefaultArgs<ExtArgs> = {}>(args?: Subset<T, PaymentGatewayDefaultArgs<ExtArgs>>): Prisma__PaymentGatewayClient<$Result.GetResult<Prisma.$PaymentGatewayPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
+    purchase<T extends Transaction$purchaseArgs<ExtArgs> = {}>(args?: Subset<T, Transaction$purchaseArgs<ExtArgs>>): Prisma__PurchaseClient<$Result.GetResult<Prisma.$PurchasePayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+    /**
+     * Attaches callbacks for the resolution and/or rejection of the Promise.
+     * @param onfulfilled The callback to execute when the Promise is resolved.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of which ever callback is executed.
+     */
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>
+    /**
+     * Attaches a callback for only the rejection of the Promise.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of the callback.
+     */
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>
+    /**
+     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+     * resolved value cannot be modified from the callback.
+     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+     * @returns A Promise for the completion of the callback.
+     */
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>
+  }
+
+
+
+
+  /**
+   * Fields of the Transaction model
+   */
+  interface TransactionFieldRefs {
+    readonly id: FieldRef<"Transaction", 'String'>
+    readonly amount: FieldRef<"Transaction", 'Decimal'>
+    readonly currency: FieldRef<"Transaction", 'String'>
+    readonly status: FieldRef<"Transaction", 'String'>
+    readonly paymentMethod: FieldRef<"Transaction", 'String'>
+    readonly paymentType: FieldRef<"Transaction", 'String'>
+    readonly gatewayId: FieldRef<"Transaction", 'String'>
+    readonly gatewayTransactionId: FieldRef<"Transaction", 'String'>
+    readonly gatewayCustomerId: FieldRef<"Transaction", 'String'>
+    readonly receiptUrl: FieldRef<"Transaction", 'String'>
+    readonly receiptEmail: FieldRef<"Transaction", 'String'>
+    readonly purchaseId: FieldRef<"Transaction", 'String'>
+    readonly errorMessage: FieldRef<"Transaction", 'String'>
+    readonly errorCode: FieldRef<"Transaction", 'String'>
+    readonly metadata: FieldRef<"Transaction", 'Json'>
+    readonly createdAt: FieldRef<"Transaction", 'DateTime'>
+    readonly updatedAt: FieldRef<"Transaction", 'DateTime'>
+    readonly completedAt: FieldRef<"Transaction", 'DateTime'>
+  }
+    
+
+  // Custom InputTypes
+  /**
+   * Transaction findUnique
+   */
+  export type TransactionFindUniqueArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Transaction
+     */
+    select?: TransactionSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the Transaction
+     */
+    omit?: TransactionOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: TransactionInclude<ExtArgs> | null
+    /**
+     * Filter, which Transaction to fetch.
+     */
+    where: TransactionWhereUniqueInput
+  }
+
+  /**
+   * Transaction findUniqueOrThrow
+   */
+  export type TransactionFindUniqueOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Transaction
+     */
+    select?: TransactionSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the Transaction
+     */
+    omit?: TransactionOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: TransactionInclude<ExtArgs> | null
+    /**
+     * Filter, which Transaction to fetch.
+     */
+    where: TransactionWhereUniqueInput
+  }
+
+  /**
+   * Transaction findFirst
+   */
+  export type TransactionFindFirstArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Transaction
+     */
+    select?: TransactionSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the Transaction
+     */
+    omit?: TransactionOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: TransactionInclude<ExtArgs> | null
+    /**
+     * Filter, which Transaction to fetch.
+     */
+    where?: TransactionWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of Transactions to fetch.
+     */
+    orderBy?: TransactionOrderByWithRelationInput | TransactionOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for Transactions.
+     */
+    cursor?: TransactionWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` Transactions from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` Transactions.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of Transactions.
+     */
+    distinct?: TransactionScalarFieldEnum | TransactionScalarFieldEnum[]
+  }
+
+  /**
+   * Transaction findFirstOrThrow
+   */
+  export type TransactionFindFirstOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Transaction
+     */
+    select?: TransactionSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the Transaction
+     */
+    omit?: TransactionOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: TransactionInclude<ExtArgs> | null
+    /**
+     * Filter, which Transaction to fetch.
+     */
+    where?: TransactionWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of Transactions to fetch.
+     */
+    orderBy?: TransactionOrderByWithRelationInput | TransactionOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for Transactions.
+     */
+    cursor?: TransactionWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` Transactions from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` Transactions.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of Transactions.
+     */
+    distinct?: TransactionScalarFieldEnum | TransactionScalarFieldEnum[]
+  }
+
+  /**
+   * Transaction findMany
+   */
+  export type TransactionFindManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Transaction
+     */
+    select?: TransactionSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the Transaction
+     */
+    omit?: TransactionOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: TransactionInclude<ExtArgs> | null
+    /**
+     * Filter, which Transactions to fetch.
+     */
+    where?: TransactionWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of Transactions to fetch.
+     */
+    orderBy?: TransactionOrderByWithRelationInput | TransactionOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for listing Transactions.
+     */
+    cursor?: TransactionWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` Transactions from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` Transactions.
+     */
+    skip?: number
+    distinct?: TransactionScalarFieldEnum | TransactionScalarFieldEnum[]
+  }
+
+  /**
+   * Transaction create
+   */
+  export type TransactionCreateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Transaction
+     */
+    select?: TransactionSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the Transaction
+     */
+    omit?: TransactionOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: TransactionInclude<ExtArgs> | null
+    /**
+     * The data needed to create a Transaction.
+     */
+    data: XOR<TransactionCreateInput, TransactionUncheckedCreateInput>
+  }
+
+  /**
+   * Transaction createMany
+   */
+  export type TransactionCreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to create many Transactions.
+     */
+    data: TransactionCreateManyInput | TransactionCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * Transaction createManyAndReturn
+   */
+  export type TransactionCreateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Transaction
+     */
+    select?: TransactionSelectCreateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the Transaction
+     */
+    omit?: TransactionOmit<ExtArgs> | null
+    /**
+     * The data used to create many Transactions.
+     */
+    data: TransactionCreateManyInput | TransactionCreateManyInput[]
+    skipDuplicates?: boolean
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: TransactionIncludeCreateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * Transaction update
+   */
+  export type TransactionUpdateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Transaction
+     */
+    select?: TransactionSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the Transaction
+     */
+    omit?: TransactionOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: TransactionInclude<ExtArgs> | null
+    /**
+     * The data needed to update a Transaction.
+     */
+    data: XOR<TransactionUpdateInput, TransactionUncheckedUpdateInput>
+    /**
+     * Choose, which Transaction to update.
+     */
+    where: TransactionWhereUniqueInput
+  }
+
+  /**
+   * Transaction updateMany
+   */
+  export type TransactionUpdateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to update Transactions.
+     */
+    data: XOR<TransactionUpdateManyMutationInput, TransactionUncheckedUpdateManyInput>
+    /**
+     * Filter which Transactions to update
+     */
+    where?: TransactionWhereInput
+    /**
+     * Limit how many Transactions to update.
+     */
+    limit?: number
+  }
+
+  /**
+   * Transaction updateManyAndReturn
+   */
+  export type TransactionUpdateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Transaction
+     */
+    select?: TransactionSelectUpdateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the Transaction
+     */
+    omit?: TransactionOmit<ExtArgs> | null
+    /**
+     * The data used to update Transactions.
+     */
+    data: XOR<TransactionUpdateManyMutationInput, TransactionUncheckedUpdateManyInput>
+    /**
+     * Filter which Transactions to update
+     */
+    where?: TransactionWhereInput
+    /**
+     * Limit how many Transactions to update.
+     */
+    limit?: number
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: TransactionIncludeUpdateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * Transaction upsert
+   */
+  export type TransactionUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Transaction
+     */
+    select?: TransactionSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the Transaction
+     */
+    omit?: TransactionOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: TransactionInclude<ExtArgs> | null
+    /**
+     * The filter to search for the Transaction to update in case it exists.
+     */
+    where: TransactionWhereUniqueInput
+    /**
+     * In case the Transaction found by the `where` argument doesn't exist, create a new Transaction with this data.
+     */
+    create: XOR<TransactionCreateInput, TransactionUncheckedCreateInput>
+    /**
+     * In case the Transaction was found with the provided `where` argument, update it with this data.
+     */
+    update: XOR<TransactionUpdateInput, TransactionUncheckedUpdateInput>
+  }
+
+  /**
+   * Transaction delete
+   */
+  export type TransactionDeleteArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Transaction
+     */
+    select?: TransactionSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the Transaction
+     */
+    omit?: TransactionOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: TransactionInclude<ExtArgs> | null
+    /**
+     * Filter which Transaction to delete.
+     */
+    where: TransactionWhereUniqueInput
+  }
+
+  /**
+   * Transaction deleteMany
+   */
+  export type TransactionDeleteManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which Transactions to delete
+     */
+    where?: TransactionWhereInput
+    /**
+     * Limit how many Transactions to delete.
+     */
+    limit?: number
+  }
+
+  /**
+   * Transaction.purchase
+   */
+  export type Transaction$purchaseArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Purchase
+     */
+    select?: PurchaseSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the Purchase
+     */
+    omit?: PurchaseOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: PurchaseInclude<ExtArgs> | null
+    where?: PurchaseWhereInput
+  }
+
+  /**
+   * Transaction without action
+   */
+  export type TransactionDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Transaction
+     */
+    select?: TransactionSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the Transaction
+     */
+    omit?: TransactionOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: TransactionInclude<ExtArgs> | null
+  }
+
+
+  /**
    * Model Purchase
    */
 
@@ -12524,6 +15490,8 @@ export namespace Prisma {
     updatedAt?: boolean
     product?: boolean | ProductDefaultArgs<ExtArgs>
     user?: boolean | UserDefaultArgs<ExtArgs>
+    transactions?: boolean | Purchase$transactionsArgs<ExtArgs>
+    _count?: boolean | PurchaseCountOutputTypeDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["purchase"]>
 
   export type PurchaseSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
@@ -12570,6 +15538,8 @@ export namespace Prisma {
   export type PurchaseInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     product?: boolean | ProductDefaultArgs<ExtArgs>
     user?: boolean | UserDefaultArgs<ExtArgs>
+    transactions?: boolean | Purchase$transactionsArgs<ExtArgs>
+    _count?: boolean | PurchaseCountOutputTypeDefaultArgs<ExtArgs>
   }
   export type PurchaseIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     product?: boolean | ProductDefaultArgs<ExtArgs>
@@ -12585,6 +15555,7 @@ export namespace Prisma {
     objects: {
       product: Prisma.$ProductPayload<ExtArgs>
       user: Prisma.$UserPayload<ExtArgs>
+      transactions: Prisma.$TransactionPayload<ExtArgs>[]
     }
     scalars: $Extensions.GetPayloadResult<{
       id: string
@@ -12992,6 +15963,7 @@ export namespace Prisma {
     readonly [Symbol.toStringTag]: "PrismaPromise"
     product<T extends ProductDefaultArgs<ExtArgs> = {}>(args?: Subset<T, ProductDefaultArgs<ExtArgs>>): Prisma__ProductClient<$Result.GetResult<Prisma.$ProductPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
     user<T extends UserDefaultArgs<ExtArgs> = {}>(args?: Subset<T, UserDefaultArgs<ExtArgs>>): Prisma__UserClient<$Result.GetResult<Prisma.$UserPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
+    transactions<T extends Purchase$transactionsArgs<ExtArgs> = {}>(args?: Subset<T, Purchase$transactionsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$TransactionPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     /**
      * Attaches callbacks for the resolution and/or rejection of the Promise.
      * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -13423,6 +16395,30 @@ export namespace Prisma {
      * Limit how many Purchases to delete.
      */
     limit?: number
+  }
+
+  /**
+   * Purchase.transactions
+   */
+  export type Purchase$transactionsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Transaction
+     */
+    select?: TransactionSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the Transaction
+     */
+    omit?: TransactionOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: TransactionInclude<ExtArgs> | null
+    where?: TransactionWhereInput
+    orderBy?: TransactionOrderByWithRelationInput | TransactionOrderByWithRelationInput[]
+    cursor?: TransactionWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: TransactionScalarFieldEnum | TransactionScalarFieldEnum[]
   }
 
   /**
@@ -15621,6 +18617,1137 @@ export namespace Prisma {
 
 
   /**
+   * Model CategoryPath
+   */
+
+  export type AggregateCategoryPath = {
+    _count: CategoryPathCountAggregateOutputType | null
+    _avg: CategoryPathAvgAggregateOutputType | null
+    _sum: CategoryPathSumAggregateOutputType | null
+    _min: CategoryPathMinAggregateOutputType | null
+    _max: CategoryPathMaxAggregateOutputType | null
+  }
+
+  export type CategoryPathAvgAggregateOutputType = {
+    productId: number | null
+  }
+
+  export type CategoryPathSumAggregateOutputType = {
+    productId: number | null
+  }
+
+  export type CategoryPathMinAggregateOutputType = {
+    id: string | null
+    productId: number | null
+    path: string | null
+    level1: string | null
+    level2: string | null
+    level3: string | null
+    level4: string | null
+    level5: string | null
+  }
+
+  export type CategoryPathMaxAggregateOutputType = {
+    id: string | null
+    productId: number | null
+    path: string | null
+    level1: string | null
+    level2: string | null
+    level3: string | null
+    level4: string | null
+    level5: string | null
+  }
+
+  export type CategoryPathCountAggregateOutputType = {
+    id: number
+    productId: number
+    path: number
+    level1: number
+    level2: number
+    level3: number
+    level4: number
+    level5: number
+    _all: number
+  }
+
+
+  export type CategoryPathAvgAggregateInputType = {
+    productId?: true
+  }
+
+  export type CategoryPathSumAggregateInputType = {
+    productId?: true
+  }
+
+  export type CategoryPathMinAggregateInputType = {
+    id?: true
+    productId?: true
+    path?: true
+    level1?: true
+    level2?: true
+    level3?: true
+    level4?: true
+    level5?: true
+  }
+
+  export type CategoryPathMaxAggregateInputType = {
+    id?: true
+    productId?: true
+    path?: true
+    level1?: true
+    level2?: true
+    level3?: true
+    level4?: true
+    level5?: true
+  }
+
+  export type CategoryPathCountAggregateInputType = {
+    id?: true
+    productId?: true
+    path?: true
+    level1?: true
+    level2?: true
+    level3?: true
+    level4?: true
+    level5?: true
+    _all?: true
+  }
+
+  export type CategoryPathAggregateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which CategoryPath to aggregate.
+     */
+    where?: CategoryPathWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of CategoryPaths to fetch.
+     */
+    orderBy?: CategoryPathOrderByWithRelationInput | CategoryPathOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the start position
+     */
+    cursor?: CategoryPathWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` CategoryPaths from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` CategoryPaths.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Count returned CategoryPaths
+    **/
+    _count?: true | CategoryPathCountAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to average
+    **/
+    _avg?: CategoryPathAvgAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to sum
+    **/
+    _sum?: CategoryPathSumAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the minimum value
+    **/
+    _min?: CategoryPathMinAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the maximum value
+    **/
+    _max?: CategoryPathMaxAggregateInputType
+  }
+
+  export type GetCategoryPathAggregateType<T extends CategoryPathAggregateArgs> = {
+        [P in keyof T & keyof AggregateCategoryPath]: P extends '_count' | 'count'
+      ? T[P] extends true
+        ? number
+        : GetScalarType<T[P], AggregateCategoryPath[P]>
+      : GetScalarType<T[P], AggregateCategoryPath[P]>
+  }
+
+
+
+
+  export type CategoryPathGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: CategoryPathWhereInput
+    orderBy?: CategoryPathOrderByWithAggregationInput | CategoryPathOrderByWithAggregationInput[]
+    by: CategoryPathScalarFieldEnum[] | CategoryPathScalarFieldEnum
+    having?: CategoryPathScalarWhereWithAggregatesInput
+    take?: number
+    skip?: number
+    _count?: CategoryPathCountAggregateInputType | true
+    _avg?: CategoryPathAvgAggregateInputType
+    _sum?: CategoryPathSumAggregateInputType
+    _min?: CategoryPathMinAggregateInputType
+    _max?: CategoryPathMaxAggregateInputType
+  }
+
+  export type CategoryPathGroupByOutputType = {
+    id: string
+    productId: number
+    path: string
+    level1: string | null
+    level2: string | null
+    level3: string | null
+    level4: string | null
+    level5: string | null
+    _count: CategoryPathCountAggregateOutputType | null
+    _avg: CategoryPathAvgAggregateOutputType | null
+    _sum: CategoryPathSumAggregateOutputType | null
+    _min: CategoryPathMinAggregateOutputType | null
+    _max: CategoryPathMaxAggregateOutputType | null
+  }
+
+  type GetCategoryPathGroupByPayload<T extends CategoryPathGroupByArgs> = Prisma.PrismaPromise<
+    Array<
+      PickEnumerable<CategoryPathGroupByOutputType, T['by']> &
+        {
+          [P in ((keyof T) & (keyof CategoryPathGroupByOutputType))]: P extends '_count'
+            ? T[P] extends boolean
+              ? number
+              : GetScalarType<T[P], CategoryPathGroupByOutputType[P]>
+            : GetScalarType<T[P], CategoryPathGroupByOutputType[P]>
+        }
+      >
+    >
+
+
+  export type CategoryPathSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    productId?: boolean
+    path?: boolean
+    level1?: boolean
+    level2?: boolean
+    level3?: boolean
+    level4?: boolean
+    level5?: boolean
+    product?: boolean | ProductDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["categoryPath"]>
+
+  export type CategoryPathSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    productId?: boolean
+    path?: boolean
+    level1?: boolean
+    level2?: boolean
+    level3?: boolean
+    level4?: boolean
+    level5?: boolean
+    product?: boolean | ProductDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["categoryPath"]>
+
+  export type CategoryPathSelectUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    productId?: boolean
+    path?: boolean
+    level1?: boolean
+    level2?: boolean
+    level3?: boolean
+    level4?: boolean
+    level5?: boolean
+    product?: boolean | ProductDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["categoryPath"]>
+
+  export type CategoryPathSelectScalar = {
+    id?: boolean
+    productId?: boolean
+    path?: boolean
+    level1?: boolean
+    level2?: boolean
+    level3?: boolean
+    level4?: boolean
+    level5?: boolean
+  }
+
+  export type CategoryPathOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "productId" | "path" | "level1" | "level2" | "level3" | "level4" | "level5", ExtArgs["result"]["categoryPath"]>
+  export type CategoryPathInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    product?: boolean | ProductDefaultArgs<ExtArgs>
+  }
+  export type CategoryPathIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    product?: boolean | ProductDefaultArgs<ExtArgs>
+  }
+  export type CategoryPathIncludeUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    product?: boolean | ProductDefaultArgs<ExtArgs>
+  }
+
+  export type $CategoryPathPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    name: "CategoryPath"
+    objects: {
+      product: Prisma.$ProductPayload<ExtArgs>
+    }
+    scalars: $Extensions.GetPayloadResult<{
+      id: string
+      productId: number
+      path: string
+      level1: string | null
+      level2: string | null
+      level3: string | null
+      level4: string | null
+      level5: string | null
+    }, ExtArgs["result"]["categoryPath"]>
+    composites: {}
+  }
+
+  type CategoryPathGetPayload<S extends boolean | null | undefined | CategoryPathDefaultArgs> = $Result.GetResult<Prisma.$CategoryPathPayload, S>
+
+  type CategoryPathCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> =
+    Omit<CategoryPathFindManyArgs, 'select' | 'include' | 'distinct' | 'omit'> & {
+      select?: CategoryPathCountAggregateInputType | true
+    }
+
+  export interface CategoryPathDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> {
+    [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['CategoryPath'], meta: { name: 'CategoryPath' } }
+    /**
+     * Find zero or one CategoryPath that matches the filter.
+     * @param {CategoryPathFindUniqueArgs} args - Arguments to find a CategoryPath
+     * @example
+     * // Get one CategoryPath
+     * const categoryPath = await prisma.categoryPath.findUnique({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUnique<T extends CategoryPathFindUniqueArgs>(args: SelectSubset<T, CategoryPathFindUniqueArgs<ExtArgs>>): Prisma__CategoryPathClient<$Result.GetResult<Prisma.$CategoryPathPayload<ExtArgs>, T, "findUnique", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find one CategoryPath that matches the filter or throw an error with `error.code='P2025'`
+     * if no matches were found.
+     * @param {CategoryPathFindUniqueOrThrowArgs} args - Arguments to find a CategoryPath
+     * @example
+     * // Get one CategoryPath
+     * const categoryPath = await prisma.categoryPath.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUniqueOrThrow<T extends CategoryPathFindUniqueOrThrowArgs>(args: SelectSubset<T, CategoryPathFindUniqueOrThrowArgs<ExtArgs>>): Prisma__CategoryPathClient<$Result.GetResult<Prisma.$CategoryPathPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first CategoryPath that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {CategoryPathFindFirstArgs} args - Arguments to find a CategoryPath
+     * @example
+     * // Get one CategoryPath
+     * const categoryPath = await prisma.categoryPath.findFirst({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirst<T extends CategoryPathFindFirstArgs>(args?: SelectSubset<T, CategoryPathFindFirstArgs<ExtArgs>>): Prisma__CategoryPathClient<$Result.GetResult<Prisma.$CategoryPathPayload<ExtArgs>, T, "findFirst", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first CategoryPath that matches the filter or
+     * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {CategoryPathFindFirstOrThrowArgs} args - Arguments to find a CategoryPath
+     * @example
+     * // Get one CategoryPath
+     * const categoryPath = await prisma.categoryPath.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirstOrThrow<T extends CategoryPathFindFirstOrThrowArgs>(args?: SelectSubset<T, CategoryPathFindFirstOrThrowArgs<ExtArgs>>): Prisma__CategoryPathClient<$Result.GetResult<Prisma.$CategoryPathPayload<ExtArgs>, T, "findFirstOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find zero or more CategoryPaths that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {CategoryPathFindManyArgs} args - Arguments to filter and select certain fields only.
+     * @example
+     * // Get all CategoryPaths
+     * const categoryPaths = await prisma.categoryPath.findMany()
+     * 
+     * // Get first 10 CategoryPaths
+     * const categoryPaths = await prisma.categoryPath.findMany({ take: 10 })
+     * 
+     * // Only select the `id`
+     * const categoryPathWithIdOnly = await prisma.categoryPath.findMany({ select: { id: true } })
+     * 
+     */
+    findMany<T extends CategoryPathFindManyArgs>(args?: SelectSubset<T, CategoryPathFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$CategoryPathPayload<ExtArgs>, T, "findMany", GlobalOmitOptions>>
+
+    /**
+     * Create a CategoryPath.
+     * @param {CategoryPathCreateArgs} args - Arguments to create a CategoryPath.
+     * @example
+     * // Create one CategoryPath
+     * const CategoryPath = await prisma.categoryPath.create({
+     *   data: {
+     *     // ... data to create a CategoryPath
+     *   }
+     * })
+     * 
+     */
+    create<T extends CategoryPathCreateArgs>(args: SelectSubset<T, CategoryPathCreateArgs<ExtArgs>>): Prisma__CategoryPathClient<$Result.GetResult<Prisma.$CategoryPathPayload<ExtArgs>, T, "create", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Create many CategoryPaths.
+     * @param {CategoryPathCreateManyArgs} args - Arguments to create many CategoryPaths.
+     * @example
+     * // Create many CategoryPaths
+     * const categoryPath = await prisma.categoryPath.createMany({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *     
+     */
+    createMany<T extends CategoryPathCreateManyArgs>(args?: SelectSubset<T, CategoryPathCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create many CategoryPaths and returns the data saved in the database.
+     * @param {CategoryPathCreateManyAndReturnArgs} args - Arguments to create many CategoryPaths.
+     * @example
+     * // Create many CategoryPaths
+     * const categoryPath = await prisma.categoryPath.createManyAndReturn({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Create many CategoryPaths and only return the `id`
+     * const categoryPathWithIdOnly = await prisma.categoryPath.createManyAndReturn({
+     *   select: { id: true },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    createManyAndReturn<T extends CategoryPathCreateManyAndReturnArgs>(args?: SelectSubset<T, CategoryPathCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$CategoryPathPayload<ExtArgs>, T, "createManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Delete a CategoryPath.
+     * @param {CategoryPathDeleteArgs} args - Arguments to delete one CategoryPath.
+     * @example
+     * // Delete one CategoryPath
+     * const CategoryPath = await prisma.categoryPath.delete({
+     *   where: {
+     *     // ... filter to delete one CategoryPath
+     *   }
+     * })
+     * 
+     */
+    delete<T extends CategoryPathDeleteArgs>(args: SelectSubset<T, CategoryPathDeleteArgs<ExtArgs>>): Prisma__CategoryPathClient<$Result.GetResult<Prisma.$CategoryPathPayload<ExtArgs>, T, "delete", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Update one CategoryPath.
+     * @param {CategoryPathUpdateArgs} args - Arguments to update one CategoryPath.
+     * @example
+     * // Update one CategoryPath
+     * const categoryPath = await prisma.categoryPath.update({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    update<T extends CategoryPathUpdateArgs>(args: SelectSubset<T, CategoryPathUpdateArgs<ExtArgs>>): Prisma__CategoryPathClient<$Result.GetResult<Prisma.$CategoryPathPayload<ExtArgs>, T, "update", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Delete zero or more CategoryPaths.
+     * @param {CategoryPathDeleteManyArgs} args - Arguments to filter CategoryPaths to delete.
+     * @example
+     * // Delete a few CategoryPaths
+     * const { count } = await prisma.categoryPath.deleteMany({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     * 
+     */
+    deleteMany<T extends CategoryPathDeleteManyArgs>(args?: SelectSubset<T, CategoryPathDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more CategoryPaths.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {CategoryPathUpdateManyArgs} args - Arguments to update one or more rows.
+     * @example
+     * // Update many CategoryPaths
+     * const categoryPath = await prisma.categoryPath.updateMany({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    updateMany<T extends CategoryPathUpdateManyArgs>(args: SelectSubset<T, CategoryPathUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more CategoryPaths and returns the data updated in the database.
+     * @param {CategoryPathUpdateManyAndReturnArgs} args - Arguments to update many CategoryPaths.
+     * @example
+     * // Update many CategoryPaths
+     * const categoryPath = await prisma.categoryPath.updateManyAndReturn({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Update zero or more CategoryPaths and only return the `id`
+     * const categoryPathWithIdOnly = await prisma.categoryPath.updateManyAndReturn({
+     *   select: { id: true },
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    updateManyAndReturn<T extends CategoryPathUpdateManyAndReturnArgs>(args: SelectSubset<T, CategoryPathUpdateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$CategoryPathPayload<ExtArgs>, T, "updateManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Create or update one CategoryPath.
+     * @param {CategoryPathUpsertArgs} args - Arguments to update or create a CategoryPath.
+     * @example
+     * // Update or create a CategoryPath
+     * const categoryPath = await prisma.categoryPath.upsert({
+     *   create: {
+     *     // ... data to create a CategoryPath
+     *   },
+     *   update: {
+     *     // ... in case it already exists, update
+     *   },
+     *   where: {
+     *     // ... the filter for the CategoryPath we want to update
+     *   }
+     * })
+     */
+    upsert<T extends CategoryPathUpsertArgs>(args: SelectSubset<T, CategoryPathUpsertArgs<ExtArgs>>): Prisma__CategoryPathClient<$Result.GetResult<Prisma.$CategoryPathPayload<ExtArgs>, T, "upsert", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+
+    /**
+     * Count the number of CategoryPaths.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {CategoryPathCountArgs} args - Arguments to filter CategoryPaths to count.
+     * @example
+     * // Count the number of CategoryPaths
+     * const count = await prisma.categoryPath.count({
+     *   where: {
+     *     // ... the filter for the CategoryPaths we want to count
+     *   }
+     * })
+    **/
+    count<T extends CategoryPathCountArgs>(
+      args?: Subset<T, CategoryPathCountArgs>,
+    ): Prisma.PrismaPromise<
+      T extends $Utils.Record<'select', any>
+        ? T['select'] extends true
+          ? number
+          : GetScalarType<T['select'], CategoryPathCountAggregateOutputType>
+        : number
+    >
+
+    /**
+     * Allows you to perform aggregations operations on a CategoryPath.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {CategoryPathAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   _avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+    **/
+    aggregate<T extends CategoryPathAggregateArgs>(args: Subset<T, CategoryPathAggregateArgs>): Prisma.PrismaPromise<GetCategoryPathAggregateType<T>>
+
+    /**
+     * Group by CategoryPath.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {CategoryPathGroupByArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   _count: {
+     *     _all: true
+     *   },
+     * })
+     * 
+    **/
+    groupBy<
+      T extends CategoryPathGroupByArgs,
+      HasSelectOrTake extends Or<
+        Extends<'skip', Keys<T>>,
+        Extends<'take', Keys<T>>
+      >,
+      OrderByArg extends True extends HasSelectOrTake
+        ? { orderBy: CategoryPathGroupByArgs['orderBy'] }
+        : { orderBy?: CategoryPathGroupByArgs['orderBy'] },
+      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
+      ByFields extends MaybeTupleToUnion<T['by']>,
+      ByValid extends Has<ByFields, OrderFields>,
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      ByEmpty extends T['by'] extends never[] ? True : False,
+      InputErrors extends ByEmpty extends True
+      ? `Error: "by" must not be empty.`
+      : HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
+            ? never
+            : P extends string
+            ? `Error: Field "${P}" used in "having" needs to be provided in "by".`
+            : [
+                Error,
+                'Field ',
+                P,
+                ` in "having" needs to be provided in "by"`,
+              ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+        }[OrderFields]
+    >(args: SubsetIntersection<T, CategoryPathGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetCategoryPathGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
+  /**
+   * Fields of the CategoryPath model
+   */
+  readonly fields: CategoryPathFieldRefs;
+  }
+
+  /**
+   * The delegate class that acts as a "Promise-like" for CategoryPath.
+   * Why is this prefixed with `Prisma__`?
+   * Because we want to prevent naming conflicts as mentioned in
+   * https://github.com/prisma/prisma-client-js/issues/707
+   */
+  export interface Prisma__CategoryPathClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
+    readonly [Symbol.toStringTag]: "PrismaPromise"
+    product<T extends ProductDefaultArgs<ExtArgs> = {}>(args?: Subset<T, ProductDefaultArgs<ExtArgs>>): Prisma__ProductClient<$Result.GetResult<Prisma.$ProductPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
+    /**
+     * Attaches callbacks for the resolution and/or rejection of the Promise.
+     * @param onfulfilled The callback to execute when the Promise is resolved.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of which ever callback is executed.
+     */
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>
+    /**
+     * Attaches a callback for only the rejection of the Promise.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of the callback.
+     */
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>
+    /**
+     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+     * resolved value cannot be modified from the callback.
+     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+     * @returns A Promise for the completion of the callback.
+     */
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>
+  }
+
+
+
+
+  /**
+   * Fields of the CategoryPath model
+   */
+  interface CategoryPathFieldRefs {
+    readonly id: FieldRef<"CategoryPath", 'String'>
+    readonly productId: FieldRef<"CategoryPath", 'Int'>
+    readonly path: FieldRef<"CategoryPath", 'String'>
+    readonly level1: FieldRef<"CategoryPath", 'String'>
+    readonly level2: FieldRef<"CategoryPath", 'String'>
+    readonly level3: FieldRef<"CategoryPath", 'String'>
+    readonly level4: FieldRef<"CategoryPath", 'String'>
+    readonly level5: FieldRef<"CategoryPath", 'String'>
+  }
+    
+
+  // Custom InputTypes
+  /**
+   * CategoryPath findUnique
+   */
+  export type CategoryPathFindUniqueArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the CategoryPath
+     */
+    select?: CategoryPathSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the CategoryPath
+     */
+    omit?: CategoryPathOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: CategoryPathInclude<ExtArgs> | null
+    /**
+     * Filter, which CategoryPath to fetch.
+     */
+    where: CategoryPathWhereUniqueInput
+  }
+
+  /**
+   * CategoryPath findUniqueOrThrow
+   */
+  export type CategoryPathFindUniqueOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the CategoryPath
+     */
+    select?: CategoryPathSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the CategoryPath
+     */
+    omit?: CategoryPathOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: CategoryPathInclude<ExtArgs> | null
+    /**
+     * Filter, which CategoryPath to fetch.
+     */
+    where: CategoryPathWhereUniqueInput
+  }
+
+  /**
+   * CategoryPath findFirst
+   */
+  export type CategoryPathFindFirstArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the CategoryPath
+     */
+    select?: CategoryPathSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the CategoryPath
+     */
+    omit?: CategoryPathOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: CategoryPathInclude<ExtArgs> | null
+    /**
+     * Filter, which CategoryPath to fetch.
+     */
+    where?: CategoryPathWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of CategoryPaths to fetch.
+     */
+    orderBy?: CategoryPathOrderByWithRelationInput | CategoryPathOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for CategoryPaths.
+     */
+    cursor?: CategoryPathWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` CategoryPaths from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` CategoryPaths.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of CategoryPaths.
+     */
+    distinct?: CategoryPathScalarFieldEnum | CategoryPathScalarFieldEnum[]
+  }
+
+  /**
+   * CategoryPath findFirstOrThrow
+   */
+  export type CategoryPathFindFirstOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the CategoryPath
+     */
+    select?: CategoryPathSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the CategoryPath
+     */
+    omit?: CategoryPathOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: CategoryPathInclude<ExtArgs> | null
+    /**
+     * Filter, which CategoryPath to fetch.
+     */
+    where?: CategoryPathWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of CategoryPaths to fetch.
+     */
+    orderBy?: CategoryPathOrderByWithRelationInput | CategoryPathOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for CategoryPaths.
+     */
+    cursor?: CategoryPathWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` CategoryPaths from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` CategoryPaths.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of CategoryPaths.
+     */
+    distinct?: CategoryPathScalarFieldEnum | CategoryPathScalarFieldEnum[]
+  }
+
+  /**
+   * CategoryPath findMany
+   */
+  export type CategoryPathFindManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the CategoryPath
+     */
+    select?: CategoryPathSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the CategoryPath
+     */
+    omit?: CategoryPathOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: CategoryPathInclude<ExtArgs> | null
+    /**
+     * Filter, which CategoryPaths to fetch.
+     */
+    where?: CategoryPathWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of CategoryPaths to fetch.
+     */
+    orderBy?: CategoryPathOrderByWithRelationInput | CategoryPathOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for listing CategoryPaths.
+     */
+    cursor?: CategoryPathWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` CategoryPaths from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` CategoryPaths.
+     */
+    skip?: number
+    distinct?: CategoryPathScalarFieldEnum | CategoryPathScalarFieldEnum[]
+  }
+
+  /**
+   * CategoryPath create
+   */
+  export type CategoryPathCreateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the CategoryPath
+     */
+    select?: CategoryPathSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the CategoryPath
+     */
+    omit?: CategoryPathOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: CategoryPathInclude<ExtArgs> | null
+    /**
+     * The data needed to create a CategoryPath.
+     */
+    data: XOR<CategoryPathCreateInput, CategoryPathUncheckedCreateInput>
+  }
+
+  /**
+   * CategoryPath createMany
+   */
+  export type CategoryPathCreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to create many CategoryPaths.
+     */
+    data: CategoryPathCreateManyInput | CategoryPathCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * CategoryPath createManyAndReturn
+   */
+  export type CategoryPathCreateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the CategoryPath
+     */
+    select?: CategoryPathSelectCreateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the CategoryPath
+     */
+    omit?: CategoryPathOmit<ExtArgs> | null
+    /**
+     * The data used to create many CategoryPaths.
+     */
+    data: CategoryPathCreateManyInput | CategoryPathCreateManyInput[]
+    skipDuplicates?: boolean
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: CategoryPathIncludeCreateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * CategoryPath update
+   */
+  export type CategoryPathUpdateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the CategoryPath
+     */
+    select?: CategoryPathSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the CategoryPath
+     */
+    omit?: CategoryPathOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: CategoryPathInclude<ExtArgs> | null
+    /**
+     * The data needed to update a CategoryPath.
+     */
+    data: XOR<CategoryPathUpdateInput, CategoryPathUncheckedUpdateInput>
+    /**
+     * Choose, which CategoryPath to update.
+     */
+    where: CategoryPathWhereUniqueInput
+  }
+
+  /**
+   * CategoryPath updateMany
+   */
+  export type CategoryPathUpdateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to update CategoryPaths.
+     */
+    data: XOR<CategoryPathUpdateManyMutationInput, CategoryPathUncheckedUpdateManyInput>
+    /**
+     * Filter which CategoryPaths to update
+     */
+    where?: CategoryPathWhereInput
+    /**
+     * Limit how many CategoryPaths to update.
+     */
+    limit?: number
+  }
+
+  /**
+   * CategoryPath updateManyAndReturn
+   */
+  export type CategoryPathUpdateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the CategoryPath
+     */
+    select?: CategoryPathSelectUpdateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the CategoryPath
+     */
+    omit?: CategoryPathOmit<ExtArgs> | null
+    /**
+     * The data used to update CategoryPaths.
+     */
+    data: XOR<CategoryPathUpdateManyMutationInput, CategoryPathUncheckedUpdateManyInput>
+    /**
+     * Filter which CategoryPaths to update
+     */
+    where?: CategoryPathWhereInput
+    /**
+     * Limit how many CategoryPaths to update.
+     */
+    limit?: number
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: CategoryPathIncludeUpdateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * CategoryPath upsert
+   */
+  export type CategoryPathUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the CategoryPath
+     */
+    select?: CategoryPathSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the CategoryPath
+     */
+    omit?: CategoryPathOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: CategoryPathInclude<ExtArgs> | null
+    /**
+     * The filter to search for the CategoryPath to update in case it exists.
+     */
+    where: CategoryPathWhereUniqueInput
+    /**
+     * In case the CategoryPath found by the `where` argument doesn't exist, create a new CategoryPath with this data.
+     */
+    create: XOR<CategoryPathCreateInput, CategoryPathUncheckedCreateInput>
+    /**
+     * In case the CategoryPath was found with the provided `where` argument, update it with this data.
+     */
+    update: XOR<CategoryPathUpdateInput, CategoryPathUncheckedUpdateInput>
+  }
+
+  /**
+   * CategoryPath delete
+   */
+  export type CategoryPathDeleteArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the CategoryPath
+     */
+    select?: CategoryPathSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the CategoryPath
+     */
+    omit?: CategoryPathOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: CategoryPathInclude<ExtArgs> | null
+    /**
+     * Filter which CategoryPath to delete.
+     */
+    where: CategoryPathWhereUniqueInput
+  }
+
+  /**
+   * CategoryPath deleteMany
+   */
+  export type CategoryPathDeleteManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which CategoryPaths to delete
+     */
+    where?: CategoryPathWhereInput
+    /**
+     * Limit how many CategoryPaths to delete.
+     */
+    limit?: number
+  }
+
+  /**
+   * CategoryPath without action
+   */
+  export type CategoryPathDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the CategoryPath
+     */
+    select?: CategoryPathSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the CategoryPath
+     */
+    omit?: CategoryPathOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: CategoryPathInclude<ExtArgs> | null
+  }
+
+
+  /**
    * Enums
    */
 
@@ -15743,6 +19870,9 @@ export namespace Prisma {
     name: 'name',
     slug: 'slug',
     description: 'description',
+    path: 'path',
+    level: 'level',
+    isActive: 'isActive',
     parentId: 'parentId',
     createdAt: 'createdAt',
     updatedAt: 'updatedAt'
@@ -15757,6 +19887,54 @@ export namespace Prisma {
   };
 
   export type CategoryProductScalarFieldEnum = (typeof CategoryProductScalarFieldEnum)[keyof typeof CategoryProductScalarFieldEnum]
+
+
+  export const PaymentGatewayScalarFieldEnum: {
+    id: 'id',
+    name: 'name',
+    isActive: 'isActive',
+    config: 'config',
+    encryptionKey: 'encryptionKey',
+    encryptionIV: 'encryptionIV',
+    merchantId: 'merchantId',
+    businessName: 'businessName',
+    businessEmail: 'businessEmail',
+    environment: 'environment',
+    description: 'description',
+    notes: 'notes',
+    apiEndpoint: 'apiEndpoint',
+    webhookUrl: 'webhookUrl',
+    supportsCreditCards: 'supportsCreditCards',
+    supportsDirectDebit: 'supportsDirectDebit',
+    createdAt: 'createdAt',
+    updatedAt: 'updatedAt'
+  };
+
+  export type PaymentGatewayScalarFieldEnum = (typeof PaymentGatewayScalarFieldEnum)[keyof typeof PaymentGatewayScalarFieldEnum]
+
+
+  export const TransactionScalarFieldEnum: {
+    id: 'id',
+    amount: 'amount',
+    currency: 'currency',
+    status: 'status',
+    paymentMethod: 'paymentMethod',
+    paymentType: 'paymentType',
+    gatewayId: 'gatewayId',
+    gatewayTransactionId: 'gatewayTransactionId',
+    gatewayCustomerId: 'gatewayCustomerId',
+    receiptUrl: 'receiptUrl',
+    receiptEmail: 'receiptEmail',
+    purchaseId: 'purchaseId',
+    errorMessage: 'errorMessage',
+    errorCode: 'errorCode',
+    metadata: 'metadata',
+    createdAt: 'createdAt',
+    updatedAt: 'updatedAt',
+    completedAt: 'completedAt'
+  };
+
+  export type TransactionScalarFieldEnum = (typeof TransactionScalarFieldEnum)[keyof typeof TransactionScalarFieldEnum]
 
 
   export const PurchaseScalarFieldEnum: {
@@ -15799,12 +19977,41 @@ export namespace Prisma {
   export type PackageDiscountScalarFieldEnum = (typeof PackageDiscountScalarFieldEnum)[keyof typeof PackageDiscountScalarFieldEnum]
 
 
+  export const CategoryPathScalarFieldEnum: {
+    id: 'id',
+    productId: 'productId',
+    path: 'path',
+    level1: 'level1',
+    level2: 'level2',
+    level3: 'level3',
+    level4: 'level4',
+    level5: 'level5'
+  };
+
+  export type CategoryPathScalarFieldEnum = (typeof CategoryPathScalarFieldEnum)[keyof typeof CategoryPathScalarFieldEnum]
+
+
   export const SortOrder: {
     asc: 'asc',
     desc: 'desc'
   };
 
   export type SortOrder = (typeof SortOrder)[keyof typeof SortOrder]
+
+
+  export const JsonNullValueInput: {
+    JsonNull: typeof JsonNull
+  };
+
+  export type JsonNullValueInput = (typeof JsonNullValueInput)[keyof typeof JsonNullValueInput]
+
+
+  export const NullableJsonNullValueInput: {
+    DbNull: typeof DbNull,
+    JsonNull: typeof JsonNull
+  };
+
+  export type NullableJsonNullValueInput = (typeof NullableJsonNullValueInput)[keyof typeof NullableJsonNullValueInput]
 
 
   export const QueryMode: {
@@ -15821,6 +20028,15 @@ export namespace Prisma {
   };
 
   export type NullsOrder = (typeof NullsOrder)[keyof typeof NullsOrder]
+
+
+  export const JsonNullValueFilter: {
+    DbNull: typeof DbNull,
+    JsonNull: typeof JsonNull,
+    AnyNull: typeof AnyNull
+  };
+
+  export type JsonNullValueFilter = (typeof JsonNullValueFilter)[keyof typeof JsonNullValueFilter]
 
 
   /**
@@ -15888,6 +20104,20 @@ export namespace Prisma {
    * Reference to a field of type 'Decimal[]'
    */
   export type ListDecimalFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Decimal[]'>
+    
+
+
+  /**
+   * Reference to a field of type 'Json'
+   */
+  export type JsonFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Json'>
+    
+
+
+  /**
+   * Reference to a field of type 'QueryMode'
+   */
+  export type EnumQueryModeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'QueryMode'>
     
 
 
@@ -16264,12 +20494,13 @@ export namespace Prisma {
     totalRevenue?: DecimalFilter<"Product"> | Decimal | DecimalJsLike | number | string
     createdAt?: DateTimeFilter<"Product"> | Date | string
     updatedAt?: DateTimeFilter<"Product"> | Date | string
-    createdById?: StringFilter<"Product"> | string
+    createdById?: StringNullableFilter<"Product"> | string | null
     images?: ProductImageListRelationFilter
     categories?: CategoryProductListRelationFilter
     reviews?: ReviewListRelationFilter
     purchases?: PurchaseListRelationFilter
-    createdBy?: XOR<UserScalarRelationFilter, UserWhereInput>
+    CategoryPath?: CategoryPathListRelationFilter
+    createdBy?: XOR<UserNullableScalarRelationFilter, UserWhereInput> | null
   }
 
   export type ProductOrderByWithRelationInput = {
@@ -16294,11 +20525,12 @@ export namespace Prisma {
     totalRevenue?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
-    createdById?: SortOrder
+    createdById?: SortOrderInput | SortOrder
     images?: ProductImageOrderByRelationAggregateInput
     categories?: CategoryProductOrderByRelationAggregateInput
     reviews?: ReviewOrderByRelationAggregateInput
     purchases?: PurchaseOrderByRelationAggregateInput
+    CategoryPath?: CategoryPathOrderByRelationAggregateInput
     createdBy?: UserOrderByWithRelationInput
   }
 
@@ -16327,12 +20559,13 @@ export namespace Prisma {
     totalRevenue?: DecimalFilter<"Product"> | Decimal | DecimalJsLike | number | string
     createdAt?: DateTimeFilter<"Product"> | Date | string
     updatedAt?: DateTimeFilter<"Product"> | Date | string
-    createdById?: StringFilter<"Product"> | string
+    createdById?: StringNullableFilter<"Product"> | string | null
     images?: ProductImageListRelationFilter
     categories?: CategoryProductListRelationFilter
     reviews?: ReviewListRelationFilter
     purchases?: PurchaseListRelationFilter
-    createdBy?: XOR<UserScalarRelationFilter, UserWhereInput>
+    CategoryPath?: CategoryPathListRelationFilter
+    createdBy?: XOR<UserNullableScalarRelationFilter, UserWhereInput> | null
   }, "id" | "slug">
 
   export type ProductOrderByWithAggregationInput = {
@@ -16357,7 +20590,7 @@ export namespace Prisma {
     totalRevenue?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
-    createdById?: SortOrder
+    createdById?: SortOrderInput | SortOrder
     _count?: ProductCountOrderByAggregateInput
     _avg?: ProductAvgOrderByAggregateInput
     _max?: ProductMaxOrderByAggregateInput
@@ -16390,7 +20623,7 @@ export namespace Prisma {
     totalRevenue?: DecimalWithAggregatesFilter<"Product"> | Decimal | DecimalJsLike | number | string
     createdAt?: DateTimeWithAggregatesFilter<"Product"> | Date | string
     updatedAt?: DateTimeWithAggregatesFilter<"Product"> | Date | string
-    createdById?: StringWithAggregatesFilter<"Product"> | string
+    createdById?: StringNullableWithAggregatesFilter<"Product"> | string | null
   }
 
   export type ProductImageWhereInput = {
@@ -16463,6 +20696,9 @@ export namespace Prisma {
     name?: StringFilter<"Category"> | string
     slug?: StringFilter<"Category"> | string
     description?: StringNullableFilter<"Category"> | string | null
+    path?: StringFilter<"Category"> | string
+    level?: IntFilter<"Category"> | number
+    isActive?: BoolFilter<"Category"> | boolean
     parentId?: StringNullableFilter<"Category"> | string | null
     createdAt?: DateTimeFilter<"Category"> | Date | string
     updatedAt?: DateTimeFilter<"Category"> | Date | string
@@ -16476,6 +20712,9 @@ export namespace Prisma {
     name?: SortOrder
     slug?: SortOrder
     description?: SortOrderInput | SortOrder
+    path?: SortOrder
+    level?: SortOrder
+    isActive?: SortOrder
     parentId?: SortOrderInput | SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
@@ -16488,29 +20727,39 @@ export namespace Prisma {
     id?: string
     name?: string
     slug?: string
+    name_parentId?: CategoryNameParentIdCompoundUniqueInput
+    slug_parentId?: CategorySlugParentIdCompoundUniqueInput
     AND?: CategoryWhereInput | CategoryWhereInput[]
     OR?: CategoryWhereInput[]
     NOT?: CategoryWhereInput | CategoryWhereInput[]
     description?: StringNullableFilter<"Category"> | string | null
+    path?: StringFilter<"Category"> | string
+    level?: IntFilter<"Category"> | number
+    isActive?: BoolFilter<"Category"> | boolean
     parentId?: StringNullableFilter<"Category"> | string | null
     createdAt?: DateTimeFilter<"Category"> | Date | string
     updatedAt?: DateTimeFilter<"Category"> | Date | string
     products?: CategoryProductListRelationFilter
     parent?: XOR<CategoryNullableScalarRelationFilter, CategoryWhereInput> | null
     children?: CategoryListRelationFilter
-  }, "id" | "name" | "slug">
+  }, "id" | "name" | "slug" | "name_parentId" | "slug_parentId">
 
   export type CategoryOrderByWithAggregationInput = {
     id?: SortOrder
     name?: SortOrder
     slug?: SortOrder
     description?: SortOrderInput | SortOrder
+    path?: SortOrder
+    level?: SortOrder
+    isActive?: SortOrder
     parentId?: SortOrderInput | SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
     _count?: CategoryCountOrderByAggregateInput
+    _avg?: CategoryAvgOrderByAggregateInput
     _max?: CategoryMaxOrderByAggregateInput
     _min?: CategoryMinOrderByAggregateInput
+    _sum?: CategorySumOrderByAggregateInput
   }
 
   export type CategoryScalarWhereWithAggregatesInput = {
@@ -16521,6 +20770,9 @@ export namespace Prisma {
     name?: StringWithAggregatesFilter<"Category"> | string
     slug?: StringWithAggregatesFilter<"Category"> | string
     description?: StringNullableWithAggregatesFilter<"Category"> | string | null
+    path?: StringWithAggregatesFilter<"Category"> | string
+    level?: IntWithAggregatesFilter<"Category"> | number
+    isActive?: BoolWithAggregatesFilter<"Category"> | boolean
     parentId?: StringNullableWithAggregatesFilter<"Category"> | string | null
     createdAt?: DateTimeWithAggregatesFilter<"Category"> | Date | string
     updatedAt?: DateTimeWithAggregatesFilter<"Category"> | Date | string
@@ -16572,6 +20824,251 @@ export namespace Prisma {
     categoryId?: StringWithAggregatesFilter<"CategoryProduct"> | string
   }
 
+  export type PaymentGatewayWhereInput = {
+    AND?: PaymentGatewayWhereInput | PaymentGatewayWhereInput[]
+    OR?: PaymentGatewayWhereInput[]
+    NOT?: PaymentGatewayWhereInput | PaymentGatewayWhereInput[]
+    id?: StringFilter<"PaymentGateway"> | string
+    name?: StringFilter<"PaymentGateway"> | string
+    isActive?: BoolFilter<"PaymentGateway"> | boolean
+    config?: JsonFilter<"PaymentGateway">
+    encryptionKey?: StringNullableFilter<"PaymentGateway"> | string | null
+    encryptionIV?: StringNullableFilter<"PaymentGateway"> | string | null
+    merchantId?: StringNullableFilter<"PaymentGateway"> | string | null
+    businessName?: StringNullableFilter<"PaymentGateway"> | string | null
+    businessEmail?: StringNullableFilter<"PaymentGateway"> | string | null
+    environment?: StringFilter<"PaymentGateway"> | string
+    description?: StringNullableFilter<"PaymentGateway"> | string | null
+    notes?: StringNullableFilter<"PaymentGateway"> | string | null
+    apiEndpoint?: StringNullableFilter<"PaymentGateway"> | string | null
+    webhookUrl?: StringNullableFilter<"PaymentGateway"> | string | null
+    supportsCreditCards?: BoolFilter<"PaymentGateway"> | boolean
+    supportsDirectDebit?: BoolFilter<"PaymentGateway"> | boolean
+    createdAt?: DateTimeFilter<"PaymentGateway"> | Date | string
+    updatedAt?: DateTimeFilter<"PaymentGateway"> | Date | string
+    transactions?: TransactionListRelationFilter
+  }
+
+  export type PaymentGatewayOrderByWithRelationInput = {
+    id?: SortOrder
+    name?: SortOrder
+    isActive?: SortOrder
+    config?: SortOrder
+    encryptionKey?: SortOrderInput | SortOrder
+    encryptionIV?: SortOrderInput | SortOrder
+    merchantId?: SortOrderInput | SortOrder
+    businessName?: SortOrderInput | SortOrder
+    businessEmail?: SortOrderInput | SortOrder
+    environment?: SortOrder
+    description?: SortOrderInput | SortOrder
+    notes?: SortOrderInput | SortOrder
+    apiEndpoint?: SortOrderInput | SortOrder
+    webhookUrl?: SortOrderInput | SortOrder
+    supportsCreditCards?: SortOrder
+    supportsDirectDebit?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+    transactions?: TransactionOrderByRelationAggregateInput
+  }
+
+  export type PaymentGatewayWhereUniqueInput = Prisma.AtLeast<{
+    id?: string
+    name?: string
+    AND?: PaymentGatewayWhereInput | PaymentGatewayWhereInput[]
+    OR?: PaymentGatewayWhereInput[]
+    NOT?: PaymentGatewayWhereInput | PaymentGatewayWhereInput[]
+    isActive?: BoolFilter<"PaymentGateway"> | boolean
+    config?: JsonFilter<"PaymentGateway">
+    encryptionKey?: StringNullableFilter<"PaymentGateway"> | string | null
+    encryptionIV?: StringNullableFilter<"PaymentGateway"> | string | null
+    merchantId?: StringNullableFilter<"PaymentGateway"> | string | null
+    businessName?: StringNullableFilter<"PaymentGateway"> | string | null
+    businessEmail?: StringNullableFilter<"PaymentGateway"> | string | null
+    environment?: StringFilter<"PaymentGateway"> | string
+    description?: StringNullableFilter<"PaymentGateway"> | string | null
+    notes?: StringNullableFilter<"PaymentGateway"> | string | null
+    apiEndpoint?: StringNullableFilter<"PaymentGateway"> | string | null
+    webhookUrl?: StringNullableFilter<"PaymentGateway"> | string | null
+    supportsCreditCards?: BoolFilter<"PaymentGateway"> | boolean
+    supportsDirectDebit?: BoolFilter<"PaymentGateway"> | boolean
+    createdAt?: DateTimeFilter<"PaymentGateway"> | Date | string
+    updatedAt?: DateTimeFilter<"PaymentGateway"> | Date | string
+    transactions?: TransactionListRelationFilter
+  }, "id" | "name">
+
+  export type PaymentGatewayOrderByWithAggregationInput = {
+    id?: SortOrder
+    name?: SortOrder
+    isActive?: SortOrder
+    config?: SortOrder
+    encryptionKey?: SortOrderInput | SortOrder
+    encryptionIV?: SortOrderInput | SortOrder
+    merchantId?: SortOrderInput | SortOrder
+    businessName?: SortOrderInput | SortOrder
+    businessEmail?: SortOrderInput | SortOrder
+    environment?: SortOrder
+    description?: SortOrderInput | SortOrder
+    notes?: SortOrderInput | SortOrder
+    apiEndpoint?: SortOrderInput | SortOrder
+    webhookUrl?: SortOrderInput | SortOrder
+    supportsCreditCards?: SortOrder
+    supportsDirectDebit?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+    _count?: PaymentGatewayCountOrderByAggregateInput
+    _max?: PaymentGatewayMaxOrderByAggregateInput
+    _min?: PaymentGatewayMinOrderByAggregateInput
+  }
+
+  export type PaymentGatewayScalarWhereWithAggregatesInput = {
+    AND?: PaymentGatewayScalarWhereWithAggregatesInput | PaymentGatewayScalarWhereWithAggregatesInput[]
+    OR?: PaymentGatewayScalarWhereWithAggregatesInput[]
+    NOT?: PaymentGatewayScalarWhereWithAggregatesInput | PaymentGatewayScalarWhereWithAggregatesInput[]
+    id?: StringWithAggregatesFilter<"PaymentGateway"> | string
+    name?: StringWithAggregatesFilter<"PaymentGateway"> | string
+    isActive?: BoolWithAggregatesFilter<"PaymentGateway"> | boolean
+    config?: JsonWithAggregatesFilter<"PaymentGateway">
+    encryptionKey?: StringNullableWithAggregatesFilter<"PaymentGateway"> | string | null
+    encryptionIV?: StringNullableWithAggregatesFilter<"PaymentGateway"> | string | null
+    merchantId?: StringNullableWithAggregatesFilter<"PaymentGateway"> | string | null
+    businessName?: StringNullableWithAggregatesFilter<"PaymentGateway"> | string | null
+    businessEmail?: StringNullableWithAggregatesFilter<"PaymentGateway"> | string | null
+    environment?: StringWithAggregatesFilter<"PaymentGateway"> | string
+    description?: StringNullableWithAggregatesFilter<"PaymentGateway"> | string | null
+    notes?: StringNullableWithAggregatesFilter<"PaymentGateway"> | string | null
+    apiEndpoint?: StringNullableWithAggregatesFilter<"PaymentGateway"> | string | null
+    webhookUrl?: StringNullableWithAggregatesFilter<"PaymentGateway"> | string | null
+    supportsCreditCards?: BoolWithAggregatesFilter<"PaymentGateway"> | boolean
+    supportsDirectDebit?: BoolWithAggregatesFilter<"PaymentGateway"> | boolean
+    createdAt?: DateTimeWithAggregatesFilter<"PaymentGateway"> | Date | string
+    updatedAt?: DateTimeWithAggregatesFilter<"PaymentGateway"> | Date | string
+  }
+
+  export type TransactionWhereInput = {
+    AND?: TransactionWhereInput | TransactionWhereInput[]
+    OR?: TransactionWhereInput[]
+    NOT?: TransactionWhereInput | TransactionWhereInput[]
+    id?: StringFilter<"Transaction"> | string
+    amount?: DecimalFilter<"Transaction"> | Decimal | DecimalJsLike | number | string
+    currency?: StringFilter<"Transaction"> | string
+    status?: StringFilter<"Transaction"> | string
+    paymentMethod?: StringNullableFilter<"Transaction"> | string | null
+    paymentType?: StringNullableFilter<"Transaction"> | string | null
+    gatewayId?: StringFilter<"Transaction"> | string
+    gatewayTransactionId?: StringNullableFilter<"Transaction"> | string | null
+    gatewayCustomerId?: StringNullableFilter<"Transaction"> | string | null
+    receiptUrl?: StringNullableFilter<"Transaction"> | string | null
+    receiptEmail?: StringNullableFilter<"Transaction"> | string | null
+    purchaseId?: StringNullableFilter<"Transaction"> | string | null
+    errorMessage?: StringNullableFilter<"Transaction"> | string | null
+    errorCode?: StringNullableFilter<"Transaction"> | string | null
+    metadata?: JsonNullableFilter<"Transaction">
+    createdAt?: DateTimeFilter<"Transaction"> | Date | string
+    updatedAt?: DateTimeFilter<"Transaction"> | Date | string
+    completedAt?: DateTimeNullableFilter<"Transaction"> | Date | string | null
+    paymentGateway?: XOR<PaymentGatewayScalarRelationFilter, PaymentGatewayWhereInput>
+    purchase?: XOR<PurchaseNullableScalarRelationFilter, PurchaseWhereInput> | null
+  }
+
+  export type TransactionOrderByWithRelationInput = {
+    id?: SortOrder
+    amount?: SortOrder
+    currency?: SortOrder
+    status?: SortOrder
+    paymentMethod?: SortOrderInput | SortOrder
+    paymentType?: SortOrderInput | SortOrder
+    gatewayId?: SortOrder
+    gatewayTransactionId?: SortOrderInput | SortOrder
+    gatewayCustomerId?: SortOrderInput | SortOrder
+    receiptUrl?: SortOrderInput | SortOrder
+    receiptEmail?: SortOrderInput | SortOrder
+    purchaseId?: SortOrderInput | SortOrder
+    errorMessage?: SortOrderInput | SortOrder
+    errorCode?: SortOrderInput | SortOrder
+    metadata?: SortOrderInput | SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+    completedAt?: SortOrderInput | SortOrder
+    paymentGateway?: PaymentGatewayOrderByWithRelationInput
+    purchase?: PurchaseOrderByWithRelationInput
+  }
+
+  export type TransactionWhereUniqueInput = Prisma.AtLeast<{
+    id?: string
+    AND?: TransactionWhereInput | TransactionWhereInput[]
+    OR?: TransactionWhereInput[]
+    NOT?: TransactionWhereInput | TransactionWhereInput[]
+    amount?: DecimalFilter<"Transaction"> | Decimal | DecimalJsLike | number | string
+    currency?: StringFilter<"Transaction"> | string
+    status?: StringFilter<"Transaction"> | string
+    paymentMethod?: StringNullableFilter<"Transaction"> | string | null
+    paymentType?: StringNullableFilter<"Transaction"> | string | null
+    gatewayId?: StringFilter<"Transaction"> | string
+    gatewayTransactionId?: StringNullableFilter<"Transaction"> | string | null
+    gatewayCustomerId?: StringNullableFilter<"Transaction"> | string | null
+    receiptUrl?: StringNullableFilter<"Transaction"> | string | null
+    receiptEmail?: StringNullableFilter<"Transaction"> | string | null
+    purchaseId?: StringNullableFilter<"Transaction"> | string | null
+    errorMessage?: StringNullableFilter<"Transaction"> | string | null
+    errorCode?: StringNullableFilter<"Transaction"> | string | null
+    metadata?: JsonNullableFilter<"Transaction">
+    createdAt?: DateTimeFilter<"Transaction"> | Date | string
+    updatedAt?: DateTimeFilter<"Transaction"> | Date | string
+    completedAt?: DateTimeNullableFilter<"Transaction"> | Date | string | null
+    paymentGateway?: XOR<PaymentGatewayScalarRelationFilter, PaymentGatewayWhereInput>
+    purchase?: XOR<PurchaseNullableScalarRelationFilter, PurchaseWhereInput> | null
+  }, "id">
+
+  export type TransactionOrderByWithAggregationInput = {
+    id?: SortOrder
+    amount?: SortOrder
+    currency?: SortOrder
+    status?: SortOrder
+    paymentMethod?: SortOrderInput | SortOrder
+    paymentType?: SortOrderInput | SortOrder
+    gatewayId?: SortOrder
+    gatewayTransactionId?: SortOrderInput | SortOrder
+    gatewayCustomerId?: SortOrderInput | SortOrder
+    receiptUrl?: SortOrderInput | SortOrder
+    receiptEmail?: SortOrderInput | SortOrder
+    purchaseId?: SortOrderInput | SortOrder
+    errorMessage?: SortOrderInput | SortOrder
+    errorCode?: SortOrderInput | SortOrder
+    metadata?: SortOrderInput | SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+    completedAt?: SortOrderInput | SortOrder
+    _count?: TransactionCountOrderByAggregateInput
+    _avg?: TransactionAvgOrderByAggregateInput
+    _max?: TransactionMaxOrderByAggregateInput
+    _min?: TransactionMinOrderByAggregateInput
+    _sum?: TransactionSumOrderByAggregateInput
+  }
+
+  export type TransactionScalarWhereWithAggregatesInput = {
+    AND?: TransactionScalarWhereWithAggregatesInput | TransactionScalarWhereWithAggregatesInput[]
+    OR?: TransactionScalarWhereWithAggregatesInput[]
+    NOT?: TransactionScalarWhereWithAggregatesInput | TransactionScalarWhereWithAggregatesInput[]
+    id?: StringWithAggregatesFilter<"Transaction"> | string
+    amount?: DecimalWithAggregatesFilter<"Transaction"> | Decimal | DecimalJsLike | number | string
+    currency?: StringWithAggregatesFilter<"Transaction"> | string
+    status?: StringWithAggregatesFilter<"Transaction"> | string
+    paymentMethod?: StringNullableWithAggregatesFilter<"Transaction"> | string | null
+    paymentType?: StringNullableWithAggregatesFilter<"Transaction"> | string | null
+    gatewayId?: StringWithAggregatesFilter<"Transaction"> | string
+    gatewayTransactionId?: StringNullableWithAggregatesFilter<"Transaction"> | string | null
+    gatewayCustomerId?: StringNullableWithAggregatesFilter<"Transaction"> | string | null
+    receiptUrl?: StringNullableWithAggregatesFilter<"Transaction"> | string | null
+    receiptEmail?: StringNullableWithAggregatesFilter<"Transaction"> | string | null
+    purchaseId?: StringNullableWithAggregatesFilter<"Transaction"> | string | null
+    errorMessage?: StringNullableWithAggregatesFilter<"Transaction"> | string | null
+    errorCode?: StringNullableWithAggregatesFilter<"Transaction"> | string | null
+    metadata?: JsonNullableWithAggregatesFilter<"Transaction">
+    createdAt?: DateTimeWithAggregatesFilter<"Transaction"> | Date | string
+    updatedAt?: DateTimeWithAggregatesFilter<"Transaction"> | Date | string
+    completedAt?: DateTimeNullableWithAggregatesFilter<"Transaction"> | Date | string | null
+  }
+
   export type PurchaseWhereInput = {
     AND?: PurchaseWhereInput | PurchaseWhereInput[]
     OR?: PurchaseWhereInput[]
@@ -16587,6 +21084,7 @@ export namespace Prisma {
     updatedAt?: DateTimeFilter<"Purchase"> | Date | string
     product?: XOR<ProductScalarRelationFilter, ProductWhereInput>
     user?: XOR<UserScalarRelationFilter, UserWhereInput>
+    transactions?: TransactionListRelationFilter
   }
 
   export type PurchaseOrderByWithRelationInput = {
@@ -16601,6 +21099,7 @@ export namespace Prisma {
     updatedAt?: SortOrder
     product?: ProductOrderByWithRelationInput
     user?: UserOrderByWithRelationInput
+    transactions?: TransactionOrderByRelationAggregateInput
   }
 
   export type PurchaseWhereUniqueInput = Prisma.AtLeast<{
@@ -16618,6 +21117,7 @@ export namespace Prisma {
     updatedAt?: DateTimeFilter<"Purchase"> | Date | string
     product?: XOR<ProductScalarRelationFilter, ProductWhereInput>
     user?: XOR<UserScalarRelationFilter, UserWhereInput>
+    transactions?: TransactionListRelationFilter
   }, "id">
 
   export type PurchaseOrderByWithAggregationInput = {
@@ -16779,6 +21279,79 @@ export namespace Prisma {
     isActive?: BoolWithAggregatesFilter<"PackageDiscount"> | boolean
     createdAt?: DateTimeWithAggregatesFilter<"PackageDiscount"> | Date | string
     updatedAt?: DateTimeWithAggregatesFilter<"PackageDiscount"> | Date | string
+  }
+
+  export type CategoryPathWhereInput = {
+    AND?: CategoryPathWhereInput | CategoryPathWhereInput[]
+    OR?: CategoryPathWhereInput[]
+    NOT?: CategoryPathWhereInput | CategoryPathWhereInput[]
+    id?: StringFilter<"CategoryPath"> | string
+    productId?: IntFilter<"CategoryPath"> | number
+    path?: StringFilter<"CategoryPath"> | string
+    level1?: StringNullableFilter<"CategoryPath"> | string | null
+    level2?: StringNullableFilter<"CategoryPath"> | string | null
+    level3?: StringNullableFilter<"CategoryPath"> | string | null
+    level4?: StringNullableFilter<"CategoryPath"> | string | null
+    level5?: StringNullableFilter<"CategoryPath"> | string | null
+    product?: XOR<ProductScalarRelationFilter, ProductWhereInput>
+  }
+
+  export type CategoryPathOrderByWithRelationInput = {
+    id?: SortOrder
+    productId?: SortOrder
+    path?: SortOrder
+    level1?: SortOrderInput | SortOrder
+    level2?: SortOrderInput | SortOrder
+    level3?: SortOrderInput | SortOrder
+    level4?: SortOrderInput | SortOrder
+    level5?: SortOrderInput | SortOrder
+    product?: ProductOrderByWithRelationInput
+  }
+
+  export type CategoryPathWhereUniqueInput = Prisma.AtLeast<{
+    id?: string
+    productId_path?: CategoryPathProductIdPathCompoundUniqueInput
+    AND?: CategoryPathWhereInput | CategoryPathWhereInput[]
+    OR?: CategoryPathWhereInput[]
+    NOT?: CategoryPathWhereInput | CategoryPathWhereInput[]
+    productId?: IntFilter<"CategoryPath"> | number
+    path?: StringFilter<"CategoryPath"> | string
+    level1?: StringNullableFilter<"CategoryPath"> | string | null
+    level2?: StringNullableFilter<"CategoryPath"> | string | null
+    level3?: StringNullableFilter<"CategoryPath"> | string | null
+    level4?: StringNullableFilter<"CategoryPath"> | string | null
+    level5?: StringNullableFilter<"CategoryPath"> | string | null
+    product?: XOR<ProductScalarRelationFilter, ProductWhereInput>
+  }, "id" | "productId_path">
+
+  export type CategoryPathOrderByWithAggregationInput = {
+    id?: SortOrder
+    productId?: SortOrder
+    path?: SortOrder
+    level1?: SortOrderInput | SortOrder
+    level2?: SortOrderInput | SortOrder
+    level3?: SortOrderInput | SortOrder
+    level4?: SortOrderInput | SortOrder
+    level5?: SortOrderInput | SortOrder
+    _count?: CategoryPathCountOrderByAggregateInput
+    _avg?: CategoryPathAvgOrderByAggregateInput
+    _max?: CategoryPathMaxOrderByAggregateInput
+    _min?: CategoryPathMinOrderByAggregateInput
+    _sum?: CategoryPathSumOrderByAggregateInput
+  }
+
+  export type CategoryPathScalarWhereWithAggregatesInput = {
+    AND?: CategoryPathScalarWhereWithAggregatesInput | CategoryPathScalarWhereWithAggregatesInput[]
+    OR?: CategoryPathScalarWhereWithAggregatesInput[]
+    NOT?: CategoryPathScalarWhereWithAggregatesInput | CategoryPathScalarWhereWithAggregatesInput[]
+    id?: StringWithAggregatesFilter<"CategoryPath"> | string
+    productId?: IntWithAggregatesFilter<"CategoryPath"> | number
+    path?: StringWithAggregatesFilter<"CategoryPath"> | string
+    level1?: StringNullableWithAggregatesFilter<"CategoryPath"> | string | null
+    level2?: StringNullableWithAggregatesFilter<"CategoryPath"> | string | null
+    level3?: StringNullableWithAggregatesFilter<"CategoryPath"> | string | null
+    level4?: StringNullableWithAggregatesFilter<"CategoryPath"> | string | null
+    level5?: StringNullableWithAggregatesFilter<"CategoryPath"> | string | null
   }
 
   export type SessionCreateInput = {
@@ -17167,7 +21740,8 @@ export namespace Prisma {
     categories?: CategoryProductCreateNestedManyWithoutProductInput
     reviews?: ReviewCreateNestedManyWithoutProductInput
     purchases?: PurchaseCreateNestedManyWithoutProductInput
-    createdBy: UserCreateNestedOneWithoutCreatedProductsInput
+    CategoryPath?: CategoryPathCreateNestedManyWithoutProductInput
+    createdBy?: UserCreateNestedOneWithoutCreatedProductsInput
   }
 
   export type ProductUncheckedCreateInput = {
@@ -17192,11 +21766,12 @@ export namespace Prisma {
     totalRevenue?: Decimal | DecimalJsLike | number | string
     createdAt?: Date | string
     updatedAt?: Date | string
-    createdById: string
+    createdById?: string | null
     images?: ProductImageUncheckedCreateNestedManyWithoutProductInput
     categories?: CategoryProductUncheckedCreateNestedManyWithoutProductInput
     reviews?: ReviewUncheckedCreateNestedManyWithoutProductInput
     purchases?: PurchaseUncheckedCreateNestedManyWithoutProductInput
+    CategoryPath?: CategoryPathUncheckedCreateNestedManyWithoutProductInput
   }
 
   export type ProductUpdateInput = {
@@ -17224,7 +21799,8 @@ export namespace Prisma {
     categories?: CategoryProductUpdateManyWithoutProductNestedInput
     reviews?: ReviewUpdateManyWithoutProductNestedInput
     purchases?: PurchaseUpdateManyWithoutProductNestedInput
-    createdBy?: UserUpdateOneRequiredWithoutCreatedProductsNestedInput
+    CategoryPath?: CategoryPathUpdateManyWithoutProductNestedInput
+    createdBy?: UserUpdateOneWithoutCreatedProductsNestedInput
   }
 
   export type ProductUncheckedUpdateInput = {
@@ -17249,11 +21825,12 @@ export namespace Prisma {
     totalRevenue?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
-    createdById?: StringFieldUpdateOperationsInput | string
+    createdById?: NullableStringFieldUpdateOperationsInput | string | null
     images?: ProductImageUncheckedUpdateManyWithoutProductNestedInput
     categories?: CategoryProductUncheckedUpdateManyWithoutProductNestedInput
     reviews?: ReviewUncheckedUpdateManyWithoutProductNestedInput
     purchases?: PurchaseUncheckedUpdateManyWithoutProductNestedInput
+    CategoryPath?: CategoryPathUncheckedUpdateManyWithoutProductNestedInput
   }
 
   export type ProductCreateManyInput = {
@@ -17278,7 +21855,7 @@ export namespace Prisma {
     totalRevenue?: Decimal | DecimalJsLike | number | string
     createdAt?: Date | string
     updatedAt?: Date | string
-    createdById: string
+    createdById?: string | null
   }
 
   export type ProductUpdateManyMutationInput = {
@@ -17326,7 +21903,7 @@ export namespace Prisma {
     totalRevenue?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
-    createdById?: StringFieldUpdateOperationsInput | string
+    createdById?: NullableStringFieldUpdateOperationsInput | string | null
   }
 
   export type ProductImageCreateInput = {
@@ -17396,6 +21973,9 @@ export namespace Prisma {
     name: string
     slug: string
     description?: string | null
+    path: string
+    level?: number
+    isActive?: boolean
     createdAt?: Date | string
     updatedAt?: Date | string
     products?: CategoryProductCreateNestedManyWithoutCategoryInput
@@ -17408,6 +21988,9 @@ export namespace Prisma {
     name: string
     slug: string
     description?: string | null
+    path: string
+    level?: number
+    isActive?: boolean
     parentId?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
@@ -17420,6 +22003,9 @@ export namespace Prisma {
     name?: StringFieldUpdateOperationsInput | string
     slug?: StringFieldUpdateOperationsInput | string
     description?: NullableStringFieldUpdateOperationsInput | string | null
+    path?: StringFieldUpdateOperationsInput | string
+    level?: IntFieldUpdateOperationsInput | number
+    isActive?: BoolFieldUpdateOperationsInput | boolean
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     products?: CategoryProductUpdateManyWithoutCategoryNestedInput
@@ -17432,6 +22018,9 @@ export namespace Prisma {
     name?: StringFieldUpdateOperationsInput | string
     slug?: StringFieldUpdateOperationsInput | string
     description?: NullableStringFieldUpdateOperationsInput | string | null
+    path?: StringFieldUpdateOperationsInput | string
+    level?: IntFieldUpdateOperationsInput | number
+    isActive?: BoolFieldUpdateOperationsInput | boolean
     parentId?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -17444,6 +22033,9 @@ export namespace Prisma {
     name: string
     slug: string
     description?: string | null
+    path: string
+    level?: number
+    isActive?: boolean
     parentId?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
@@ -17454,6 +22046,9 @@ export namespace Prisma {
     name?: StringFieldUpdateOperationsInput | string
     slug?: StringFieldUpdateOperationsInput | string
     description?: NullableStringFieldUpdateOperationsInput | string | null
+    path?: StringFieldUpdateOperationsInput | string
+    level?: IntFieldUpdateOperationsInput | number
+    isActive?: BoolFieldUpdateOperationsInput | boolean
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
@@ -17463,6 +22058,9 @@ export namespace Prisma {
     name?: StringFieldUpdateOperationsInput | string
     slug?: StringFieldUpdateOperationsInput | string
     description?: NullableStringFieldUpdateOperationsInput | string | null
+    path?: StringFieldUpdateOperationsInput | string
+    level?: IntFieldUpdateOperationsInput | number
+    isActive?: BoolFieldUpdateOperationsInput | boolean
     parentId?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -17502,6 +22100,302 @@ export namespace Prisma {
     categoryId?: StringFieldUpdateOperationsInput | string
   }
 
+  export type PaymentGatewayCreateInput = {
+    id?: string
+    name: string
+    isActive?: boolean
+    config: JsonNullValueInput | InputJsonValue
+    encryptionKey?: string | null
+    encryptionIV?: string | null
+    merchantId?: string | null
+    businessName?: string | null
+    businessEmail?: string | null
+    environment?: string
+    description?: string | null
+    notes?: string | null
+    apiEndpoint?: string | null
+    webhookUrl?: string | null
+    supportsCreditCards?: boolean
+    supportsDirectDebit?: boolean
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    transactions?: TransactionCreateNestedManyWithoutPaymentGatewayInput
+  }
+
+  export type PaymentGatewayUncheckedCreateInput = {
+    id?: string
+    name: string
+    isActive?: boolean
+    config: JsonNullValueInput | InputJsonValue
+    encryptionKey?: string | null
+    encryptionIV?: string | null
+    merchantId?: string | null
+    businessName?: string | null
+    businessEmail?: string | null
+    environment?: string
+    description?: string | null
+    notes?: string | null
+    apiEndpoint?: string | null
+    webhookUrl?: string | null
+    supportsCreditCards?: boolean
+    supportsDirectDebit?: boolean
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    transactions?: TransactionUncheckedCreateNestedManyWithoutPaymentGatewayInput
+  }
+
+  export type PaymentGatewayUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    config?: JsonNullValueInput | InputJsonValue
+    encryptionKey?: NullableStringFieldUpdateOperationsInput | string | null
+    encryptionIV?: NullableStringFieldUpdateOperationsInput | string | null
+    merchantId?: NullableStringFieldUpdateOperationsInput | string | null
+    businessName?: NullableStringFieldUpdateOperationsInput | string | null
+    businessEmail?: NullableStringFieldUpdateOperationsInput | string | null
+    environment?: StringFieldUpdateOperationsInput | string
+    description?: NullableStringFieldUpdateOperationsInput | string | null
+    notes?: NullableStringFieldUpdateOperationsInput | string | null
+    apiEndpoint?: NullableStringFieldUpdateOperationsInput | string | null
+    webhookUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    supportsCreditCards?: BoolFieldUpdateOperationsInput | boolean
+    supportsDirectDebit?: BoolFieldUpdateOperationsInput | boolean
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    transactions?: TransactionUpdateManyWithoutPaymentGatewayNestedInput
+  }
+
+  export type PaymentGatewayUncheckedUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    config?: JsonNullValueInput | InputJsonValue
+    encryptionKey?: NullableStringFieldUpdateOperationsInput | string | null
+    encryptionIV?: NullableStringFieldUpdateOperationsInput | string | null
+    merchantId?: NullableStringFieldUpdateOperationsInput | string | null
+    businessName?: NullableStringFieldUpdateOperationsInput | string | null
+    businessEmail?: NullableStringFieldUpdateOperationsInput | string | null
+    environment?: StringFieldUpdateOperationsInput | string
+    description?: NullableStringFieldUpdateOperationsInput | string | null
+    notes?: NullableStringFieldUpdateOperationsInput | string | null
+    apiEndpoint?: NullableStringFieldUpdateOperationsInput | string | null
+    webhookUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    supportsCreditCards?: BoolFieldUpdateOperationsInput | boolean
+    supportsDirectDebit?: BoolFieldUpdateOperationsInput | boolean
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    transactions?: TransactionUncheckedUpdateManyWithoutPaymentGatewayNestedInput
+  }
+
+  export type PaymentGatewayCreateManyInput = {
+    id?: string
+    name: string
+    isActive?: boolean
+    config: JsonNullValueInput | InputJsonValue
+    encryptionKey?: string | null
+    encryptionIV?: string | null
+    merchantId?: string | null
+    businessName?: string | null
+    businessEmail?: string | null
+    environment?: string
+    description?: string | null
+    notes?: string | null
+    apiEndpoint?: string | null
+    webhookUrl?: string | null
+    supportsCreditCards?: boolean
+    supportsDirectDebit?: boolean
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type PaymentGatewayUpdateManyMutationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    config?: JsonNullValueInput | InputJsonValue
+    encryptionKey?: NullableStringFieldUpdateOperationsInput | string | null
+    encryptionIV?: NullableStringFieldUpdateOperationsInput | string | null
+    merchantId?: NullableStringFieldUpdateOperationsInput | string | null
+    businessName?: NullableStringFieldUpdateOperationsInput | string | null
+    businessEmail?: NullableStringFieldUpdateOperationsInput | string | null
+    environment?: StringFieldUpdateOperationsInput | string
+    description?: NullableStringFieldUpdateOperationsInput | string | null
+    notes?: NullableStringFieldUpdateOperationsInput | string | null
+    apiEndpoint?: NullableStringFieldUpdateOperationsInput | string | null
+    webhookUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    supportsCreditCards?: BoolFieldUpdateOperationsInput | boolean
+    supportsDirectDebit?: BoolFieldUpdateOperationsInput | boolean
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type PaymentGatewayUncheckedUpdateManyInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    config?: JsonNullValueInput | InputJsonValue
+    encryptionKey?: NullableStringFieldUpdateOperationsInput | string | null
+    encryptionIV?: NullableStringFieldUpdateOperationsInput | string | null
+    merchantId?: NullableStringFieldUpdateOperationsInput | string | null
+    businessName?: NullableStringFieldUpdateOperationsInput | string | null
+    businessEmail?: NullableStringFieldUpdateOperationsInput | string | null
+    environment?: StringFieldUpdateOperationsInput | string
+    description?: NullableStringFieldUpdateOperationsInput | string | null
+    notes?: NullableStringFieldUpdateOperationsInput | string | null
+    apiEndpoint?: NullableStringFieldUpdateOperationsInput | string | null
+    webhookUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    supportsCreditCards?: BoolFieldUpdateOperationsInput | boolean
+    supportsDirectDebit?: BoolFieldUpdateOperationsInput | boolean
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type TransactionCreateInput = {
+    id?: string
+    amount: Decimal | DecimalJsLike | number | string
+    currency?: string
+    status: string
+    paymentMethod?: string | null
+    paymentType?: string | null
+    gatewayTransactionId?: string | null
+    gatewayCustomerId?: string | null
+    receiptUrl?: string | null
+    receiptEmail?: string | null
+    errorMessage?: string | null
+    errorCode?: string | null
+    metadata?: NullableJsonNullValueInput | InputJsonValue
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    completedAt?: Date | string | null
+    paymentGateway: PaymentGatewayCreateNestedOneWithoutTransactionsInput
+    purchase?: PurchaseCreateNestedOneWithoutTransactionsInput
+  }
+
+  export type TransactionUncheckedCreateInput = {
+    id?: string
+    amount: Decimal | DecimalJsLike | number | string
+    currency?: string
+    status: string
+    paymentMethod?: string | null
+    paymentType?: string | null
+    gatewayId: string
+    gatewayTransactionId?: string | null
+    gatewayCustomerId?: string | null
+    receiptUrl?: string | null
+    receiptEmail?: string | null
+    purchaseId?: string | null
+    errorMessage?: string | null
+    errorCode?: string | null
+    metadata?: NullableJsonNullValueInput | InputJsonValue
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    completedAt?: Date | string | null
+  }
+
+  export type TransactionUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    amount?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    currency?: StringFieldUpdateOperationsInput | string
+    status?: StringFieldUpdateOperationsInput | string
+    paymentMethod?: NullableStringFieldUpdateOperationsInput | string | null
+    paymentType?: NullableStringFieldUpdateOperationsInput | string | null
+    gatewayTransactionId?: NullableStringFieldUpdateOperationsInput | string | null
+    gatewayCustomerId?: NullableStringFieldUpdateOperationsInput | string | null
+    receiptUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    receiptEmail?: NullableStringFieldUpdateOperationsInput | string | null
+    errorMessage?: NullableStringFieldUpdateOperationsInput | string | null
+    errorCode?: NullableStringFieldUpdateOperationsInput | string | null
+    metadata?: NullableJsonNullValueInput | InputJsonValue
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    completedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    paymentGateway?: PaymentGatewayUpdateOneRequiredWithoutTransactionsNestedInput
+    purchase?: PurchaseUpdateOneWithoutTransactionsNestedInput
+  }
+
+  export type TransactionUncheckedUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    amount?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    currency?: StringFieldUpdateOperationsInput | string
+    status?: StringFieldUpdateOperationsInput | string
+    paymentMethod?: NullableStringFieldUpdateOperationsInput | string | null
+    paymentType?: NullableStringFieldUpdateOperationsInput | string | null
+    gatewayId?: StringFieldUpdateOperationsInput | string
+    gatewayTransactionId?: NullableStringFieldUpdateOperationsInput | string | null
+    gatewayCustomerId?: NullableStringFieldUpdateOperationsInput | string | null
+    receiptUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    receiptEmail?: NullableStringFieldUpdateOperationsInput | string | null
+    purchaseId?: NullableStringFieldUpdateOperationsInput | string | null
+    errorMessage?: NullableStringFieldUpdateOperationsInput | string | null
+    errorCode?: NullableStringFieldUpdateOperationsInput | string | null
+    metadata?: NullableJsonNullValueInput | InputJsonValue
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    completedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  }
+
+  export type TransactionCreateManyInput = {
+    id?: string
+    amount: Decimal | DecimalJsLike | number | string
+    currency?: string
+    status: string
+    paymentMethod?: string | null
+    paymentType?: string | null
+    gatewayId: string
+    gatewayTransactionId?: string | null
+    gatewayCustomerId?: string | null
+    receiptUrl?: string | null
+    receiptEmail?: string | null
+    purchaseId?: string | null
+    errorMessage?: string | null
+    errorCode?: string | null
+    metadata?: NullableJsonNullValueInput | InputJsonValue
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    completedAt?: Date | string | null
+  }
+
+  export type TransactionUpdateManyMutationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    amount?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    currency?: StringFieldUpdateOperationsInput | string
+    status?: StringFieldUpdateOperationsInput | string
+    paymentMethod?: NullableStringFieldUpdateOperationsInput | string | null
+    paymentType?: NullableStringFieldUpdateOperationsInput | string | null
+    gatewayTransactionId?: NullableStringFieldUpdateOperationsInput | string | null
+    gatewayCustomerId?: NullableStringFieldUpdateOperationsInput | string | null
+    receiptUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    receiptEmail?: NullableStringFieldUpdateOperationsInput | string | null
+    errorMessage?: NullableStringFieldUpdateOperationsInput | string | null
+    errorCode?: NullableStringFieldUpdateOperationsInput | string | null
+    metadata?: NullableJsonNullValueInput | InputJsonValue
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    completedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  }
+
+  export type TransactionUncheckedUpdateManyInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    amount?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    currency?: StringFieldUpdateOperationsInput | string
+    status?: StringFieldUpdateOperationsInput | string
+    paymentMethod?: NullableStringFieldUpdateOperationsInput | string | null
+    paymentType?: NullableStringFieldUpdateOperationsInput | string | null
+    gatewayId?: StringFieldUpdateOperationsInput | string
+    gatewayTransactionId?: NullableStringFieldUpdateOperationsInput | string | null
+    gatewayCustomerId?: NullableStringFieldUpdateOperationsInput | string | null
+    receiptUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    receiptEmail?: NullableStringFieldUpdateOperationsInput | string | null
+    purchaseId?: NullableStringFieldUpdateOperationsInput | string | null
+    errorMessage?: NullableStringFieldUpdateOperationsInput | string | null
+    errorCode?: NullableStringFieldUpdateOperationsInput | string | null
+    metadata?: NullableJsonNullValueInput | InputJsonValue
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    completedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  }
+
   export type PurchaseCreateInput = {
     id?: string
     amount: Decimal | DecimalJsLike | number | string
@@ -17512,6 +22406,7 @@ export namespace Prisma {
     updatedAt?: Date | string
     product: ProductCreateNestedOneWithoutPurchasesInput
     user: UserCreateNestedOneWithoutPurchasesInput
+    transactions?: TransactionCreateNestedManyWithoutPurchaseInput
   }
 
   export type PurchaseUncheckedCreateInput = {
@@ -17524,6 +22419,7 @@ export namespace Prisma {
     status?: string
     createdAt?: Date | string
     updatedAt?: Date | string
+    transactions?: TransactionUncheckedCreateNestedManyWithoutPurchaseInput
   }
 
   export type PurchaseUpdateInput = {
@@ -17536,6 +22432,7 @@ export namespace Prisma {
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     product?: ProductUpdateOneRequiredWithoutPurchasesNestedInput
     user?: UserUpdateOneRequiredWithoutPurchasesNestedInput
+    transactions?: TransactionUpdateManyWithoutPurchaseNestedInput
   }
 
   export type PurchaseUncheckedUpdateInput = {
@@ -17548,6 +22445,7 @@ export namespace Prisma {
     status?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    transactions?: TransactionUncheckedUpdateManyWithoutPurchaseNestedInput
   }
 
   export type PurchaseCreateManyInput = {
@@ -17713,6 +22611,82 @@ export namespace Prisma {
     isActive?: BoolFieldUpdateOperationsInput | boolean
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type CategoryPathCreateInput = {
+    id?: string
+    path: string
+    level1?: string | null
+    level2?: string | null
+    level3?: string | null
+    level4?: string | null
+    level5?: string | null
+    product: ProductCreateNestedOneWithoutCategoryPathInput
+  }
+
+  export type CategoryPathUncheckedCreateInput = {
+    id?: string
+    productId: number
+    path: string
+    level1?: string | null
+    level2?: string | null
+    level3?: string | null
+    level4?: string | null
+    level5?: string | null
+  }
+
+  export type CategoryPathUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    path?: StringFieldUpdateOperationsInput | string
+    level1?: NullableStringFieldUpdateOperationsInput | string | null
+    level2?: NullableStringFieldUpdateOperationsInput | string | null
+    level3?: NullableStringFieldUpdateOperationsInput | string | null
+    level4?: NullableStringFieldUpdateOperationsInput | string | null
+    level5?: NullableStringFieldUpdateOperationsInput | string | null
+    product?: ProductUpdateOneRequiredWithoutCategoryPathNestedInput
+  }
+
+  export type CategoryPathUncheckedUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    productId?: IntFieldUpdateOperationsInput | number
+    path?: StringFieldUpdateOperationsInput | string
+    level1?: NullableStringFieldUpdateOperationsInput | string | null
+    level2?: NullableStringFieldUpdateOperationsInput | string | null
+    level3?: NullableStringFieldUpdateOperationsInput | string | null
+    level4?: NullableStringFieldUpdateOperationsInput | string | null
+    level5?: NullableStringFieldUpdateOperationsInput | string | null
+  }
+
+  export type CategoryPathCreateManyInput = {
+    id?: string
+    productId: number
+    path: string
+    level1?: string | null
+    level2?: string | null
+    level3?: string | null
+    level4?: string | null
+    level5?: string | null
+  }
+
+  export type CategoryPathUpdateManyMutationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    path?: StringFieldUpdateOperationsInput | string
+    level1?: NullableStringFieldUpdateOperationsInput | string | null
+    level2?: NullableStringFieldUpdateOperationsInput | string | null
+    level3?: NullableStringFieldUpdateOperationsInput | string | null
+    level4?: NullableStringFieldUpdateOperationsInput | string | null
+    level5?: NullableStringFieldUpdateOperationsInput | string | null
+  }
+
+  export type CategoryPathUncheckedUpdateManyInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    productId?: IntFieldUpdateOperationsInput | number
+    path?: StringFieldUpdateOperationsInput | string
+    level1?: NullableStringFieldUpdateOperationsInput | string | null
+    level2?: NullableStringFieldUpdateOperationsInput | string | null
+    level3?: NullableStringFieldUpdateOperationsInput | string | null
+    level4?: NullableStringFieldUpdateOperationsInput | string | null
+    level5?: NullableStringFieldUpdateOperationsInput | string | null
   }
 
   export type StringFilter<$PrismaModel = never> = {
@@ -18146,11 +23120,26 @@ export namespace Prisma {
     none?: CategoryProductWhereInput
   }
 
+  export type CategoryPathListRelationFilter = {
+    every?: CategoryPathWhereInput
+    some?: CategoryPathWhereInput
+    none?: CategoryPathWhereInput
+  }
+
+  export type UserNullableScalarRelationFilter = {
+    is?: UserWhereInput | null
+    isNot?: UserWhereInput | null
+  }
+
   export type ProductImageOrderByRelationAggregateInput = {
     _count?: SortOrder
   }
 
   export type CategoryProductOrderByRelationAggregateInput = {
+    _count?: SortOrder
+  }
+
+  export type CategoryPathOrderByRelationAggregateInput = {
     _count?: SortOrder
   }
 
@@ -18360,14 +23349,31 @@ export namespace Prisma {
     _count?: SortOrder
   }
 
+  export type CategoryNameParentIdCompoundUniqueInput = {
+    name: string
+    parentId: string
+  }
+
+  export type CategorySlugParentIdCompoundUniqueInput = {
+    slug: string
+    parentId: string
+  }
+
   export type CategoryCountOrderByAggregateInput = {
     id?: SortOrder
     name?: SortOrder
     slug?: SortOrder
     description?: SortOrder
+    path?: SortOrder
+    level?: SortOrder
+    isActive?: SortOrder
     parentId?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
+  }
+
+  export type CategoryAvgOrderByAggregateInput = {
+    level?: SortOrder
   }
 
   export type CategoryMaxOrderByAggregateInput = {
@@ -18375,6 +23381,9 @@ export namespace Prisma {
     name?: SortOrder
     slug?: SortOrder
     description?: SortOrder
+    path?: SortOrder
+    level?: SortOrder
+    isActive?: SortOrder
     parentId?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
@@ -18385,9 +23394,16 @@ export namespace Prisma {
     name?: SortOrder
     slug?: SortOrder
     description?: SortOrder
+    path?: SortOrder
+    level?: SortOrder
+    isActive?: SortOrder
     parentId?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
+  }
+
+  export type CategorySumOrderByAggregateInput = {
+    level?: SortOrder
   }
 
   export type CategoryScalarRelationFilter = {
@@ -18421,6 +23437,254 @@ export namespace Prisma {
 
   export type CategoryProductSumOrderByAggregateInput = {
     productId?: SortOrder
+  }
+  export type JsonFilter<$PrismaModel = never> =
+    | PatchUndefined<
+        Either<Required<JsonFilterBase<$PrismaModel>>, Exclude<keyof Required<JsonFilterBase<$PrismaModel>>, 'path'>>,
+        Required<JsonFilterBase<$PrismaModel>>
+      >
+    | OptionalFlat<Omit<Required<JsonFilterBase<$PrismaModel>>, 'path'>>
+
+  export type JsonFilterBase<$PrismaModel = never> = {
+    equals?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | JsonNullValueFilter
+    path?: string[]
+    mode?: QueryMode | EnumQueryModeFieldRefInput<$PrismaModel>
+    string_contains?: string | StringFieldRefInput<$PrismaModel>
+    string_starts_with?: string | StringFieldRefInput<$PrismaModel>
+    string_ends_with?: string | StringFieldRefInput<$PrismaModel>
+    array_starts_with?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | null
+    array_ends_with?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | null
+    array_contains?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | null
+    lt?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
+    lte?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
+    gt?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
+    gte?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
+    not?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | JsonNullValueFilter
+  }
+
+  export type TransactionListRelationFilter = {
+    every?: TransactionWhereInput
+    some?: TransactionWhereInput
+    none?: TransactionWhereInput
+  }
+
+  export type TransactionOrderByRelationAggregateInput = {
+    _count?: SortOrder
+  }
+
+  export type PaymentGatewayCountOrderByAggregateInput = {
+    id?: SortOrder
+    name?: SortOrder
+    isActive?: SortOrder
+    config?: SortOrder
+    encryptionKey?: SortOrder
+    encryptionIV?: SortOrder
+    merchantId?: SortOrder
+    businessName?: SortOrder
+    businessEmail?: SortOrder
+    environment?: SortOrder
+    description?: SortOrder
+    notes?: SortOrder
+    apiEndpoint?: SortOrder
+    webhookUrl?: SortOrder
+    supportsCreditCards?: SortOrder
+    supportsDirectDebit?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type PaymentGatewayMaxOrderByAggregateInput = {
+    id?: SortOrder
+    name?: SortOrder
+    isActive?: SortOrder
+    encryptionKey?: SortOrder
+    encryptionIV?: SortOrder
+    merchantId?: SortOrder
+    businessName?: SortOrder
+    businessEmail?: SortOrder
+    environment?: SortOrder
+    description?: SortOrder
+    notes?: SortOrder
+    apiEndpoint?: SortOrder
+    webhookUrl?: SortOrder
+    supportsCreditCards?: SortOrder
+    supportsDirectDebit?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type PaymentGatewayMinOrderByAggregateInput = {
+    id?: SortOrder
+    name?: SortOrder
+    isActive?: SortOrder
+    encryptionKey?: SortOrder
+    encryptionIV?: SortOrder
+    merchantId?: SortOrder
+    businessName?: SortOrder
+    businessEmail?: SortOrder
+    environment?: SortOrder
+    description?: SortOrder
+    notes?: SortOrder
+    apiEndpoint?: SortOrder
+    webhookUrl?: SortOrder
+    supportsCreditCards?: SortOrder
+    supportsDirectDebit?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+  export type JsonWithAggregatesFilter<$PrismaModel = never> =
+    | PatchUndefined<
+        Either<Required<JsonWithAggregatesFilterBase<$PrismaModel>>, Exclude<keyof Required<JsonWithAggregatesFilterBase<$PrismaModel>>, 'path'>>,
+        Required<JsonWithAggregatesFilterBase<$PrismaModel>>
+      >
+    | OptionalFlat<Omit<Required<JsonWithAggregatesFilterBase<$PrismaModel>>, 'path'>>
+
+  export type JsonWithAggregatesFilterBase<$PrismaModel = never> = {
+    equals?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | JsonNullValueFilter
+    path?: string[]
+    mode?: QueryMode | EnumQueryModeFieldRefInput<$PrismaModel>
+    string_contains?: string | StringFieldRefInput<$PrismaModel>
+    string_starts_with?: string | StringFieldRefInput<$PrismaModel>
+    string_ends_with?: string | StringFieldRefInput<$PrismaModel>
+    array_starts_with?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | null
+    array_ends_with?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | null
+    array_contains?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | null
+    lt?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
+    lte?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
+    gt?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
+    gte?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
+    not?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | JsonNullValueFilter
+    _count?: NestedIntFilter<$PrismaModel>
+    _min?: NestedJsonFilter<$PrismaModel>
+    _max?: NestedJsonFilter<$PrismaModel>
+  }
+  export type JsonNullableFilter<$PrismaModel = never> =
+    | PatchUndefined<
+        Either<Required<JsonNullableFilterBase<$PrismaModel>>, Exclude<keyof Required<JsonNullableFilterBase<$PrismaModel>>, 'path'>>,
+        Required<JsonNullableFilterBase<$PrismaModel>>
+      >
+    | OptionalFlat<Omit<Required<JsonNullableFilterBase<$PrismaModel>>, 'path'>>
+
+  export type JsonNullableFilterBase<$PrismaModel = never> = {
+    equals?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | JsonNullValueFilter
+    path?: string[]
+    mode?: QueryMode | EnumQueryModeFieldRefInput<$PrismaModel>
+    string_contains?: string | StringFieldRefInput<$PrismaModel>
+    string_starts_with?: string | StringFieldRefInput<$PrismaModel>
+    string_ends_with?: string | StringFieldRefInput<$PrismaModel>
+    array_starts_with?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | null
+    array_ends_with?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | null
+    array_contains?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | null
+    lt?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
+    lte?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
+    gt?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
+    gte?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
+    not?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | JsonNullValueFilter
+  }
+
+  export type PaymentGatewayScalarRelationFilter = {
+    is?: PaymentGatewayWhereInput
+    isNot?: PaymentGatewayWhereInput
+  }
+
+  export type PurchaseNullableScalarRelationFilter = {
+    is?: PurchaseWhereInput | null
+    isNot?: PurchaseWhereInput | null
+  }
+
+  export type TransactionCountOrderByAggregateInput = {
+    id?: SortOrder
+    amount?: SortOrder
+    currency?: SortOrder
+    status?: SortOrder
+    paymentMethod?: SortOrder
+    paymentType?: SortOrder
+    gatewayId?: SortOrder
+    gatewayTransactionId?: SortOrder
+    gatewayCustomerId?: SortOrder
+    receiptUrl?: SortOrder
+    receiptEmail?: SortOrder
+    purchaseId?: SortOrder
+    errorMessage?: SortOrder
+    errorCode?: SortOrder
+    metadata?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+    completedAt?: SortOrder
+  }
+
+  export type TransactionAvgOrderByAggregateInput = {
+    amount?: SortOrder
+  }
+
+  export type TransactionMaxOrderByAggregateInput = {
+    id?: SortOrder
+    amount?: SortOrder
+    currency?: SortOrder
+    status?: SortOrder
+    paymentMethod?: SortOrder
+    paymentType?: SortOrder
+    gatewayId?: SortOrder
+    gatewayTransactionId?: SortOrder
+    gatewayCustomerId?: SortOrder
+    receiptUrl?: SortOrder
+    receiptEmail?: SortOrder
+    purchaseId?: SortOrder
+    errorMessage?: SortOrder
+    errorCode?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+    completedAt?: SortOrder
+  }
+
+  export type TransactionMinOrderByAggregateInput = {
+    id?: SortOrder
+    amount?: SortOrder
+    currency?: SortOrder
+    status?: SortOrder
+    paymentMethod?: SortOrder
+    paymentType?: SortOrder
+    gatewayId?: SortOrder
+    gatewayTransactionId?: SortOrder
+    gatewayCustomerId?: SortOrder
+    receiptUrl?: SortOrder
+    receiptEmail?: SortOrder
+    purchaseId?: SortOrder
+    errorMessage?: SortOrder
+    errorCode?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+    completedAt?: SortOrder
+  }
+
+  export type TransactionSumOrderByAggregateInput = {
+    amount?: SortOrder
+  }
+  export type JsonNullableWithAggregatesFilter<$PrismaModel = never> =
+    | PatchUndefined<
+        Either<Required<JsonNullableWithAggregatesFilterBase<$PrismaModel>>, Exclude<keyof Required<JsonNullableWithAggregatesFilterBase<$PrismaModel>>, 'path'>>,
+        Required<JsonNullableWithAggregatesFilterBase<$PrismaModel>>
+      >
+    | OptionalFlat<Omit<Required<JsonNullableWithAggregatesFilterBase<$PrismaModel>>, 'path'>>
+
+  export type JsonNullableWithAggregatesFilterBase<$PrismaModel = never> = {
+    equals?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | JsonNullValueFilter
+    path?: string[]
+    mode?: QueryMode | EnumQueryModeFieldRefInput<$PrismaModel>
+    string_contains?: string | StringFieldRefInput<$PrismaModel>
+    string_starts_with?: string | StringFieldRefInput<$PrismaModel>
+    string_ends_with?: string | StringFieldRefInput<$PrismaModel>
+    array_starts_with?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | null
+    array_ends_with?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | null
+    array_contains?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | null
+    lt?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
+    lte?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
+    gt?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
+    gte?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
+    not?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | JsonNullValueFilter
+    _count?: NestedIntNullableFilter<$PrismaModel>
+    _min?: NestedJsonNullableFilter<$PrismaModel>
+    _max?: NestedJsonNullableFilter<$PrismaModel>
   }
 
   export type PurchaseCountOrderByAggregateInput = {
@@ -18546,6 +23810,52 @@ export namespace Prisma {
   export type PackageDiscountSumOrderByAggregateInput = {
     minItems?: SortOrder
     discount?: SortOrder
+  }
+
+  export type CategoryPathProductIdPathCompoundUniqueInput = {
+    productId: number
+    path: string
+  }
+
+  export type CategoryPathCountOrderByAggregateInput = {
+    id?: SortOrder
+    productId?: SortOrder
+    path?: SortOrder
+    level1?: SortOrder
+    level2?: SortOrder
+    level3?: SortOrder
+    level4?: SortOrder
+    level5?: SortOrder
+  }
+
+  export type CategoryPathAvgOrderByAggregateInput = {
+    productId?: SortOrder
+  }
+
+  export type CategoryPathMaxOrderByAggregateInput = {
+    id?: SortOrder
+    productId?: SortOrder
+    path?: SortOrder
+    level1?: SortOrder
+    level2?: SortOrder
+    level3?: SortOrder
+    level4?: SortOrder
+    level5?: SortOrder
+  }
+
+  export type CategoryPathMinOrderByAggregateInput = {
+    id?: SortOrder
+    productId?: SortOrder
+    path?: SortOrder
+    level1?: SortOrder
+    level2?: SortOrder
+    level3?: SortOrder
+    level4?: SortOrder
+    level5?: SortOrder
+  }
+
+  export type CategoryPathSumOrderByAggregateInput = {
+    productId?: SortOrder
   }
 
   export type UserCreateNestedOneWithoutSessionsInput = {
@@ -18842,6 +24152,13 @@ export namespace Prisma {
     connect?: PurchaseWhereUniqueInput | PurchaseWhereUniqueInput[]
   }
 
+  export type CategoryPathCreateNestedManyWithoutProductInput = {
+    create?: XOR<CategoryPathCreateWithoutProductInput, CategoryPathUncheckedCreateWithoutProductInput> | CategoryPathCreateWithoutProductInput[] | CategoryPathUncheckedCreateWithoutProductInput[]
+    connectOrCreate?: CategoryPathCreateOrConnectWithoutProductInput | CategoryPathCreateOrConnectWithoutProductInput[]
+    createMany?: CategoryPathCreateManyProductInputEnvelope
+    connect?: CategoryPathWhereUniqueInput | CategoryPathWhereUniqueInput[]
+  }
+
   export type UserCreateNestedOneWithoutCreatedProductsInput = {
     create?: XOR<UserCreateWithoutCreatedProductsInput, UserUncheckedCreateWithoutCreatedProductsInput>
     connectOrCreate?: UserCreateOrConnectWithoutCreatedProductsInput
@@ -18874,6 +24191,13 @@ export namespace Prisma {
     connectOrCreate?: PurchaseCreateOrConnectWithoutProductInput | PurchaseCreateOrConnectWithoutProductInput[]
     createMany?: PurchaseCreateManyProductInputEnvelope
     connect?: PurchaseWhereUniqueInput | PurchaseWhereUniqueInput[]
+  }
+
+  export type CategoryPathUncheckedCreateNestedManyWithoutProductInput = {
+    create?: XOR<CategoryPathCreateWithoutProductInput, CategoryPathUncheckedCreateWithoutProductInput> | CategoryPathCreateWithoutProductInput[] | CategoryPathUncheckedCreateWithoutProductInput[]
+    connectOrCreate?: CategoryPathCreateOrConnectWithoutProductInput | CategoryPathCreateOrConnectWithoutProductInput[]
+    createMany?: CategoryPathCreateManyProductInputEnvelope
+    connect?: CategoryPathWhereUniqueInput | CategoryPathWhereUniqueInput[]
   }
 
   export type DecimalFieldUpdateOperationsInput = {
@@ -18956,10 +24280,26 @@ export namespace Prisma {
     deleteMany?: PurchaseScalarWhereInput | PurchaseScalarWhereInput[]
   }
 
-  export type UserUpdateOneRequiredWithoutCreatedProductsNestedInput = {
+  export type CategoryPathUpdateManyWithoutProductNestedInput = {
+    create?: XOR<CategoryPathCreateWithoutProductInput, CategoryPathUncheckedCreateWithoutProductInput> | CategoryPathCreateWithoutProductInput[] | CategoryPathUncheckedCreateWithoutProductInput[]
+    connectOrCreate?: CategoryPathCreateOrConnectWithoutProductInput | CategoryPathCreateOrConnectWithoutProductInput[]
+    upsert?: CategoryPathUpsertWithWhereUniqueWithoutProductInput | CategoryPathUpsertWithWhereUniqueWithoutProductInput[]
+    createMany?: CategoryPathCreateManyProductInputEnvelope
+    set?: CategoryPathWhereUniqueInput | CategoryPathWhereUniqueInput[]
+    disconnect?: CategoryPathWhereUniqueInput | CategoryPathWhereUniqueInput[]
+    delete?: CategoryPathWhereUniqueInput | CategoryPathWhereUniqueInput[]
+    connect?: CategoryPathWhereUniqueInput | CategoryPathWhereUniqueInput[]
+    update?: CategoryPathUpdateWithWhereUniqueWithoutProductInput | CategoryPathUpdateWithWhereUniqueWithoutProductInput[]
+    updateMany?: CategoryPathUpdateManyWithWhereWithoutProductInput | CategoryPathUpdateManyWithWhereWithoutProductInput[]
+    deleteMany?: CategoryPathScalarWhereInput | CategoryPathScalarWhereInput[]
+  }
+
+  export type UserUpdateOneWithoutCreatedProductsNestedInput = {
     create?: XOR<UserCreateWithoutCreatedProductsInput, UserUncheckedCreateWithoutCreatedProductsInput>
     connectOrCreate?: UserCreateOrConnectWithoutCreatedProductsInput
     upsert?: UserUpsertWithoutCreatedProductsInput
+    disconnect?: UserWhereInput | boolean
+    delete?: UserWhereInput | boolean
     connect?: UserWhereUniqueInput
     update?: XOR<XOR<UserUpdateToOneWithWhereWithoutCreatedProductsInput, UserUpdateWithoutCreatedProductsInput>, UserUncheckedUpdateWithoutCreatedProductsInput>
   }
@@ -19018,6 +24358,20 @@ export namespace Prisma {
     update?: PurchaseUpdateWithWhereUniqueWithoutProductInput | PurchaseUpdateWithWhereUniqueWithoutProductInput[]
     updateMany?: PurchaseUpdateManyWithWhereWithoutProductInput | PurchaseUpdateManyWithWhereWithoutProductInput[]
     deleteMany?: PurchaseScalarWhereInput | PurchaseScalarWhereInput[]
+  }
+
+  export type CategoryPathUncheckedUpdateManyWithoutProductNestedInput = {
+    create?: XOR<CategoryPathCreateWithoutProductInput, CategoryPathUncheckedCreateWithoutProductInput> | CategoryPathCreateWithoutProductInput[] | CategoryPathUncheckedCreateWithoutProductInput[]
+    connectOrCreate?: CategoryPathCreateOrConnectWithoutProductInput | CategoryPathCreateOrConnectWithoutProductInput[]
+    upsert?: CategoryPathUpsertWithWhereUniqueWithoutProductInput | CategoryPathUpsertWithWhereUniqueWithoutProductInput[]
+    createMany?: CategoryPathCreateManyProductInputEnvelope
+    set?: CategoryPathWhereUniqueInput | CategoryPathWhereUniqueInput[]
+    disconnect?: CategoryPathWhereUniqueInput | CategoryPathWhereUniqueInput[]
+    delete?: CategoryPathWhereUniqueInput | CategoryPathWhereUniqueInput[]
+    connect?: CategoryPathWhereUniqueInput | CategoryPathWhereUniqueInput[]
+    update?: CategoryPathUpdateWithWhereUniqueWithoutProductInput | CategoryPathUpdateWithWhereUniqueWithoutProductInput[]
+    updateMany?: CategoryPathUpdateManyWithWhereWithoutProductInput | CategoryPathUpdateManyWithWhereWithoutProductInput[]
+    deleteMany?: CategoryPathScalarWhereInput | CategoryPathScalarWhereInput[]
   }
 
   export type ProductCreateNestedOneWithoutImagesInput = {
@@ -19162,6 +24516,78 @@ export namespace Prisma {
     update?: XOR<XOR<CategoryUpdateToOneWithWhereWithoutProductsInput, CategoryUpdateWithoutProductsInput>, CategoryUncheckedUpdateWithoutProductsInput>
   }
 
+  export type TransactionCreateNestedManyWithoutPaymentGatewayInput = {
+    create?: XOR<TransactionCreateWithoutPaymentGatewayInput, TransactionUncheckedCreateWithoutPaymentGatewayInput> | TransactionCreateWithoutPaymentGatewayInput[] | TransactionUncheckedCreateWithoutPaymentGatewayInput[]
+    connectOrCreate?: TransactionCreateOrConnectWithoutPaymentGatewayInput | TransactionCreateOrConnectWithoutPaymentGatewayInput[]
+    createMany?: TransactionCreateManyPaymentGatewayInputEnvelope
+    connect?: TransactionWhereUniqueInput | TransactionWhereUniqueInput[]
+  }
+
+  export type TransactionUncheckedCreateNestedManyWithoutPaymentGatewayInput = {
+    create?: XOR<TransactionCreateWithoutPaymentGatewayInput, TransactionUncheckedCreateWithoutPaymentGatewayInput> | TransactionCreateWithoutPaymentGatewayInput[] | TransactionUncheckedCreateWithoutPaymentGatewayInput[]
+    connectOrCreate?: TransactionCreateOrConnectWithoutPaymentGatewayInput | TransactionCreateOrConnectWithoutPaymentGatewayInput[]
+    createMany?: TransactionCreateManyPaymentGatewayInputEnvelope
+    connect?: TransactionWhereUniqueInput | TransactionWhereUniqueInput[]
+  }
+
+  export type TransactionUpdateManyWithoutPaymentGatewayNestedInput = {
+    create?: XOR<TransactionCreateWithoutPaymentGatewayInput, TransactionUncheckedCreateWithoutPaymentGatewayInput> | TransactionCreateWithoutPaymentGatewayInput[] | TransactionUncheckedCreateWithoutPaymentGatewayInput[]
+    connectOrCreate?: TransactionCreateOrConnectWithoutPaymentGatewayInput | TransactionCreateOrConnectWithoutPaymentGatewayInput[]
+    upsert?: TransactionUpsertWithWhereUniqueWithoutPaymentGatewayInput | TransactionUpsertWithWhereUniqueWithoutPaymentGatewayInput[]
+    createMany?: TransactionCreateManyPaymentGatewayInputEnvelope
+    set?: TransactionWhereUniqueInput | TransactionWhereUniqueInput[]
+    disconnect?: TransactionWhereUniqueInput | TransactionWhereUniqueInput[]
+    delete?: TransactionWhereUniqueInput | TransactionWhereUniqueInput[]
+    connect?: TransactionWhereUniqueInput | TransactionWhereUniqueInput[]
+    update?: TransactionUpdateWithWhereUniqueWithoutPaymentGatewayInput | TransactionUpdateWithWhereUniqueWithoutPaymentGatewayInput[]
+    updateMany?: TransactionUpdateManyWithWhereWithoutPaymentGatewayInput | TransactionUpdateManyWithWhereWithoutPaymentGatewayInput[]
+    deleteMany?: TransactionScalarWhereInput | TransactionScalarWhereInput[]
+  }
+
+  export type TransactionUncheckedUpdateManyWithoutPaymentGatewayNestedInput = {
+    create?: XOR<TransactionCreateWithoutPaymentGatewayInput, TransactionUncheckedCreateWithoutPaymentGatewayInput> | TransactionCreateWithoutPaymentGatewayInput[] | TransactionUncheckedCreateWithoutPaymentGatewayInput[]
+    connectOrCreate?: TransactionCreateOrConnectWithoutPaymentGatewayInput | TransactionCreateOrConnectWithoutPaymentGatewayInput[]
+    upsert?: TransactionUpsertWithWhereUniqueWithoutPaymentGatewayInput | TransactionUpsertWithWhereUniqueWithoutPaymentGatewayInput[]
+    createMany?: TransactionCreateManyPaymentGatewayInputEnvelope
+    set?: TransactionWhereUniqueInput | TransactionWhereUniqueInput[]
+    disconnect?: TransactionWhereUniqueInput | TransactionWhereUniqueInput[]
+    delete?: TransactionWhereUniqueInput | TransactionWhereUniqueInput[]
+    connect?: TransactionWhereUniqueInput | TransactionWhereUniqueInput[]
+    update?: TransactionUpdateWithWhereUniqueWithoutPaymentGatewayInput | TransactionUpdateWithWhereUniqueWithoutPaymentGatewayInput[]
+    updateMany?: TransactionUpdateManyWithWhereWithoutPaymentGatewayInput | TransactionUpdateManyWithWhereWithoutPaymentGatewayInput[]
+    deleteMany?: TransactionScalarWhereInput | TransactionScalarWhereInput[]
+  }
+
+  export type PaymentGatewayCreateNestedOneWithoutTransactionsInput = {
+    create?: XOR<PaymentGatewayCreateWithoutTransactionsInput, PaymentGatewayUncheckedCreateWithoutTransactionsInput>
+    connectOrCreate?: PaymentGatewayCreateOrConnectWithoutTransactionsInput
+    connect?: PaymentGatewayWhereUniqueInput
+  }
+
+  export type PurchaseCreateNestedOneWithoutTransactionsInput = {
+    create?: XOR<PurchaseCreateWithoutTransactionsInput, PurchaseUncheckedCreateWithoutTransactionsInput>
+    connectOrCreate?: PurchaseCreateOrConnectWithoutTransactionsInput
+    connect?: PurchaseWhereUniqueInput
+  }
+
+  export type PaymentGatewayUpdateOneRequiredWithoutTransactionsNestedInput = {
+    create?: XOR<PaymentGatewayCreateWithoutTransactionsInput, PaymentGatewayUncheckedCreateWithoutTransactionsInput>
+    connectOrCreate?: PaymentGatewayCreateOrConnectWithoutTransactionsInput
+    upsert?: PaymentGatewayUpsertWithoutTransactionsInput
+    connect?: PaymentGatewayWhereUniqueInput
+    update?: XOR<XOR<PaymentGatewayUpdateToOneWithWhereWithoutTransactionsInput, PaymentGatewayUpdateWithoutTransactionsInput>, PaymentGatewayUncheckedUpdateWithoutTransactionsInput>
+  }
+
+  export type PurchaseUpdateOneWithoutTransactionsNestedInput = {
+    create?: XOR<PurchaseCreateWithoutTransactionsInput, PurchaseUncheckedCreateWithoutTransactionsInput>
+    connectOrCreate?: PurchaseCreateOrConnectWithoutTransactionsInput
+    upsert?: PurchaseUpsertWithoutTransactionsInput
+    disconnect?: PurchaseWhereInput | boolean
+    delete?: PurchaseWhereInput | boolean
+    connect?: PurchaseWhereUniqueInput
+    update?: XOR<XOR<PurchaseUpdateToOneWithWhereWithoutTransactionsInput, PurchaseUpdateWithoutTransactionsInput>, PurchaseUncheckedUpdateWithoutTransactionsInput>
+  }
+
   export type ProductCreateNestedOneWithoutPurchasesInput = {
     create?: XOR<ProductCreateWithoutPurchasesInput, ProductUncheckedCreateWithoutPurchasesInput>
     connectOrCreate?: ProductCreateOrConnectWithoutPurchasesInput
@@ -19172,6 +24598,20 @@ export namespace Prisma {
     create?: XOR<UserCreateWithoutPurchasesInput, UserUncheckedCreateWithoutPurchasesInput>
     connectOrCreate?: UserCreateOrConnectWithoutPurchasesInput
     connect?: UserWhereUniqueInput
+  }
+
+  export type TransactionCreateNestedManyWithoutPurchaseInput = {
+    create?: XOR<TransactionCreateWithoutPurchaseInput, TransactionUncheckedCreateWithoutPurchaseInput> | TransactionCreateWithoutPurchaseInput[] | TransactionUncheckedCreateWithoutPurchaseInput[]
+    connectOrCreate?: TransactionCreateOrConnectWithoutPurchaseInput | TransactionCreateOrConnectWithoutPurchaseInput[]
+    createMany?: TransactionCreateManyPurchaseInputEnvelope
+    connect?: TransactionWhereUniqueInput | TransactionWhereUniqueInput[]
+  }
+
+  export type TransactionUncheckedCreateNestedManyWithoutPurchaseInput = {
+    create?: XOR<TransactionCreateWithoutPurchaseInput, TransactionUncheckedCreateWithoutPurchaseInput> | TransactionCreateWithoutPurchaseInput[] | TransactionUncheckedCreateWithoutPurchaseInput[]
+    connectOrCreate?: TransactionCreateOrConnectWithoutPurchaseInput | TransactionCreateOrConnectWithoutPurchaseInput[]
+    createMany?: TransactionCreateManyPurchaseInputEnvelope
+    connect?: TransactionWhereUniqueInput | TransactionWhereUniqueInput[]
   }
 
   export type ProductUpdateOneRequiredWithoutPurchasesNestedInput = {
@@ -19188,6 +24628,34 @@ export namespace Prisma {
     upsert?: UserUpsertWithoutPurchasesInput
     connect?: UserWhereUniqueInput
     update?: XOR<XOR<UserUpdateToOneWithWhereWithoutPurchasesInput, UserUpdateWithoutPurchasesInput>, UserUncheckedUpdateWithoutPurchasesInput>
+  }
+
+  export type TransactionUpdateManyWithoutPurchaseNestedInput = {
+    create?: XOR<TransactionCreateWithoutPurchaseInput, TransactionUncheckedCreateWithoutPurchaseInput> | TransactionCreateWithoutPurchaseInput[] | TransactionUncheckedCreateWithoutPurchaseInput[]
+    connectOrCreate?: TransactionCreateOrConnectWithoutPurchaseInput | TransactionCreateOrConnectWithoutPurchaseInput[]
+    upsert?: TransactionUpsertWithWhereUniqueWithoutPurchaseInput | TransactionUpsertWithWhereUniqueWithoutPurchaseInput[]
+    createMany?: TransactionCreateManyPurchaseInputEnvelope
+    set?: TransactionWhereUniqueInput | TransactionWhereUniqueInput[]
+    disconnect?: TransactionWhereUniqueInput | TransactionWhereUniqueInput[]
+    delete?: TransactionWhereUniqueInput | TransactionWhereUniqueInput[]
+    connect?: TransactionWhereUniqueInput | TransactionWhereUniqueInput[]
+    update?: TransactionUpdateWithWhereUniqueWithoutPurchaseInput | TransactionUpdateWithWhereUniqueWithoutPurchaseInput[]
+    updateMany?: TransactionUpdateManyWithWhereWithoutPurchaseInput | TransactionUpdateManyWithWhereWithoutPurchaseInput[]
+    deleteMany?: TransactionScalarWhereInput | TransactionScalarWhereInput[]
+  }
+
+  export type TransactionUncheckedUpdateManyWithoutPurchaseNestedInput = {
+    create?: XOR<TransactionCreateWithoutPurchaseInput, TransactionUncheckedCreateWithoutPurchaseInput> | TransactionCreateWithoutPurchaseInput[] | TransactionUncheckedCreateWithoutPurchaseInput[]
+    connectOrCreate?: TransactionCreateOrConnectWithoutPurchaseInput | TransactionCreateOrConnectWithoutPurchaseInput[]
+    upsert?: TransactionUpsertWithWhereUniqueWithoutPurchaseInput | TransactionUpsertWithWhereUniqueWithoutPurchaseInput[]
+    createMany?: TransactionCreateManyPurchaseInputEnvelope
+    set?: TransactionWhereUniqueInput | TransactionWhereUniqueInput[]
+    disconnect?: TransactionWhereUniqueInput | TransactionWhereUniqueInput[]
+    delete?: TransactionWhereUniqueInput | TransactionWhereUniqueInput[]
+    connect?: TransactionWhereUniqueInput | TransactionWhereUniqueInput[]
+    update?: TransactionUpdateWithWhereUniqueWithoutPurchaseInput | TransactionUpdateWithWhereUniqueWithoutPurchaseInput[]
+    updateMany?: TransactionUpdateManyWithWhereWithoutPurchaseInput | TransactionUpdateManyWithWhereWithoutPurchaseInput[]
+    deleteMany?: TransactionScalarWhereInput | TransactionScalarWhereInput[]
   }
 
   export type ProductCreateNestedOneWithoutReviewsInput = {
@@ -19216,6 +24684,20 @@ export namespace Prisma {
     upsert?: UserUpsertWithoutReviewsInput
     connect?: UserWhereUniqueInput
     update?: XOR<XOR<UserUpdateToOneWithWhereWithoutReviewsInput, UserUpdateWithoutReviewsInput>, UserUncheckedUpdateWithoutReviewsInput>
+  }
+
+  export type ProductCreateNestedOneWithoutCategoryPathInput = {
+    create?: XOR<ProductCreateWithoutCategoryPathInput, ProductUncheckedCreateWithoutCategoryPathInput>
+    connectOrCreate?: ProductCreateOrConnectWithoutCategoryPathInput
+    connect?: ProductWhereUniqueInput
+  }
+
+  export type ProductUpdateOneRequiredWithoutCategoryPathNestedInput = {
+    create?: XOR<ProductCreateWithoutCategoryPathInput, ProductUncheckedCreateWithoutCategoryPathInput>
+    connectOrCreate?: ProductCreateOrConnectWithoutCategoryPathInput
+    upsert?: ProductUpsertWithoutCategoryPathInput
+    connect?: ProductWhereUniqueInput
+    update?: XOR<XOR<ProductUpdateToOneWithWhereWithoutCategoryPathInput, ProductUpdateWithoutCategoryPathInput>, ProductUncheckedUpdateWithoutCategoryPathInput>
   }
 
   export type NestedStringFilter<$PrismaModel = never> = {
@@ -19471,6 +24953,52 @@ export namespace Prisma {
     _sum?: NestedDecimalNullableFilter<$PrismaModel>
     _min?: NestedDecimalNullableFilter<$PrismaModel>
     _max?: NestedDecimalNullableFilter<$PrismaModel>
+  }
+  export type NestedJsonFilter<$PrismaModel = never> =
+    | PatchUndefined<
+        Either<Required<NestedJsonFilterBase<$PrismaModel>>, Exclude<keyof Required<NestedJsonFilterBase<$PrismaModel>>, 'path'>>,
+        Required<NestedJsonFilterBase<$PrismaModel>>
+      >
+    | OptionalFlat<Omit<Required<NestedJsonFilterBase<$PrismaModel>>, 'path'>>
+
+  export type NestedJsonFilterBase<$PrismaModel = never> = {
+    equals?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | JsonNullValueFilter
+    path?: string[]
+    mode?: QueryMode | EnumQueryModeFieldRefInput<$PrismaModel>
+    string_contains?: string | StringFieldRefInput<$PrismaModel>
+    string_starts_with?: string | StringFieldRefInput<$PrismaModel>
+    string_ends_with?: string | StringFieldRefInput<$PrismaModel>
+    array_starts_with?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | null
+    array_ends_with?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | null
+    array_contains?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | null
+    lt?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
+    lte?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
+    gt?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
+    gte?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
+    not?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | JsonNullValueFilter
+  }
+  export type NestedJsonNullableFilter<$PrismaModel = never> =
+    | PatchUndefined<
+        Either<Required<NestedJsonNullableFilterBase<$PrismaModel>>, Exclude<keyof Required<NestedJsonNullableFilterBase<$PrismaModel>>, 'path'>>,
+        Required<NestedJsonNullableFilterBase<$PrismaModel>>
+      >
+    | OptionalFlat<Omit<Required<NestedJsonNullableFilterBase<$PrismaModel>>, 'path'>>
+
+  export type NestedJsonNullableFilterBase<$PrismaModel = never> = {
+    equals?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | JsonNullValueFilter
+    path?: string[]
+    mode?: QueryMode | EnumQueryModeFieldRefInput<$PrismaModel>
+    string_contains?: string | StringFieldRefInput<$PrismaModel>
+    string_starts_with?: string | StringFieldRefInput<$PrismaModel>
+    string_ends_with?: string | StringFieldRefInput<$PrismaModel>
+    array_starts_with?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | null
+    array_ends_with?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | null
+    array_contains?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | null
+    lt?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
+    lte?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
+    gt?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
+    gte?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
+    not?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | JsonNullValueFilter
   }
 
   export type UserCreateWithoutSessionsInput = {
@@ -19754,6 +25282,7 @@ export namespace Prisma {
     categories?: CategoryProductCreateNestedManyWithoutProductInput
     reviews?: ReviewCreateNestedManyWithoutProductInput
     purchases?: PurchaseCreateNestedManyWithoutProductInput
+    CategoryPath?: CategoryPathCreateNestedManyWithoutProductInput
   }
 
   export type ProductUncheckedCreateWithoutCreatedByInput = {
@@ -19782,6 +25311,7 @@ export namespace Prisma {
     categories?: CategoryProductUncheckedCreateNestedManyWithoutProductInput
     reviews?: ReviewUncheckedCreateNestedManyWithoutProductInput
     purchases?: PurchaseUncheckedCreateNestedManyWithoutProductInput
+    CategoryPath?: CategoryPathUncheckedCreateNestedManyWithoutProductInput
   }
 
   export type ProductCreateOrConnectWithoutCreatedByInput = {
@@ -19803,6 +25333,7 @@ export namespace Prisma {
     createdAt?: Date | string
     updatedAt?: Date | string
     product: ProductCreateNestedOneWithoutPurchasesInput
+    transactions?: TransactionCreateNestedManyWithoutPurchaseInput
   }
 
   export type PurchaseUncheckedCreateWithoutUserInput = {
@@ -19814,6 +25345,7 @@ export namespace Prisma {
     status?: string
     createdAt?: Date | string
     updatedAt?: Date | string
+    transactions?: TransactionUncheckedCreateNestedManyWithoutPurchaseInput
   }
 
   export type PurchaseCreateOrConnectWithoutUserInput = {
@@ -19956,7 +25488,7 @@ export namespace Prisma {
     totalRevenue?: DecimalFilter<"Product"> | Decimal | DecimalJsLike | number | string
     createdAt?: DateTimeFilter<"Product"> | Date | string
     updatedAt?: DateTimeFilter<"Product"> | Date | string
-    createdById?: StringFilter<"Product"> | string
+    createdById?: StringNullableFilter<"Product"> | string | null
   }
 
   export type PurchaseUpsertWithWhereUniqueWithoutUserInput = {
@@ -20071,6 +25603,7 @@ export namespace Prisma {
     createdAt?: Date | string
     updatedAt?: Date | string
     user: UserCreateNestedOneWithoutPurchasesInput
+    transactions?: TransactionCreateNestedManyWithoutPurchaseInput
   }
 
   export type PurchaseUncheckedCreateWithoutProductInput = {
@@ -20082,6 +25615,7 @@ export namespace Prisma {
     status?: string
     createdAt?: Date | string
     updatedAt?: Date | string
+    transactions?: TransactionUncheckedCreateNestedManyWithoutPurchaseInput
   }
 
   export type PurchaseCreateOrConnectWithoutProductInput = {
@@ -20091,6 +25625,36 @@ export namespace Prisma {
 
   export type PurchaseCreateManyProductInputEnvelope = {
     data: PurchaseCreateManyProductInput | PurchaseCreateManyProductInput[]
+    skipDuplicates?: boolean
+  }
+
+  export type CategoryPathCreateWithoutProductInput = {
+    id?: string
+    path: string
+    level1?: string | null
+    level2?: string | null
+    level3?: string | null
+    level4?: string | null
+    level5?: string | null
+  }
+
+  export type CategoryPathUncheckedCreateWithoutProductInput = {
+    id?: string
+    path: string
+    level1?: string | null
+    level2?: string | null
+    level3?: string | null
+    level4?: string | null
+    level5?: string | null
+  }
+
+  export type CategoryPathCreateOrConnectWithoutProductInput = {
+    where: CategoryPathWhereUniqueInput
+    create: XOR<CategoryPathCreateWithoutProductInput, CategoryPathUncheckedCreateWithoutProductInput>
+  }
+
+  export type CategoryPathCreateManyProductInputEnvelope = {
+    data: CategoryPathCreateManyProductInput | CategoryPathCreateManyProductInput[]
     skipDuplicates?: boolean
   }
 
@@ -20217,6 +25781,36 @@ export namespace Prisma {
     data: XOR<PurchaseUpdateManyMutationInput, PurchaseUncheckedUpdateManyWithoutProductInput>
   }
 
+  export type CategoryPathUpsertWithWhereUniqueWithoutProductInput = {
+    where: CategoryPathWhereUniqueInput
+    update: XOR<CategoryPathUpdateWithoutProductInput, CategoryPathUncheckedUpdateWithoutProductInput>
+    create: XOR<CategoryPathCreateWithoutProductInput, CategoryPathUncheckedCreateWithoutProductInput>
+  }
+
+  export type CategoryPathUpdateWithWhereUniqueWithoutProductInput = {
+    where: CategoryPathWhereUniqueInput
+    data: XOR<CategoryPathUpdateWithoutProductInput, CategoryPathUncheckedUpdateWithoutProductInput>
+  }
+
+  export type CategoryPathUpdateManyWithWhereWithoutProductInput = {
+    where: CategoryPathScalarWhereInput
+    data: XOR<CategoryPathUpdateManyMutationInput, CategoryPathUncheckedUpdateManyWithoutProductInput>
+  }
+
+  export type CategoryPathScalarWhereInput = {
+    AND?: CategoryPathScalarWhereInput | CategoryPathScalarWhereInput[]
+    OR?: CategoryPathScalarWhereInput[]
+    NOT?: CategoryPathScalarWhereInput | CategoryPathScalarWhereInput[]
+    id?: StringFilter<"CategoryPath"> | string
+    productId?: IntFilter<"CategoryPath"> | number
+    path?: StringFilter<"CategoryPath"> | string
+    level1?: StringNullableFilter<"CategoryPath"> | string | null
+    level2?: StringNullableFilter<"CategoryPath"> | string | null
+    level3?: StringNullableFilter<"CategoryPath"> | string | null
+    level4?: StringNullableFilter<"CategoryPath"> | string | null
+    level5?: StringNullableFilter<"CategoryPath"> | string | null
+  }
+
   export type UserUpsertWithoutCreatedProductsInput = {
     update: XOR<UserUpdateWithoutCreatedProductsInput, UserUncheckedUpdateWithoutCreatedProductsInput>
     create: XOR<UserCreateWithoutCreatedProductsInput, UserUncheckedCreateWithoutCreatedProductsInput>
@@ -20286,7 +25880,8 @@ export namespace Prisma {
     categories?: CategoryProductCreateNestedManyWithoutProductInput
     reviews?: ReviewCreateNestedManyWithoutProductInput
     purchases?: PurchaseCreateNestedManyWithoutProductInput
-    createdBy: UserCreateNestedOneWithoutCreatedProductsInput
+    CategoryPath?: CategoryPathCreateNestedManyWithoutProductInput
+    createdBy?: UserCreateNestedOneWithoutCreatedProductsInput
   }
 
   export type ProductUncheckedCreateWithoutImagesInput = {
@@ -20311,10 +25906,11 @@ export namespace Prisma {
     totalRevenue?: Decimal | DecimalJsLike | number | string
     createdAt?: Date | string
     updatedAt?: Date | string
-    createdById: string
+    createdById?: string | null
     categories?: CategoryProductUncheckedCreateNestedManyWithoutProductInput
     reviews?: ReviewUncheckedCreateNestedManyWithoutProductInput
     purchases?: PurchaseUncheckedCreateNestedManyWithoutProductInput
+    CategoryPath?: CategoryPathUncheckedCreateNestedManyWithoutProductInput
   }
 
   export type ProductCreateOrConnectWithoutImagesInput = {
@@ -20357,7 +25953,8 @@ export namespace Prisma {
     categories?: CategoryProductUpdateManyWithoutProductNestedInput
     reviews?: ReviewUpdateManyWithoutProductNestedInput
     purchases?: PurchaseUpdateManyWithoutProductNestedInput
-    createdBy?: UserUpdateOneRequiredWithoutCreatedProductsNestedInput
+    CategoryPath?: CategoryPathUpdateManyWithoutProductNestedInput
+    createdBy?: UserUpdateOneWithoutCreatedProductsNestedInput
   }
 
   export type ProductUncheckedUpdateWithoutImagesInput = {
@@ -20382,10 +25979,11 @@ export namespace Prisma {
     totalRevenue?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
-    createdById?: StringFieldUpdateOperationsInput | string
+    createdById?: NullableStringFieldUpdateOperationsInput | string | null
     categories?: CategoryProductUncheckedUpdateManyWithoutProductNestedInput
     reviews?: ReviewUncheckedUpdateManyWithoutProductNestedInput
     purchases?: PurchaseUncheckedUpdateManyWithoutProductNestedInput
+    CategoryPath?: CategoryPathUncheckedUpdateManyWithoutProductNestedInput
   }
 
   export type CategoryProductCreateWithoutCategoryInput = {
@@ -20411,6 +26009,9 @@ export namespace Prisma {
     name: string
     slug: string
     description?: string | null
+    path: string
+    level?: number
+    isActive?: boolean
     createdAt?: Date | string
     updatedAt?: Date | string
     products?: CategoryProductCreateNestedManyWithoutCategoryInput
@@ -20422,6 +26023,9 @@ export namespace Prisma {
     name: string
     slug: string
     description?: string | null
+    path: string
+    level?: number
+    isActive?: boolean
     parentId?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
@@ -20438,6 +26042,9 @@ export namespace Prisma {
     name: string
     slug: string
     description?: string | null
+    path: string
+    level?: number
+    isActive?: boolean
     createdAt?: Date | string
     updatedAt?: Date | string
     products?: CategoryProductCreateNestedManyWithoutCategoryInput
@@ -20449,6 +26056,9 @@ export namespace Prisma {
     name: string
     slug: string
     description?: string | null
+    path: string
+    level?: number
+    isActive?: boolean
     createdAt?: Date | string
     updatedAt?: Date | string
     products?: CategoryProductUncheckedCreateNestedManyWithoutCategoryInput
@@ -20497,6 +26107,9 @@ export namespace Prisma {
     name?: StringFieldUpdateOperationsInput | string
     slug?: StringFieldUpdateOperationsInput | string
     description?: NullableStringFieldUpdateOperationsInput | string | null
+    path?: StringFieldUpdateOperationsInput | string
+    level?: IntFieldUpdateOperationsInput | number
+    isActive?: BoolFieldUpdateOperationsInput | boolean
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     products?: CategoryProductUpdateManyWithoutCategoryNestedInput
@@ -20508,6 +26121,9 @@ export namespace Prisma {
     name?: StringFieldUpdateOperationsInput | string
     slug?: StringFieldUpdateOperationsInput | string
     description?: NullableStringFieldUpdateOperationsInput | string | null
+    path?: StringFieldUpdateOperationsInput | string
+    level?: IntFieldUpdateOperationsInput | number
+    isActive?: BoolFieldUpdateOperationsInput | boolean
     parentId?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -20538,6 +26154,9 @@ export namespace Prisma {
     name?: StringFilter<"Category"> | string
     slug?: StringFilter<"Category"> | string
     description?: StringNullableFilter<"Category"> | string | null
+    path?: StringFilter<"Category"> | string
+    level?: IntFilter<"Category"> | number
+    isActive?: BoolFilter<"Category"> | boolean
     parentId?: StringNullableFilter<"Category"> | string | null
     createdAt?: DateTimeFilter<"Category"> | Date | string
     updatedAt?: DateTimeFilter<"Category"> | Date | string
@@ -20567,7 +26186,8 @@ export namespace Prisma {
     images?: ProductImageCreateNestedManyWithoutProductInput
     reviews?: ReviewCreateNestedManyWithoutProductInput
     purchases?: PurchaseCreateNestedManyWithoutProductInput
-    createdBy: UserCreateNestedOneWithoutCreatedProductsInput
+    CategoryPath?: CategoryPathCreateNestedManyWithoutProductInput
+    createdBy?: UserCreateNestedOneWithoutCreatedProductsInput
   }
 
   export type ProductUncheckedCreateWithoutCategoriesInput = {
@@ -20592,10 +26212,11 @@ export namespace Prisma {
     totalRevenue?: Decimal | DecimalJsLike | number | string
     createdAt?: Date | string
     updatedAt?: Date | string
-    createdById: string
+    createdById?: string | null
     images?: ProductImageUncheckedCreateNestedManyWithoutProductInput
     reviews?: ReviewUncheckedCreateNestedManyWithoutProductInput
     purchases?: PurchaseUncheckedCreateNestedManyWithoutProductInput
+    CategoryPath?: CategoryPathUncheckedCreateNestedManyWithoutProductInput
   }
 
   export type ProductCreateOrConnectWithoutCategoriesInput = {
@@ -20608,6 +26229,9 @@ export namespace Prisma {
     name: string
     slug: string
     description?: string | null
+    path: string
+    level?: number
+    isActive?: boolean
     createdAt?: Date | string
     updatedAt?: Date | string
     parent?: CategoryCreateNestedOneWithoutChildrenInput
@@ -20619,6 +26243,9 @@ export namespace Prisma {
     name: string
     slug: string
     description?: string | null
+    path: string
+    level?: number
+    isActive?: boolean
     parentId?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
@@ -20665,7 +26292,8 @@ export namespace Prisma {
     images?: ProductImageUpdateManyWithoutProductNestedInput
     reviews?: ReviewUpdateManyWithoutProductNestedInput
     purchases?: PurchaseUpdateManyWithoutProductNestedInput
-    createdBy?: UserUpdateOneRequiredWithoutCreatedProductsNestedInput
+    CategoryPath?: CategoryPathUpdateManyWithoutProductNestedInput
+    createdBy?: UserUpdateOneWithoutCreatedProductsNestedInput
   }
 
   export type ProductUncheckedUpdateWithoutCategoriesInput = {
@@ -20690,10 +26318,11 @@ export namespace Prisma {
     totalRevenue?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
-    createdById?: StringFieldUpdateOperationsInput | string
+    createdById?: NullableStringFieldUpdateOperationsInput | string | null
     images?: ProductImageUncheckedUpdateManyWithoutProductNestedInput
     reviews?: ReviewUncheckedUpdateManyWithoutProductNestedInput
     purchases?: PurchaseUncheckedUpdateManyWithoutProductNestedInput
+    CategoryPath?: CategoryPathUncheckedUpdateManyWithoutProductNestedInput
   }
 
   export type CategoryUpsertWithoutProductsInput = {
@@ -20712,6 +26341,9 @@ export namespace Prisma {
     name?: StringFieldUpdateOperationsInput | string
     slug?: StringFieldUpdateOperationsInput | string
     description?: NullableStringFieldUpdateOperationsInput | string | null
+    path?: StringFieldUpdateOperationsInput | string
+    level?: IntFieldUpdateOperationsInput | number
+    isActive?: BoolFieldUpdateOperationsInput | boolean
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     parent?: CategoryUpdateOneWithoutChildrenNestedInput
@@ -20723,10 +26355,267 @@ export namespace Prisma {
     name?: StringFieldUpdateOperationsInput | string
     slug?: StringFieldUpdateOperationsInput | string
     description?: NullableStringFieldUpdateOperationsInput | string | null
+    path?: StringFieldUpdateOperationsInput | string
+    level?: IntFieldUpdateOperationsInput | number
+    isActive?: BoolFieldUpdateOperationsInput | boolean
     parentId?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     children?: CategoryUncheckedUpdateManyWithoutParentNestedInput
+  }
+
+  export type TransactionCreateWithoutPaymentGatewayInput = {
+    id?: string
+    amount: Decimal | DecimalJsLike | number | string
+    currency?: string
+    status: string
+    paymentMethod?: string | null
+    paymentType?: string | null
+    gatewayTransactionId?: string | null
+    gatewayCustomerId?: string | null
+    receiptUrl?: string | null
+    receiptEmail?: string | null
+    errorMessage?: string | null
+    errorCode?: string | null
+    metadata?: NullableJsonNullValueInput | InputJsonValue
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    completedAt?: Date | string | null
+    purchase?: PurchaseCreateNestedOneWithoutTransactionsInput
+  }
+
+  export type TransactionUncheckedCreateWithoutPaymentGatewayInput = {
+    id?: string
+    amount: Decimal | DecimalJsLike | number | string
+    currency?: string
+    status: string
+    paymentMethod?: string | null
+    paymentType?: string | null
+    gatewayTransactionId?: string | null
+    gatewayCustomerId?: string | null
+    receiptUrl?: string | null
+    receiptEmail?: string | null
+    purchaseId?: string | null
+    errorMessage?: string | null
+    errorCode?: string | null
+    metadata?: NullableJsonNullValueInput | InputJsonValue
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    completedAt?: Date | string | null
+  }
+
+  export type TransactionCreateOrConnectWithoutPaymentGatewayInput = {
+    where: TransactionWhereUniqueInput
+    create: XOR<TransactionCreateWithoutPaymentGatewayInput, TransactionUncheckedCreateWithoutPaymentGatewayInput>
+  }
+
+  export type TransactionCreateManyPaymentGatewayInputEnvelope = {
+    data: TransactionCreateManyPaymentGatewayInput | TransactionCreateManyPaymentGatewayInput[]
+    skipDuplicates?: boolean
+  }
+
+  export type TransactionUpsertWithWhereUniqueWithoutPaymentGatewayInput = {
+    where: TransactionWhereUniqueInput
+    update: XOR<TransactionUpdateWithoutPaymentGatewayInput, TransactionUncheckedUpdateWithoutPaymentGatewayInput>
+    create: XOR<TransactionCreateWithoutPaymentGatewayInput, TransactionUncheckedCreateWithoutPaymentGatewayInput>
+  }
+
+  export type TransactionUpdateWithWhereUniqueWithoutPaymentGatewayInput = {
+    where: TransactionWhereUniqueInput
+    data: XOR<TransactionUpdateWithoutPaymentGatewayInput, TransactionUncheckedUpdateWithoutPaymentGatewayInput>
+  }
+
+  export type TransactionUpdateManyWithWhereWithoutPaymentGatewayInput = {
+    where: TransactionScalarWhereInput
+    data: XOR<TransactionUpdateManyMutationInput, TransactionUncheckedUpdateManyWithoutPaymentGatewayInput>
+  }
+
+  export type TransactionScalarWhereInput = {
+    AND?: TransactionScalarWhereInput | TransactionScalarWhereInput[]
+    OR?: TransactionScalarWhereInput[]
+    NOT?: TransactionScalarWhereInput | TransactionScalarWhereInput[]
+    id?: StringFilter<"Transaction"> | string
+    amount?: DecimalFilter<"Transaction"> | Decimal | DecimalJsLike | number | string
+    currency?: StringFilter<"Transaction"> | string
+    status?: StringFilter<"Transaction"> | string
+    paymentMethod?: StringNullableFilter<"Transaction"> | string | null
+    paymentType?: StringNullableFilter<"Transaction"> | string | null
+    gatewayId?: StringFilter<"Transaction"> | string
+    gatewayTransactionId?: StringNullableFilter<"Transaction"> | string | null
+    gatewayCustomerId?: StringNullableFilter<"Transaction"> | string | null
+    receiptUrl?: StringNullableFilter<"Transaction"> | string | null
+    receiptEmail?: StringNullableFilter<"Transaction"> | string | null
+    purchaseId?: StringNullableFilter<"Transaction"> | string | null
+    errorMessage?: StringNullableFilter<"Transaction"> | string | null
+    errorCode?: StringNullableFilter<"Transaction"> | string | null
+    metadata?: JsonNullableFilter<"Transaction">
+    createdAt?: DateTimeFilter<"Transaction"> | Date | string
+    updatedAt?: DateTimeFilter<"Transaction"> | Date | string
+    completedAt?: DateTimeNullableFilter<"Transaction"> | Date | string | null
+  }
+
+  export type PaymentGatewayCreateWithoutTransactionsInput = {
+    id?: string
+    name: string
+    isActive?: boolean
+    config: JsonNullValueInput | InputJsonValue
+    encryptionKey?: string | null
+    encryptionIV?: string | null
+    merchantId?: string | null
+    businessName?: string | null
+    businessEmail?: string | null
+    environment?: string
+    description?: string | null
+    notes?: string | null
+    apiEndpoint?: string | null
+    webhookUrl?: string | null
+    supportsCreditCards?: boolean
+    supportsDirectDebit?: boolean
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type PaymentGatewayUncheckedCreateWithoutTransactionsInput = {
+    id?: string
+    name: string
+    isActive?: boolean
+    config: JsonNullValueInput | InputJsonValue
+    encryptionKey?: string | null
+    encryptionIV?: string | null
+    merchantId?: string | null
+    businessName?: string | null
+    businessEmail?: string | null
+    environment?: string
+    description?: string | null
+    notes?: string | null
+    apiEndpoint?: string | null
+    webhookUrl?: string | null
+    supportsCreditCards?: boolean
+    supportsDirectDebit?: boolean
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type PaymentGatewayCreateOrConnectWithoutTransactionsInput = {
+    where: PaymentGatewayWhereUniqueInput
+    create: XOR<PaymentGatewayCreateWithoutTransactionsInput, PaymentGatewayUncheckedCreateWithoutTransactionsInput>
+  }
+
+  export type PurchaseCreateWithoutTransactionsInput = {
+    id?: string
+    amount: Decimal | DecimalJsLike | number | string
+    accessExpires?: Date | string | null
+    downloadsLeft?: number | null
+    status?: string
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    product: ProductCreateNestedOneWithoutPurchasesInput
+    user: UserCreateNestedOneWithoutPurchasesInput
+  }
+
+  export type PurchaseUncheckedCreateWithoutTransactionsInput = {
+    id?: string
+    productId: number
+    userId: string
+    amount: Decimal | DecimalJsLike | number | string
+    accessExpires?: Date | string | null
+    downloadsLeft?: number | null
+    status?: string
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type PurchaseCreateOrConnectWithoutTransactionsInput = {
+    where: PurchaseWhereUniqueInput
+    create: XOR<PurchaseCreateWithoutTransactionsInput, PurchaseUncheckedCreateWithoutTransactionsInput>
+  }
+
+  export type PaymentGatewayUpsertWithoutTransactionsInput = {
+    update: XOR<PaymentGatewayUpdateWithoutTransactionsInput, PaymentGatewayUncheckedUpdateWithoutTransactionsInput>
+    create: XOR<PaymentGatewayCreateWithoutTransactionsInput, PaymentGatewayUncheckedCreateWithoutTransactionsInput>
+    where?: PaymentGatewayWhereInput
+  }
+
+  export type PaymentGatewayUpdateToOneWithWhereWithoutTransactionsInput = {
+    where?: PaymentGatewayWhereInput
+    data: XOR<PaymentGatewayUpdateWithoutTransactionsInput, PaymentGatewayUncheckedUpdateWithoutTransactionsInput>
+  }
+
+  export type PaymentGatewayUpdateWithoutTransactionsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    config?: JsonNullValueInput | InputJsonValue
+    encryptionKey?: NullableStringFieldUpdateOperationsInput | string | null
+    encryptionIV?: NullableStringFieldUpdateOperationsInput | string | null
+    merchantId?: NullableStringFieldUpdateOperationsInput | string | null
+    businessName?: NullableStringFieldUpdateOperationsInput | string | null
+    businessEmail?: NullableStringFieldUpdateOperationsInput | string | null
+    environment?: StringFieldUpdateOperationsInput | string
+    description?: NullableStringFieldUpdateOperationsInput | string | null
+    notes?: NullableStringFieldUpdateOperationsInput | string | null
+    apiEndpoint?: NullableStringFieldUpdateOperationsInput | string | null
+    webhookUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    supportsCreditCards?: BoolFieldUpdateOperationsInput | boolean
+    supportsDirectDebit?: BoolFieldUpdateOperationsInput | boolean
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type PaymentGatewayUncheckedUpdateWithoutTransactionsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    config?: JsonNullValueInput | InputJsonValue
+    encryptionKey?: NullableStringFieldUpdateOperationsInput | string | null
+    encryptionIV?: NullableStringFieldUpdateOperationsInput | string | null
+    merchantId?: NullableStringFieldUpdateOperationsInput | string | null
+    businessName?: NullableStringFieldUpdateOperationsInput | string | null
+    businessEmail?: NullableStringFieldUpdateOperationsInput | string | null
+    environment?: StringFieldUpdateOperationsInput | string
+    description?: NullableStringFieldUpdateOperationsInput | string | null
+    notes?: NullableStringFieldUpdateOperationsInput | string | null
+    apiEndpoint?: NullableStringFieldUpdateOperationsInput | string | null
+    webhookUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    supportsCreditCards?: BoolFieldUpdateOperationsInput | boolean
+    supportsDirectDebit?: BoolFieldUpdateOperationsInput | boolean
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type PurchaseUpsertWithoutTransactionsInput = {
+    update: XOR<PurchaseUpdateWithoutTransactionsInput, PurchaseUncheckedUpdateWithoutTransactionsInput>
+    create: XOR<PurchaseCreateWithoutTransactionsInput, PurchaseUncheckedCreateWithoutTransactionsInput>
+    where?: PurchaseWhereInput
+  }
+
+  export type PurchaseUpdateToOneWithWhereWithoutTransactionsInput = {
+    where?: PurchaseWhereInput
+    data: XOR<PurchaseUpdateWithoutTransactionsInput, PurchaseUncheckedUpdateWithoutTransactionsInput>
+  }
+
+  export type PurchaseUpdateWithoutTransactionsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    amount?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    accessExpires?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    downloadsLeft?: NullableIntFieldUpdateOperationsInput | number | null
+    status?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    product?: ProductUpdateOneRequiredWithoutPurchasesNestedInput
+    user?: UserUpdateOneRequiredWithoutPurchasesNestedInput
+  }
+
+  export type PurchaseUncheckedUpdateWithoutTransactionsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    productId?: IntFieldUpdateOperationsInput | number
+    userId?: StringFieldUpdateOperationsInput | string
+    amount?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    accessExpires?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    downloadsLeft?: NullableIntFieldUpdateOperationsInput | number | null
+    status?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
   export type ProductCreateWithoutPurchasesInput = {
@@ -20753,7 +26642,8 @@ export namespace Prisma {
     images?: ProductImageCreateNestedManyWithoutProductInput
     categories?: CategoryProductCreateNestedManyWithoutProductInput
     reviews?: ReviewCreateNestedManyWithoutProductInput
-    createdBy: UserCreateNestedOneWithoutCreatedProductsInput
+    CategoryPath?: CategoryPathCreateNestedManyWithoutProductInput
+    createdBy?: UserCreateNestedOneWithoutCreatedProductsInput
   }
 
   export type ProductUncheckedCreateWithoutPurchasesInput = {
@@ -20778,10 +26668,11 @@ export namespace Prisma {
     totalRevenue?: Decimal | DecimalJsLike | number | string
     createdAt?: Date | string
     updatedAt?: Date | string
-    createdById: string
+    createdById?: string | null
     images?: ProductImageUncheckedCreateNestedManyWithoutProductInput
     categories?: CategoryProductUncheckedCreateNestedManyWithoutProductInput
     reviews?: ReviewUncheckedCreateNestedManyWithoutProductInput
+    CategoryPath?: CategoryPathUncheckedCreateNestedManyWithoutProductInput
   }
 
   export type ProductCreateOrConnectWithoutPurchasesInput = {
@@ -20828,6 +26719,56 @@ export namespace Prisma {
     create: XOR<UserCreateWithoutPurchasesInput, UserUncheckedCreateWithoutPurchasesInput>
   }
 
+  export type TransactionCreateWithoutPurchaseInput = {
+    id?: string
+    amount: Decimal | DecimalJsLike | number | string
+    currency?: string
+    status: string
+    paymentMethod?: string | null
+    paymentType?: string | null
+    gatewayTransactionId?: string | null
+    gatewayCustomerId?: string | null
+    receiptUrl?: string | null
+    receiptEmail?: string | null
+    errorMessage?: string | null
+    errorCode?: string | null
+    metadata?: NullableJsonNullValueInput | InputJsonValue
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    completedAt?: Date | string | null
+    paymentGateway: PaymentGatewayCreateNestedOneWithoutTransactionsInput
+  }
+
+  export type TransactionUncheckedCreateWithoutPurchaseInput = {
+    id?: string
+    amount: Decimal | DecimalJsLike | number | string
+    currency?: string
+    status: string
+    paymentMethod?: string | null
+    paymentType?: string | null
+    gatewayId: string
+    gatewayTransactionId?: string | null
+    gatewayCustomerId?: string | null
+    receiptUrl?: string | null
+    receiptEmail?: string | null
+    errorMessage?: string | null
+    errorCode?: string | null
+    metadata?: NullableJsonNullValueInput | InputJsonValue
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    completedAt?: Date | string | null
+  }
+
+  export type TransactionCreateOrConnectWithoutPurchaseInput = {
+    where: TransactionWhereUniqueInput
+    create: XOR<TransactionCreateWithoutPurchaseInput, TransactionUncheckedCreateWithoutPurchaseInput>
+  }
+
+  export type TransactionCreateManyPurchaseInputEnvelope = {
+    data: TransactionCreateManyPurchaseInput | TransactionCreateManyPurchaseInput[]
+    skipDuplicates?: boolean
+  }
+
   export type ProductUpsertWithoutPurchasesInput = {
     update: XOR<ProductUpdateWithoutPurchasesInput, ProductUncheckedUpdateWithoutPurchasesInput>
     create: XOR<ProductCreateWithoutPurchasesInput, ProductUncheckedCreateWithoutPurchasesInput>
@@ -20863,7 +26804,8 @@ export namespace Prisma {
     images?: ProductImageUpdateManyWithoutProductNestedInput
     categories?: CategoryProductUpdateManyWithoutProductNestedInput
     reviews?: ReviewUpdateManyWithoutProductNestedInput
-    createdBy?: UserUpdateOneRequiredWithoutCreatedProductsNestedInput
+    CategoryPath?: CategoryPathUpdateManyWithoutProductNestedInput
+    createdBy?: UserUpdateOneWithoutCreatedProductsNestedInput
   }
 
   export type ProductUncheckedUpdateWithoutPurchasesInput = {
@@ -20888,10 +26830,11 @@ export namespace Prisma {
     totalRevenue?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
-    createdById?: StringFieldUpdateOperationsInput | string
+    createdById?: NullableStringFieldUpdateOperationsInput | string | null
     images?: ProductImageUncheckedUpdateManyWithoutProductNestedInput
     categories?: CategoryProductUncheckedUpdateManyWithoutProductNestedInput
     reviews?: ReviewUncheckedUpdateManyWithoutProductNestedInput
+    CategoryPath?: CategoryPathUncheckedUpdateManyWithoutProductNestedInput
   }
 
   export type UserUpsertWithoutPurchasesInput = {
@@ -20939,6 +26882,22 @@ export namespace Prisma {
     createdProducts?: ProductUncheckedUpdateManyWithoutCreatedByNestedInput
   }
 
+  export type TransactionUpsertWithWhereUniqueWithoutPurchaseInput = {
+    where: TransactionWhereUniqueInput
+    update: XOR<TransactionUpdateWithoutPurchaseInput, TransactionUncheckedUpdateWithoutPurchaseInput>
+    create: XOR<TransactionCreateWithoutPurchaseInput, TransactionUncheckedCreateWithoutPurchaseInput>
+  }
+
+  export type TransactionUpdateWithWhereUniqueWithoutPurchaseInput = {
+    where: TransactionWhereUniqueInput
+    data: XOR<TransactionUpdateWithoutPurchaseInput, TransactionUncheckedUpdateWithoutPurchaseInput>
+  }
+
+  export type TransactionUpdateManyWithWhereWithoutPurchaseInput = {
+    where: TransactionScalarWhereInput
+    data: XOR<TransactionUpdateManyMutationInput, TransactionUncheckedUpdateManyWithoutPurchaseInput>
+  }
+
   export type ProductCreateWithoutReviewsInput = {
     title: string
     slug: string
@@ -20963,7 +26922,8 @@ export namespace Prisma {
     images?: ProductImageCreateNestedManyWithoutProductInput
     categories?: CategoryProductCreateNestedManyWithoutProductInput
     purchases?: PurchaseCreateNestedManyWithoutProductInput
-    createdBy: UserCreateNestedOneWithoutCreatedProductsInput
+    CategoryPath?: CategoryPathCreateNestedManyWithoutProductInput
+    createdBy?: UserCreateNestedOneWithoutCreatedProductsInput
   }
 
   export type ProductUncheckedCreateWithoutReviewsInput = {
@@ -20988,10 +26948,11 @@ export namespace Prisma {
     totalRevenue?: Decimal | DecimalJsLike | number | string
     createdAt?: Date | string
     updatedAt?: Date | string
-    createdById: string
+    createdById?: string | null
     images?: ProductImageUncheckedCreateNestedManyWithoutProductInput
     categories?: CategoryProductUncheckedCreateNestedManyWithoutProductInput
     purchases?: PurchaseUncheckedCreateNestedManyWithoutProductInput
+    CategoryPath?: CategoryPathUncheckedCreateNestedManyWithoutProductInput
   }
 
   export type ProductCreateOrConnectWithoutReviewsInput = {
@@ -21073,7 +27034,8 @@ export namespace Prisma {
     images?: ProductImageUpdateManyWithoutProductNestedInput
     categories?: CategoryProductUpdateManyWithoutProductNestedInput
     purchases?: PurchaseUpdateManyWithoutProductNestedInput
-    createdBy?: UserUpdateOneRequiredWithoutCreatedProductsNestedInput
+    CategoryPath?: CategoryPathUpdateManyWithoutProductNestedInput
+    createdBy?: UserUpdateOneWithoutCreatedProductsNestedInput
   }
 
   export type ProductUncheckedUpdateWithoutReviewsInput = {
@@ -21098,10 +27060,11 @@ export namespace Prisma {
     totalRevenue?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
-    createdById?: StringFieldUpdateOperationsInput | string
+    createdById?: NullableStringFieldUpdateOperationsInput | string | null
     images?: ProductImageUncheckedUpdateManyWithoutProductNestedInput
     categories?: CategoryProductUncheckedUpdateManyWithoutProductNestedInput
     purchases?: PurchaseUncheckedUpdateManyWithoutProductNestedInput
+    CategoryPath?: CategoryPathUncheckedUpdateManyWithoutProductNestedInput
   }
 
   export type UserUpsertWithoutReviewsInput = {
@@ -21147,6 +27110,136 @@ export namespace Prisma {
     sessions?: SessionUncheckedUpdateManyWithoutUserNestedInput
     createdProducts?: ProductUncheckedUpdateManyWithoutCreatedByNestedInput
     purchases?: PurchaseUncheckedUpdateManyWithoutUserNestedInput
+  }
+
+  export type ProductCreateWithoutCategoryPathInput = {
+    title: string
+    slug: string
+    description?: string | null
+    price: Decimal | DecimalJsLike | number | string
+    discountAmount?: Decimal | DecimalJsLike | number | string | null
+    discountPercent?: number | null
+    discountType?: string | null
+    finalPrice: Decimal | DecimalJsLike | number | string
+    accessDuration?: number | null
+    downloadLimit?: number | null
+    inStock?: boolean
+    isPublished?: boolean
+    featured?: boolean
+    downloadUrl?: string | null
+    viewCount?: number
+    downloadCount?: number
+    purchaseCount?: number
+    totalRevenue?: Decimal | DecimalJsLike | number | string
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    images?: ProductImageCreateNestedManyWithoutProductInput
+    categories?: CategoryProductCreateNestedManyWithoutProductInput
+    reviews?: ReviewCreateNestedManyWithoutProductInput
+    purchases?: PurchaseCreateNestedManyWithoutProductInput
+    createdBy?: UserCreateNestedOneWithoutCreatedProductsInput
+  }
+
+  export type ProductUncheckedCreateWithoutCategoryPathInput = {
+    id?: number
+    title: string
+    slug: string
+    description?: string | null
+    price: Decimal | DecimalJsLike | number | string
+    discountAmount?: Decimal | DecimalJsLike | number | string | null
+    discountPercent?: number | null
+    discountType?: string | null
+    finalPrice: Decimal | DecimalJsLike | number | string
+    accessDuration?: number | null
+    downloadLimit?: number | null
+    inStock?: boolean
+    isPublished?: boolean
+    featured?: boolean
+    downloadUrl?: string | null
+    viewCount?: number
+    downloadCount?: number
+    purchaseCount?: number
+    totalRevenue?: Decimal | DecimalJsLike | number | string
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    createdById?: string | null
+    images?: ProductImageUncheckedCreateNestedManyWithoutProductInput
+    categories?: CategoryProductUncheckedCreateNestedManyWithoutProductInput
+    reviews?: ReviewUncheckedCreateNestedManyWithoutProductInput
+    purchases?: PurchaseUncheckedCreateNestedManyWithoutProductInput
+  }
+
+  export type ProductCreateOrConnectWithoutCategoryPathInput = {
+    where: ProductWhereUniqueInput
+    create: XOR<ProductCreateWithoutCategoryPathInput, ProductUncheckedCreateWithoutCategoryPathInput>
+  }
+
+  export type ProductUpsertWithoutCategoryPathInput = {
+    update: XOR<ProductUpdateWithoutCategoryPathInput, ProductUncheckedUpdateWithoutCategoryPathInput>
+    create: XOR<ProductCreateWithoutCategoryPathInput, ProductUncheckedCreateWithoutCategoryPathInput>
+    where?: ProductWhereInput
+  }
+
+  export type ProductUpdateToOneWithWhereWithoutCategoryPathInput = {
+    where?: ProductWhereInput
+    data: XOR<ProductUpdateWithoutCategoryPathInput, ProductUncheckedUpdateWithoutCategoryPathInput>
+  }
+
+  export type ProductUpdateWithoutCategoryPathInput = {
+    title?: StringFieldUpdateOperationsInput | string
+    slug?: StringFieldUpdateOperationsInput | string
+    description?: NullableStringFieldUpdateOperationsInput | string | null
+    price?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    discountAmount?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    discountPercent?: NullableIntFieldUpdateOperationsInput | number | null
+    discountType?: NullableStringFieldUpdateOperationsInput | string | null
+    finalPrice?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    accessDuration?: NullableIntFieldUpdateOperationsInput | number | null
+    downloadLimit?: NullableIntFieldUpdateOperationsInput | number | null
+    inStock?: BoolFieldUpdateOperationsInput | boolean
+    isPublished?: BoolFieldUpdateOperationsInput | boolean
+    featured?: BoolFieldUpdateOperationsInput | boolean
+    downloadUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    viewCount?: IntFieldUpdateOperationsInput | number
+    downloadCount?: IntFieldUpdateOperationsInput | number
+    purchaseCount?: IntFieldUpdateOperationsInput | number
+    totalRevenue?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    images?: ProductImageUpdateManyWithoutProductNestedInput
+    categories?: CategoryProductUpdateManyWithoutProductNestedInput
+    reviews?: ReviewUpdateManyWithoutProductNestedInput
+    purchases?: PurchaseUpdateManyWithoutProductNestedInput
+    createdBy?: UserUpdateOneWithoutCreatedProductsNestedInput
+  }
+
+  export type ProductUncheckedUpdateWithoutCategoryPathInput = {
+    id?: IntFieldUpdateOperationsInput | number
+    title?: StringFieldUpdateOperationsInput | string
+    slug?: StringFieldUpdateOperationsInput | string
+    description?: NullableStringFieldUpdateOperationsInput | string | null
+    price?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    discountAmount?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    discountPercent?: NullableIntFieldUpdateOperationsInput | number | null
+    discountType?: NullableStringFieldUpdateOperationsInput | string | null
+    finalPrice?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    accessDuration?: NullableIntFieldUpdateOperationsInput | number | null
+    downloadLimit?: NullableIntFieldUpdateOperationsInput | number | null
+    inStock?: BoolFieldUpdateOperationsInput | boolean
+    isPublished?: BoolFieldUpdateOperationsInput | boolean
+    featured?: BoolFieldUpdateOperationsInput | boolean
+    downloadUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    viewCount?: IntFieldUpdateOperationsInput | number
+    downloadCount?: IntFieldUpdateOperationsInput | number
+    purchaseCount?: IntFieldUpdateOperationsInput | number
+    totalRevenue?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    createdById?: NullableStringFieldUpdateOperationsInput | string | null
+    images?: ProductImageUncheckedUpdateManyWithoutProductNestedInput
+    categories?: CategoryProductUncheckedUpdateManyWithoutProductNestedInput
+    reviews?: ReviewUncheckedUpdateManyWithoutProductNestedInput
+    purchases?: PurchaseUncheckedUpdateManyWithoutProductNestedInput
   }
 
   export type AccountCreateManyUserInput = {
@@ -21325,6 +27418,7 @@ export namespace Prisma {
     categories?: CategoryProductUpdateManyWithoutProductNestedInput
     reviews?: ReviewUpdateManyWithoutProductNestedInput
     purchases?: PurchaseUpdateManyWithoutProductNestedInput
+    CategoryPath?: CategoryPathUpdateManyWithoutProductNestedInput
   }
 
   export type ProductUncheckedUpdateWithoutCreatedByInput = {
@@ -21353,6 +27447,7 @@ export namespace Prisma {
     categories?: CategoryProductUncheckedUpdateManyWithoutProductNestedInput
     reviews?: ReviewUncheckedUpdateManyWithoutProductNestedInput
     purchases?: PurchaseUncheckedUpdateManyWithoutProductNestedInput
+    CategoryPath?: CategoryPathUncheckedUpdateManyWithoutProductNestedInput
   }
 
   export type ProductUncheckedUpdateManyWithoutCreatedByInput = {
@@ -21388,6 +27483,7 @@ export namespace Prisma {
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     product?: ProductUpdateOneRequiredWithoutPurchasesNestedInput
+    transactions?: TransactionUpdateManyWithoutPurchaseNestedInput
   }
 
   export type PurchaseUncheckedUpdateWithoutUserInput = {
@@ -21399,6 +27495,7 @@ export namespace Prisma {
     status?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    transactions?: TransactionUncheckedUpdateManyWithoutPurchaseNestedInput
   }
 
   export type PurchaseUncheckedUpdateManyWithoutUserInput = {
@@ -21442,6 +27539,16 @@ export namespace Prisma {
     status?: string
     createdAt?: Date | string
     updatedAt?: Date | string
+  }
+
+  export type CategoryPathCreateManyProductInput = {
+    id?: string
+    path: string
+    level1?: string | null
+    level2?: string | null
+    level3?: string | null
+    level4?: string | null
+    level5?: string | null
   }
 
   export type ProductImageUpdateWithoutProductInput = {
@@ -21516,6 +27623,7 @@ export namespace Prisma {
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     user?: UserUpdateOneRequiredWithoutPurchasesNestedInput
+    transactions?: TransactionUpdateManyWithoutPurchaseNestedInput
   }
 
   export type PurchaseUncheckedUpdateWithoutProductInput = {
@@ -21527,6 +27635,7 @@ export namespace Prisma {
     status?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    transactions?: TransactionUncheckedUpdateManyWithoutPurchaseNestedInput
   }
 
   export type PurchaseUncheckedUpdateManyWithoutProductInput = {
@@ -21540,6 +27649,36 @@ export namespace Prisma {
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
+  export type CategoryPathUpdateWithoutProductInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    path?: StringFieldUpdateOperationsInput | string
+    level1?: NullableStringFieldUpdateOperationsInput | string | null
+    level2?: NullableStringFieldUpdateOperationsInput | string | null
+    level3?: NullableStringFieldUpdateOperationsInput | string | null
+    level4?: NullableStringFieldUpdateOperationsInput | string | null
+    level5?: NullableStringFieldUpdateOperationsInput | string | null
+  }
+
+  export type CategoryPathUncheckedUpdateWithoutProductInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    path?: StringFieldUpdateOperationsInput | string
+    level1?: NullableStringFieldUpdateOperationsInput | string | null
+    level2?: NullableStringFieldUpdateOperationsInput | string | null
+    level3?: NullableStringFieldUpdateOperationsInput | string | null
+    level4?: NullableStringFieldUpdateOperationsInput | string | null
+    level5?: NullableStringFieldUpdateOperationsInput | string | null
+  }
+
+  export type CategoryPathUncheckedUpdateManyWithoutProductInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    path?: StringFieldUpdateOperationsInput | string
+    level1?: NullableStringFieldUpdateOperationsInput | string | null
+    level2?: NullableStringFieldUpdateOperationsInput | string | null
+    level3?: NullableStringFieldUpdateOperationsInput | string | null
+    level4?: NullableStringFieldUpdateOperationsInput | string | null
+    level5?: NullableStringFieldUpdateOperationsInput | string | null
+  }
+
   export type CategoryProductCreateManyCategoryInput = {
     productId: number
   }
@@ -21549,6 +27688,9 @@ export namespace Prisma {
     name: string
     slug: string
     description?: string | null
+    path: string
+    level?: number
+    isActive?: boolean
     createdAt?: Date | string
     updatedAt?: Date | string
   }
@@ -21570,6 +27712,9 @@ export namespace Prisma {
     name?: StringFieldUpdateOperationsInput | string
     slug?: StringFieldUpdateOperationsInput | string
     description?: NullableStringFieldUpdateOperationsInput | string | null
+    path?: StringFieldUpdateOperationsInput | string
+    level?: IntFieldUpdateOperationsInput | number
+    isActive?: BoolFieldUpdateOperationsInput | boolean
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     products?: CategoryProductUpdateManyWithoutCategoryNestedInput
@@ -21581,6 +27726,9 @@ export namespace Prisma {
     name?: StringFieldUpdateOperationsInput | string
     slug?: StringFieldUpdateOperationsInput | string
     description?: NullableStringFieldUpdateOperationsInput | string | null
+    path?: StringFieldUpdateOperationsInput | string
+    level?: IntFieldUpdateOperationsInput | number
+    isActive?: BoolFieldUpdateOperationsInput | boolean
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     products?: CategoryProductUncheckedUpdateManyWithoutCategoryNestedInput
@@ -21592,8 +27740,171 @@ export namespace Prisma {
     name?: StringFieldUpdateOperationsInput | string
     slug?: StringFieldUpdateOperationsInput | string
     description?: NullableStringFieldUpdateOperationsInput | string | null
+    path?: StringFieldUpdateOperationsInput | string
+    level?: IntFieldUpdateOperationsInput | number
+    isActive?: BoolFieldUpdateOperationsInput | boolean
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type TransactionCreateManyPaymentGatewayInput = {
+    id?: string
+    amount: Decimal | DecimalJsLike | number | string
+    currency?: string
+    status: string
+    paymentMethod?: string | null
+    paymentType?: string | null
+    gatewayTransactionId?: string | null
+    gatewayCustomerId?: string | null
+    receiptUrl?: string | null
+    receiptEmail?: string | null
+    purchaseId?: string | null
+    errorMessage?: string | null
+    errorCode?: string | null
+    metadata?: NullableJsonNullValueInput | InputJsonValue
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    completedAt?: Date | string | null
+  }
+
+  export type TransactionUpdateWithoutPaymentGatewayInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    amount?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    currency?: StringFieldUpdateOperationsInput | string
+    status?: StringFieldUpdateOperationsInput | string
+    paymentMethod?: NullableStringFieldUpdateOperationsInput | string | null
+    paymentType?: NullableStringFieldUpdateOperationsInput | string | null
+    gatewayTransactionId?: NullableStringFieldUpdateOperationsInput | string | null
+    gatewayCustomerId?: NullableStringFieldUpdateOperationsInput | string | null
+    receiptUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    receiptEmail?: NullableStringFieldUpdateOperationsInput | string | null
+    errorMessage?: NullableStringFieldUpdateOperationsInput | string | null
+    errorCode?: NullableStringFieldUpdateOperationsInput | string | null
+    metadata?: NullableJsonNullValueInput | InputJsonValue
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    completedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    purchase?: PurchaseUpdateOneWithoutTransactionsNestedInput
+  }
+
+  export type TransactionUncheckedUpdateWithoutPaymentGatewayInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    amount?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    currency?: StringFieldUpdateOperationsInput | string
+    status?: StringFieldUpdateOperationsInput | string
+    paymentMethod?: NullableStringFieldUpdateOperationsInput | string | null
+    paymentType?: NullableStringFieldUpdateOperationsInput | string | null
+    gatewayTransactionId?: NullableStringFieldUpdateOperationsInput | string | null
+    gatewayCustomerId?: NullableStringFieldUpdateOperationsInput | string | null
+    receiptUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    receiptEmail?: NullableStringFieldUpdateOperationsInput | string | null
+    purchaseId?: NullableStringFieldUpdateOperationsInput | string | null
+    errorMessage?: NullableStringFieldUpdateOperationsInput | string | null
+    errorCode?: NullableStringFieldUpdateOperationsInput | string | null
+    metadata?: NullableJsonNullValueInput | InputJsonValue
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    completedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  }
+
+  export type TransactionUncheckedUpdateManyWithoutPaymentGatewayInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    amount?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    currency?: StringFieldUpdateOperationsInput | string
+    status?: StringFieldUpdateOperationsInput | string
+    paymentMethod?: NullableStringFieldUpdateOperationsInput | string | null
+    paymentType?: NullableStringFieldUpdateOperationsInput | string | null
+    gatewayTransactionId?: NullableStringFieldUpdateOperationsInput | string | null
+    gatewayCustomerId?: NullableStringFieldUpdateOperationsInput | string | null
+    receiptUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    receiptEmail?: NullableStringFieldUpdateOperationsInput | string | null
+    purchaseId?: NullableStringFieldUpdateOperationsInput | string | null
+    errorMessage?: NullableStringFieldUpdateOperationsInput | string | null
+    errorCode?: NullableStringFieldUpdateOperationsInput | string | null
+    metadata?: NullableJsonNullValueInput | InputJsonValue
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    completedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  }
+
+  export type TransactionCreateManyPurchaseInput = {
+    id?: string
+    amount: Decimal | DecimalJsLike | number | string
+    currency?: string
+    status: string
+    paymentMethod?: string | null
+    paymentType?: string | null
+    gatewayId: string
+    gatewayTransactionId?: string | null
+    gatewayCustomerId?: string | null
+    receiptUrl?: string | null
+    receiptEmail?: string | null
+    errorMessage?: string | null
+    errorCode?: string | null
+    metadata?: NullableJsonNullValueInput | InputJsonValue
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    completedAt?: Date | string | null
+  }
+
+  export type TransactionUpdateWithoutPurchaseInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    amount?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    currency?: StringFieldUpdateOperationsInput | string
+    status?: StringFieldUpdateOperationsInput | string
+    paymentMethod?: NullableStringFieldUpdateOperationsInput | string | null
+    paymentType?: NullableStringFieldUpdateOperationsInput | string | null
+    gatewayTransactionId?: NullableStringFieldUpdateOperationsInput | string | null
+    gatewayCustomerId?: NullableStringFieldUpdateOperationsInput | string | null
+    receiptUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    receiptEmail?: NullableStringFieldUpdateOperationsInput | string | null
+    errorMessage?: NullableStringFieldUpdateOperationsInput | string | null
+    errorCode?: NullableStringFieldUpdateOperationsInput | string | null
+    metadata?: NullableJsonNullValueInput | InputJsonValue
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    completedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    paymentGateway?: PaymentGatewayUpdateOneRequiredWithoutTransactionsNestedInput
+  }
+
+  export type TransactionUncheckedUpdateWithoutPurchaseInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    amount?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    currency?: StringFieldUpdateOperationsInput | string
+    status?: StringFieldUpdateOperationsInput | string
+    paymentMethod?: NullableStringFieldUpdateOperationsInput | string | null
+    paymentType?: NullableStringFieldUpdateOperationsInput | string | null
+    gatewayId?: StringFieldUpdateOperationsInput | string
+    gatewayTransactionId?: NullableStringFieldUpdateOperationsInput | string | null
+    gatewayCustomerId?: NullableStringFieldUpdateOperationsInput | string | null
+    receiptUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    receiptEmail?: NullableStringFieldUpdateOperationsInput | string | null
+    errorMessage?: NullableStringFieldUpdateOperationsInput | string | null
+    errorCode?: NullableStringFieldUpdateOperationsInput | string | null
+    metadata?: NullableJsonNullValueInput | InputJsonValue
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    completedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  }
+
+  export type TransactionUncheckedUpdateManyWithoutPurchaseInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    amount?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    currency?: StringFieldUpdateOperationsInput | string
+    status?: StringFieldUpdateOperationsInput | string
+    paymentMethod?: NullableStringFieldUpdateOperationsInput | string | null
+    paymentType?: NullableStringFieldUpdateOperationsInput | string | null
+    gatewayId?: StringFieldUpdateOperationsInput | string
+    gatewayTransactionId?: NullableStringFieldUpdateOperationsInput | string | null
+    gatewayCustomerId?: NullableStringFieldUpdateOperationsInput | string | null
+    receiptUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    receiptEmail?: NullableStringFieldUpdateOperationsInput | string | null
+    errorMessage?: NullableStringFieldUpdateOperationsInput | string | null
+    errorCode?: NullableStringFieldUpdateOperationsInput | string | null
+    metadata?: NullableJsonNullValueInput | InputJsonValue
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    completedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   }
 
 

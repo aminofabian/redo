@@ -3,13 +3,45 @@
 import { ShoppingBag, X, ChevronDown, ChevronRight } from "lucide-react";
 import { useCart } from "@/lib/CartContext";
 import { Button } from "@/components/ui/button";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from "@/components/ui/sheet";
+
+type PaymentGateway = {
+  id: string;
+  name: string;
+  isActive: boolean;
+  environment: string;
+  businessName: string | null;
+  supportsCreditCards: boolean;
+  supportsDirectDebit: boolean;
+};
 
 export function CartSidebar() {
   const { items, removeItem, totalItems, totalPrice } = useCart();
   const [expandedPackages, setExpandedPackages] = useState<number[]>([]);
+  const [paymentGateways, setPaymentGateways] = useState<PaymentGateway[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
 
-  if (items.length === 0) return null;
+  // Fetch active payment gateways
+  const fetchPaymentGateways = async () => {
+    setIsLoading(true);
+    try {
+      const response = await fetch('/api/payment-gateways');
+      if (!response.ok) throw new Error('Failed to fetch payment gateways');
+      const data = await response.json();
+      setPaymentGateways(data.gateways);
+    } catch (error) {
+      console.error('Error fetching payment gateways:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   const togglePackage = (id: number) => {
     setExpandedPackages(current => 
@@ -18,6 +50,8 @@ export function CartSidebar() {
         : [...current, id]
     );
   };
+
+  if (items.length === 0) return null;
 
   return (
     <div className="bg-white p-4 rounded-lg shadow-sm border mb-6">
@@ -84,9 +118,80 @@ export function CartSidebar() {
           <span>Total:</span>
           <span>${totalPrice.toFixed(2)}</span>
         </div>
-        <Button className="w-full">
-          Proceed to Checkout ({totalItems} items)
-        </Button>
+        
+        <Sheet onOpenChange={(open) => open && fetchPaymentGateways()}>
+          <SheetTrigger asChild>
+            <Button className="w-full">
+              Proceed to Checkout ({totalItems} items)
+            </Button>
+          </SheetTrigger>
+          <SheetContent side="right" className="w-full sm:max-w-md">
+            <SheetHeader>
+              <SheetTitle>Select Payment Method</SheetTitle>
+            </SheetHeader>
+            
+            <div className="mt-6">
+              {isLoading ? (
+                <div className="flex justify-center py-8">
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900"></div>
+                </div>
+              ) : paymentGateways.length === 0 ? (
+                <p className="text-center text-gray-500">No payment methods available</p>
+              ) : (
+                <div className="space-y-4">
+                  {paymentGateways.map((gateway) => (
+                    <div 
+                      key={gateway.id}
+                      className="border rounded-lg p-4 cursor-pointer hover:bg-gray-50"
+                      onClick={() => {
+                        // Handle gateway selection
+                        console.log(`Selected payment gateway: ${gateway.name}`);
+                        // Will implement actual payment flow here
+                      }}
+                    >
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <h3 className="font-medium">{gateway.name}</h3>
+                          {gateway.businessName && (
+                            <p className="text-sm text-gray-500">
+                              Powered by {gateway.businessName}
+                            </p>
+                          )}
+                        </div>
+                        <div className="text-sm">
+                          {gateway.environment === 'test' && (
+                            <span className="bg-yellow-100 text-yellow-800 px-2 py-1 rounded text-xs">
+                              Test Mode
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                      
+                      <div className="mt-2 text-sm text-gray-500 flex gap-2">
+                        {gateway.supportsCreditCards && (
+                          <span className="bg-gray-100 px-2 py-1 rounded">Credit Card</span>
+                        )}
+                        {gateway.supportsDirectDebit && (
+                          <span className="bg-gray-100 px-2 py-1 rounded">Direct Debit</span>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                  
+                  <div className="border-t pt-4 mt-6">
+                    <div className="font-medium flex justify-between mb-2">
+                      <span>Order Total:</span>
+                      <span>${totalPrice.toFixed(2)}</span>
+                    </div>
+                    <div className="text-sm text-gray-500">
+                      {totalItems} item{totalItems !== 1 ? 's' : ''}
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+          </SheetContent>
+        </Sheet>
       </div>
     </div>
   );
