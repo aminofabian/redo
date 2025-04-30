@@ -244,16 +244,16 @@ exports.Prisma.TransactionScalarFieldEnum = {
   amount: 'amount',
   currency: 'currency',
   status: 'status',
+  errorMessage: 'errorMessage',
+  errorCode: 'errorCode',
   paymentMethod: 'paymentMethod',
   paymentType: 'paymentType',
+  receiptUrl: 'receiptUrl',
+  receiptEmail: 'receiptEmail',
   gatewayId: 'gatewayId',
   gatewayTransactionId: 'gatewayTransactionId',
   gatewayCustomerId: 'gatewayCustomerId',
-  receiptUrl: 'receiptUrl',
-  receiptEmail: 'receiptEmail',
   purchaseId: 'purchaseId',
-  errorMessage: 'errorMessage',
-  errorCode: 'errorCode',
   metadata: 'metadata',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt',
@@ -302,6 +302,29 @@ exports.Prisma.CategoryPathScalarFieldEnum = {
   level5: 'level5'
 };
 
+exports.Prisma.OrderScalarFieldEnum = {
+  id: 'id',
+  userId: 'userId',
+  status: 'status',
+  totalAmount: 'totalAmount',
+  currency: 'currency',
+  paymentStatus: 'paymentStatus',
+  paymentIntentId: 'paymentIntentId',
+  transactionId: 'transactionId',
+  metadata: 'metadata',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.OrderItemScalarFieldEnum = {
+  id: 'id',
+  orderId: 'orderId',
+  productId: 'productId',
+  quantity: 'quantity',
+  price: 'price',
+  createdAt: 'createdAt'
+};
+
 exports.Prisma.SortOrder = {
   asc: 'asc',
   desc: 'desc'
@@ -348,7 +371,9 @@ exports.Prisma.ModelName = {
   Purchase: 'Purchase',
   Review: 'Review',
   PackageDiscount: 'PackageDiscount',
-  CategoryPath: 'CategoryPath'
+  CategoryPath: 'CategoryPath',
+  Order: 'Order',
+  OrderItem: 'OrderItem'
 };
 
 /**

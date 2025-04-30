@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
-import { PrismaClient } from '@prisma/client';
+// import { PrismaClient } from '@prisma/client';
 import { auth } from '@/lib/auth';
+import { PrismaClient } from '@/src/generated/client';
 
 const prisma = new PrismaClient();
 
@@ -60,6 +61,9 @@ export async function POST(request: Request) {
         } : undefined,
       } as any
     });
+
+
+    console.log(product, 'product.....:...:')
     
     // Now update the slug to include the ID
     const finalSlug = `${data.slug}-${product.id}`;

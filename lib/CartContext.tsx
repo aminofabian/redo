@@ -64,6 +64,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
         toast.error("Item already in cart");
         return currentItems;
       }
+      console.log(...currentItems, { ...newItem, quantity: 1 }, 'what are you here fore...');
       
       return [...currentItems, { ...newItem, quantity: 1 }];
     });
