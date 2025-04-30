@@ -386,12 +386,11 @@ const config = {
     "db"
   ],
   "activeProvider": "postgresql",
-  "postinstall": false,
   "inlineDatasources": {
     "db": {
       "url": {
         "fromEnvVar": "DATABASE_URL",
-        "value": null
+        "value": "postgresql://rnstudentsresources_owner:npg_iSnpDCZB7xV6@ep-ancient-butterfly-a5ffi0kw.us-east-2.aws.neon.tech/rnstudentsresources?sslmode=require"
       }
     }
   },

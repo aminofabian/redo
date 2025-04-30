@@ -59,7 +59,7 @@ export async function POST(req: Request) {
         gatewayId: 'paypal', // Assuming you have a PayPal gateway configured
         gatewayTransactionId: captureData.id,
         gatewayCustomerId: order.userId,
-        receiptEmail: order.user.email,
+        receiptEmail: order.user ? order.user.email : null,
         orders: {
           connect: {
             id: order.id,

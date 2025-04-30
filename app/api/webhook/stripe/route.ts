@@ -1,117 +1,156 @@
-// app/api/stripe/verify-order/route.ts
 import Stripe from "stripe";
 import { NextResponse } from 'next/server';
+import { headers } from 'next/headers';
 import { PrismaClient } from '@/src/generated/client';
 
 const prisma = new PrismaClient();
 
-if (!process.env.STRIPE_SECRET_KEY) {
-  throw new Error("STRIPE_SECRET_KEY is not defined in environment variables");
-}
-
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
   apiVersion: "2025-03-31.basil",
 });
 
-export async function GET(request: Request) {
+export const config = {
+  api: {
+    bodyParser: false,
+  },
+};
+
+export async function POST(request: Request) {
   try {
-    const { searchParams } = new URL(request.url);
-    const sessionId = searchParams.get('session_id');
-    const orderId = searchParams.get('order_id');
-    
-    console.log(`Verifying order: Session ID = ${sessionId}, Order ID = ${orderId}`);
+    const body = await request.text();
+    const headersList = headers();
+    const signature = headersList.get('stripe-signature');
 
-    if (!sessionId) {
-      return NextResponse.json(
-        { error: "Session ID is required" },
-        { status: 400 }
-      );
+    if (!signature) {
+      return NextResponse.json({ error: "No Stripe signature found in request" }, { status: 400 });
     }
 
-    // Retrieve the session to get payment details
-    const session = await stripe.checkout.sessions.retrieve(sessionId, {
-      expand: ['line_items', 'customer_details', 'payment_intent'],
-    });
-
-    // Check if payment was successful
-    if (session.payment_status !== 'paid') {
-      return NextResponse.json(
-        { error: "Payment not completed" },
-        { status: 400 }
+    let event: Stripe.Event;
+    try {
+      event = stripe.webhooks.constructEvent(
+        body,
+        signature,
+        process.env.STRIPE_WEBHOOK_SECRET!
       );
+    } catch (err) {
+      return NextResponse.json({ error: `Webhook signature verification failed` }, { status: 400 });
     }
+    console.log(event, 'this is the event from stripe webhook::::::::::::::::::::::::::::::::::::::::::::::');
 
-    // If order_id was provided, find that specific order
-    let order;
-    if (orderId) {
-      order = await prisma.order.findUnique({
+    // Handle checkout.session.completed event
+    if (event.type === 'checkout.session.completed') {
+      const session = event.data.object as Stripe.Checkout.Session;
+      console.log(session.customer_details, 'Customer details from the session:')
+      
+      // Extract relevant data from the session (matching your callback data)
+      const { 
+        id: sessionId,
+        payment_intent: paymentIntentId,
+        amount_total: amountTotal,
+        currency,
+        payment_status: paymentStatus,
+        customer_details,
+        metadata
+      } = session;
+
+      console.log({
+        id: sessionId,
+        payment_intent: paymentIntentId,
+        amount_total: amountTotal,
+        currency,
+        payment_status: paymentStatus,
+        customer_details,
+        metadata,
+
+        
+      }, "///////////////////////////////////////////////////////////////sdkfjkj")
+
+      // Get your internal orderId from metadata or client_reference_id
+      const orderId = session.metadata?.orderId || session.client_reference_id;
+      if (!orderId) {
+        return NextResponse.json({ error: "Order ID not found in session" }, { status: 400 });
+      }
+      console.log(orderId, 'this is the order id from the sessionsssssssssssssss');
+
+      // Find the order with order items and user
+      const order = await prisma.order.findUnique({
         where: { id: orderId },
-        include: {
-          // items: true, // Removed as it does not exist in OrderInclude type
+        include: { 
           user: true,
-          transaction: true
-        }
-      });
-    } else {
-      // Try to find the order by session ID in metadata
-      order = await prisma.order.findFirst({
-        where: {
-          metadata: {
-            path: ['sessionId'],
-            equals: sessionId
+          orderItems: {
+            include: {
+              product: true
+            }
           }
         },
-        include: {
-          // items: true, // Removed as it does not exist in OrderInclude type
-          user: true,
-          transaction: true
+      });
+
+      console.log(order, 'this is the order from the database::::::::::::::::::::::::::::::::::::::::::::::');
+
+      if (!order) {
+        return NextResponse.json({ error: "Order not found" }, { status: 404 });
+      }
+
+      // Create transaction (similar to PayPal logic)
+      const transaction = await prisma.transaction.create({
+        data: {
+          amount: amountTotal ? amountTotal / 100 : order.totalAmount, // Convert from cents to dollars if amountTotal exists
+          currency: currency || order.currency,
+          status: paymentStatus === 'paid' ? 'completed' : 'failed',
+          paymentMethod: 'stripe',
+          paymentType: 'one-time',
+          gatewayId: 'stripe',
+          gatewayTransactionId: paymentIntentId as string,
+          gatewayCustomerId: order.userId,
+          receiptEmail: customer_details?.email || order.user?.email,
+          orders: { connect: { id: order.id } },
+          metadata: JSON.parse(JSON.stringify(session)), // Store the session for reference
+        },
+      });
+
+      console.log(transaction, 'transactionsssssssssssssss...............:')
+      // Update order status (similar to PayPal logic)
+      const updatedOrder = await prisma.order.update({
+        where: { id: order.id },
+        data: {
+          status: paymentStatus === 'paid' ? 'paid' : 'failed',
+          paymentStatus: paymentStatus === 'paid' ? 'paid' : 'failed',
+          paymentIntentId: paymentIntentId as string,
+          transactionId: transaction.id,
+        },
+      });
+
+      // If payment was successful, create purchases for each order item
+      if (paymentStatus === 'paid') {
+        for (const item of order.orderItems) {
+          await prisma.purchase.create({
+            data: {
+              product: { connect: { id: item.productId } },
+              user: { connect: { id: order.userId } },
+              amount: item.price,
+              status: 'completed',
+              transactions: { connect: { id: transaction.id } },
+            },
+          });
         }
+      }
+
+      return NextResponse.json({
+        orderId: updatedOrder.id,
+        status: updatedOrder.status,
+        transactionId: transaction.id,
+        sessionId: session.id,
+        paymentStatus: session.payment_status,
       });
     }
 
-    // If we couldn't find an order, that's ok - the webhook might not have processed yet
-    if (!order) {
-      console.log('Order not found, providing session details only');
-      
-      // Extract relevant order information from the session
-      const orderData = {
-        id: session.id,
-        payment_intent: session.payment_intent,
-        amount_total: session.amount_total,
-        currency: session.currency,
-        customer_details: session.customer_details,
-        items: session.line_items?.data,
-        payment_status: session.payment_status,
-        created: session.created,
-        message: "Order details are being processed. The webhook may not have completed yet."
-      };
+    // Handle other events as needed
+    return NextResponse.json({ received: true });
 
-      return NextResponse.json(orderData);
-    }
-
-    // Return the combined order and payment information
-    return NextResponse.json({
-      order: {
-        id: order.id,
-        status: order.status,
-        paymentStatus: order.paymentStatus,
-        totalAmount: order.totalAmount,
-        currency: order.currency,
-        // Removed 'items' as it does not exist on the 'order' object
-        created: order.createdAt,
-      },
-      payment: {
-        transactionId: order.transactionId,
-        paymentIntentId: session.payment_intent,
-        amount: session.amount_total,
-        paymentStatus: session.payment_status,
-        customerEmail: session.customer_details?.email,
-      }
-    });
   } catch (error) {
-    console.error("Error verifying order:", error);
+    console.error('Error in Stripe webhook:', error);
     return NextResponse.json(
-      { error: "Failed to verify order" },
+      { error: 'Webhook handler failed', details: error instanceof Error ? error.message : undefined },
       { status: 500 }
     );
   }

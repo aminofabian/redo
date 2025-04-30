@@ -105,7 +105,8 @@ export function CartSidebar({ priceId, price, description }: props) {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          cartItems: items
+          cartItems: items,
+          orderId
           // returnUrl: window.location.href,
         }),
       });

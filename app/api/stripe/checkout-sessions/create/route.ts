@@ -11,7 +11,7 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
 
 export async function POST(request: Request) {
   try {
-    const { cartItems } = await request.json();
+    const { cartItems,orderId } = await request.json();
     const returnUrl = "https://b73a-41-90-172-244.ngrok-free.app"
 
     if (!cartItems || !Array.isArray(cartItems)) {
@@ -76,7 +76,10 @@ export async function POST(request: Request) {
     //   success_url: `${request.headers.get('origin')}/success?session_id={CHECKOUT_SESSION_ID}`,
     //   success_url: `${returnUrl || request.headers.get('origin') || ''}/success?session_id={CHECKOUT_SESSION_ID}`,
       success_url: `https://b73a-41-90-172-244.ngrok-free.app/success?session_id={CHECKOUT_SESSION_ID}`,
-       cancel_url: `https://b73a-41-90-172-244.ngrok-free.app/cancel`
+       cancel_url: `https://b73a-41-90-172-244.ngrok-free.app/cancel`,
+       metadata: {
+        orderId, // this will be accessible later via webhooks or when retrieving session
+      },
     });
 
     return NextResponse.json({ sessionId: session.id, headers });
