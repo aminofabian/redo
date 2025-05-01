@@ -6,14 +6,12 @@ export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
     const { cartItems } = body;
-    console.log(cartItems, 'itemssss:.......:...................');
 
     if (!cartItems || !Array.isArray(cartItems)) {
       return NextResponse.json({ message: 'Invalid cart items' }, { status: 400 });
     }
 
     const order = await createPayPalOrder(cartItems);
-    console.log(order, 'order createddddddddddddddddddddddddddd');
     return NextResponse.json(order, { status: 200 });
 
   } catch (error) {

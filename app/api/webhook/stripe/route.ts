@@ -35,14 +35,12 @@ export async function POST(request: Request) {
     } catch (err) {
       return NextResponse.json({ error: `Webhook signature verification failed` }, { status: 400 });
     }
-    console.log(event, 'this is the event from stripe webhook::::::::::::::::::::::::::::::::::::::::::::::');
+    
 
-    // Handle checkout.session.completed event
     if (event.type === 'checkout.session.completed') {
       const session = event.data.object as Stripe.Checkout.Session;
       console.log(session.customer_details, 'Customer details from the session:')
       
-      // Extract relevant data from the session (matching your callback data)
       const { 
         id: sessionId,
         payment_intent: paymentIntentId,
@@ -53,26 +51,13 @@ export async function POST(request: Request) {
         metadata
       } = session;
 
-      console.log({
-        id: sessionId,
-        payment_intent: paymentIntentId,
-        amount_total: amountTotal,
-        currency,
-        payment_status: paymentStatus,
-        customer_details,
-        metadata,
+     
 
-        
-      }, "///////////////////////////////////////////////////////////////sdkfjkj")
-
-      // Get your internal orderId from metadata or client_reference_id
       const orderId = session.metadata?.orderId || session.client_reference_id;
       if (!orderId) {
         return NextResponse.json({ error: "Order ID not found in session" }, { status: 400 });
       }
-      console.log(orderId, 'this is the order id from the sessionsssssssssssssss');
-
-      // Find the order with order items and user
+      
       const order = await prisma.order.findUnique({
         where: { id: orderId },
         include: { 
@@ -85,16 +70,15 @@ export async function POST(request: Request) {
         },
       });
 
-      console.log(order, 'this is the order from the database::::::::::::::::::::::::::::::::::::::::::::::');
+     
 
       if (!order) {
         return NextResponse.json({ error: "Order not found" }, { status: 404 });
       }
 
-      // Create transaction (similar to PayPal logic)
       const transaction = await prisma.transaction.create({
         data: {
-          amount: amountTotal ? amountTotal / 100 : order.totalAmount, // Convert from cents to dollars if amountTotal exists
+          amount: amountTotal ? amountTotal / 100 : order.totalAmount, 
           currency: currency || order.currency,
           status: paymentStatus === 'paid' ? 'completed' : 'failed',
           paymentMethod: 'stripe',
@@ -104,12 +88,10 @@ export async function POST(request: Request) {
           gatewayCustomerId: order.userId,
           receiptEmail: customer_details?.email || order.user?.email,
           orders: { connect: { id: order.id } },
-          metadata: JSON.parse(JSON.stringify(session)), // Store the session for reference
+          metadata: JSON.parse(JSON.stringify(session)), 
         },
       });
 
-      console.log(transaction, 'transactionsssssssssssssss...............:')
-      // Update order status (similar to PayPal logic)
       const updatedOrder = await prisma.order.update({
         where: { id: order.id },
         data: {
@@ -120,7 +102,6 @@ export async function POST(request: Request) {
         },
       });
 
-      // If payment was successful, create purchases for each order item
       if (paymentStatus === 'paid') {
         for (const item of order.orderItems) {
           await prisma.purchase.create({
@@ -144,11 +125,9 @@ export async function POST(request: Request) {
       });
     }
 
-    // Handle other events as needed
     return NextResponse.json({ received: true });
 
   } catch (error) {
-    console.error('Error in Stripe webhook:', error);
     return NextResponse.json(
       { error: 'Webhook handler failed', details: error instanceof Error ? error.message : undefined },
       { status: 500 }

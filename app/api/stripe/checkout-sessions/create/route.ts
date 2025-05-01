@@ -21,7 +21,6 @@ export async function POST(request: Request) {
       );
     }
 
-    console.log(cartItems, returnUrl, "cart items received:::::::::::::::::::::::::::::::::::::::");
 
 
     const headers = {
@@ -61,7 +60,6 @@ export async function POST(request: Request) {
         quantity: item.quantity,
       };
 
-      // Only add images if they exist
       if (item.image) {
         lineItem.price_data.product_data.images = [item.image];
       }
@@ -78,7 +76,7 @@ export async function POST(request: Request) {
       success_url: `https://b73a-41-90-172-244.ngrok-free.app/success?session_id={CHECKOUT_SESSION_ID}`,
        cancel_url: `https://b73a-41-90-172-244.ngrok-free.app/cancel`,
        metadata: {
-        orderId, // this will be accessible later via webhooks or when retrieving session
+        orderId, 
       },
     });
 

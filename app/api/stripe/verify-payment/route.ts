@@ -23,12 +23,10 @@ export async function GET(request: Request) {
       );
     }
 
-    // Retrieve the session to get payment details
     const session = await stripe.checkout.sessions.retrieve(sessionId, {
       expand: ['line_items', 'customer_details', 'payment_intent'],
     });
 
-    // Check if payment was successful
     if (session.payment_status !== 'paid') {
       return NextResponse.json(
         { error: "Payment not completed" },
@@ -36,7 +34,6 @@ export async function GET(request: Request) {
       );
     }
 
-    // Extract relevant order information
     const orderData = {
       id: session.id,
       payment_intent: session.payment_intent,
@@ -48,8 +45,7 @@ export async function GET(request: Request) {
       created: session.created,
     };
 
-    // This is where you would typically save order information to your database
-    // await saveOrderToDatabase(orderData);
+    
 
     return NextResponse.json(orderData);
   } catch (error) {
