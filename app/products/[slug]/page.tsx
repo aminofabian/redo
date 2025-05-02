@@ -1,6 +1,6 @@
 import { Metadata } from "next";
 import prisma from "../../../lib/db";
-import { getProductBySlug, getAllProducts, generateProductSlug, extractIdFromSlug } from "../../../lib/products";
+import { getProductBySlug, getAllProducts, generateProductSlug } from "../../../lib/products";
 import Image from "next/image";
 import { formatDistanceToNow } from 'date-fns';
 import ProductImageGallery from './ProductImageGallery';

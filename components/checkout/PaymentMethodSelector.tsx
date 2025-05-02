@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
-import { CreditCard, PaypalIcon } from "lucide-react";
+import { CreditCard } from "lucide-react";
 import { Loader2 } from "lucide-react";
 
 type PaymentGateway = {
