@@ -4,8 +4,11 @@
 import { useEffect, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
+import { useCart } from '@/lib/CartContext';
 
 export default function SuccessPage() {
+    const { clearCart } = useCart();
+  
   const searchParams = useSearchParams();
   const sessionId = searchParams.get('session_id');
   console.log(sessionId, 'why..........')
@@ -25,22 +28,18 @@ export default function SuccessPage() {
       try {
         const response = await fetch(`/api/stripe/verify-payment?session_id=${sessionId}`);
         const data = await response.json();
-        console.log(data, 'interesting data...........::::::::::::::::::::::::::::::::')
+        // console.log(data, 'interesting data...........::::::::::::::::::::::::::::::::')
 
         if (!response.ok) {
           throw new Error(data.error || 'Failed to verify payment');
         }
 
         setOrderDetails(data);
-        
-        // Here you would typically:
-        // 1. Update your database with order information
-        // 2. Send confirmation emails
-        // 3. Update inventory, etc.
-        
+        clearCart();
+                
       } catch (err: any) {
         setError(err.message || 'Something went wrong');
-        console.error('Payment verification error:', err);
+        // console.error('Payment verification error:', err);
       } finally {
         setIsLoading(false);
       }
