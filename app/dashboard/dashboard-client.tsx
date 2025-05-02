@@ -1,5 +1,7 @@
 "use client";
 
+import { useEffect, useState } from 'react';
+
 import { motion } from "framer-motion";
 import { 
   Download, 
@@ -20,7 +22,6 @@ import {
   LogOut
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { useState } from "react";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
 import { signOut } from "next-auth/react";
@@ -49,8 +50,56 @@ const recommendedResources = [
   // ...same as before
 ];
 
+interface OrderStats {
+  totalOrders: number;
+  unpaidOrders: number;
+  completedOrders: number;
+  totalSpent: number;
+  coursesInCart: number;
+}
+
 export default function DashboardClient({ session }: { session: Session }) {
-  const [isQuickMenuOpen, setIsQuickMenuOpen] = useState(false);
+  const [stats, setStats] = useState<OrderStats | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+
+  useEffect(() => {
+    const fetchOrderStats = async () => {
+      try {
+        setLoading(true);
+        const response = await fetch('/api/order/count');
+        console.log(response, 'why...............:')
+        
+        if (!response.ok) {
+          throw new Error('Failed to fetch order statistics');
+        }
+        
+        const data = await response.json();
+        setStats(data);
+      } catch (err) {
+        setError(err instanceof Error ? err.message : 'An unknown error occurred');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchOrderStats();
+  }, []);
+
+  if (loading) {
+    return <div>Loading order statistics...</div>;
+  }
+
+  if (error) {
+    return <div>Error: {error}</div>;
+  }
+
+  if (!stats) {
+    return <div>No order statistics available</div>;
+  }
+
+  // const [isQuickMenuOpen, setIsQuickMenuOpen] = useState(false);
 
   const firstName = (session?.user as any)?.firstName || session?.user?.name?.split(' ')[0] || 'Student';
 
@@ -75,7 +124,35 @@ export default function DashboardClient({ session }: { session: Session }) {
   // Rest of your UI code, same as before but using the session prop
   return (
     <div className="max-w-7xl mx-auto">
-      {/* The rest of your JSX code, unchanged */}
+      <div className="user-order-stats">
+      <h2>Your Order Summary</h2>
+      <div className="stats-grid">
+        <div className="stat-card">
+          <h3>Total Orders</h3>
+          <p>{stats.totalOrders}</p>
+        </div>
+        
+        <div className="stat-card">
+          <h3>Unpaid Orders</h3>
+          <p>{stats.unpaidOrders}</p>
+        </div>
+        
+        <div className="stat-card">
+          <h3>Completed Orders</h3>
+          <p>{stats.completedOrders}</p>
+        </div>
+        
+        <div className="stat-card">
+          <h3>Total Spent</h3>
+          <p>${stats.totalSpent}</p>
+        </div>
+        
+        <div className="stat-card">
+          <h3>Courses in Cart</h3>
+          <p>{stats.coursesInCart}</p>
+        </div>
+      </div>
+    </div>
     </div>
   );
 } 
