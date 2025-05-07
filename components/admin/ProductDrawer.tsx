@@ -613,71 +613,122 @@ export function ProductDrawer({
   return (
     <>
       <Sheet open={open} onOpenChange={onClose}>
-        <SheetContent className="w-[75vw] overflow-y-auto border-l border-gray-200 pb-24">
-          <SheetHeader className="border-b pb-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <SheetTitle className="text-2xl">Add New Products</SheetTitle>
+        <SheetContent className="sm:max-w-[80%] w-[95vw] lg:max-w-[85%] overflow-y-auto border-l-0 pb-24 bg-gradient-to-br from-indigo-50 via-white to-blue-50">
+          {/* Custom curved header with accent shape */}
+          <div className="relative">
+            <div className="absolute top-0 right-0 w-64 h-64 bg-blue-500 opacity-10 rounded-full -mr-32 -mt-32 z-0"></div>
+            <div className="absolute top-0 left-0 w-32 h-32 bg-indigo-500 opacity-10 rounded-full -ml-16 -mt-16 z-0"></div>
+            
+            <SheetHeader className="relative z-10 pb-8 pt-4 px-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <div className="flex items-center space-x-2">
+                    <div className="bg-gradient-to-r from-blue-600 to-indigo-600 p-1.5 rounded-lg">
+                      <Package className="h-6 w-6 text-white" />
+                    </div>
+                    <SheetTitle className="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-700 via-indigo-700 to-purple-700">
+                      Create Magic
+                    </SheetTitle>
+                  </div>
+                  <p className="text-sm text-gray-500 mt-2 ml-10 italic">Design your next bestselling product</p>
+                </div>
+                <SheetClose asChild>
+                  <Button variant="ghost" size="icon" className="hover:bg-white/50 rounded-full h-10 w-10 transition-all duration-300 hover:rotate-90">
+                    <X className="h-5 w-5" />
+                  </Button>
+                </SheetClose>
               </div>
-              <SheetClose asChild>
-                <Button variant="ghost" size="icon">
-                  <X className="h-4 w-4" />
-                </Button>
-              </SheetClose>
-            </div>
-          </SheetHeader>
+            </SheetHeader>
+          </div>
           
-          <div className="mt-6 space-y-8 pb-24">
-            <div className="grid grid-cols-3 gap-8">
+          {/* Custom wavy divider */}
+          <div className="relative h-12 -mt-4 mb-6">
+            <svg className="absolute w-full h-12" preserveAspectRatio="none" viewBox="0 0 1200 120" xmlns="http://www.w3.org/2000/svg">
+              <path fill="#ffffff" d="M321.39,56.44c58-10.79,114.16-30.13,172-41.86,82.39-16.72,168.19-17.73,250.45-.39C823.78,31,906.67,72,985.66,92.83c70.05,18.48,146.53,26.09,214.34,3V0H0V27.35A600.21,600.21,0,0,0,321.39,56.44Z"></path>
+            </svg>
+          </div>
+
+          <div className="px-6 space-y-10 pb-24">
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
               {/* Left Column */}
-              <div className="col-span-2 space-y-8">
-                {/* Basic Info */}
-                <div className="space-y-4">
-                  <div>
-                    <Label className="text-base font-medium">Name</Label>
-                    <Input 
-                      name="title"
-                      value={formData.title}
-                      onChange={handleFormChange}
-                      placeholder="e.g., NCLEX-RN Complete Study Guide" 
-                      className="mt-2"
-                    />
+              <div className="lg:col-span-2 space-y-8">
+                {/* Basic Info - with unique styling */}
+                <div className="bg-white rounded-2xl p-6 shadow-lg border border-indigo-100 transform hover:translate-y-[-2px] transition-all duration-300">
+                  <div className="flex items-center mb-5">
+                    <div className="h-10 w-1 bg-gradient-to-b from-blue-500 to-indigo-600 rounded-full mr-4"></div>
+                    <h3 className="text-xl font-bold text-gray-800">Basic Information</h3>
                   </div>
                   
-                  <div>
-                    <Label className="text-base font-medium">Product URL</Label>
-                    <div className="relative mt-2">
-                      <LinkIcon className="absolute left-3 top-3 h-5 w-5 text-gray-500" />
+                  <div className="space-y-6">
+                    <div>
+                      <Label className="text-sm font-medium text-gray-700 block mb-2 flex items-center">
+                        <span className="bg-blue-100 p-1 rounded-md mr-2">
+                          <Package className="h-4 w-4 text-blue-700" />
+                        </span>
+                        Product Name
+                      </Label>
                       <Input 
-                        name="link"
-                        value={formData.link}
+                        name="title"
+                        value={formData.title}
                         onChange={handleFormChange}
-                        className="pl-10 bg-white text-gray-700 font-medium"
+                        placeholder="e.g., NCLEX-RN Complete Study Guide" 
+                        className="rounded-xl bg-gradient-to-r from-white to-gray-50 border-indigo-100 focus:border-blue-300 focus:ring focus:ring-blue-200 focus:ring-opacity-50 transition-all"
                       />
                     </div>
-                    <p className="text-xs text-gray-500 mt-1">
-                      URL is automatically generated from the product name but can be manually edited
-                    </p>
-                  </div>
+                    
+                    <div>
+                      <Label className="text-sm font-medium text-gray-700 block mb-2 flex items-center">
+                        <span className="bg-blue-100 p-1 rounded-md mr-2">
+                          <LinkIcon className="h-4 w-4 text-blue-700" />
+                        </span>
+                        Product URL
+                      </Label>
+                      <div className="relative mt-2">
+                        <LinkIcon className="absolute left-3 top-3 h-5 w-5 text-gray-500" />
+                        <Input 
+                          name="link"
+                          value={formData.link}
+                          onChange={handleFormChange}
+                          className="pl-10 bg-gradient-to-r from-white to-gray-50 border-indigo-100 focus:border-blue-300 focus:ring focus:ring-blue-200 focus:ring-opacity-50 transition-all"
+                        />
+                      </div>
+                      <p className="text-xs text-gray-500 mt-1">
+                        URL is automatically generated from the product name but can be manually edited
+                      </p>
+                    </div>
 
-                  <div>
-                    <Label className="text-base font-medium">Description</Label>
-                    <div className="mt-2 border rounded-lg overflow-hidden">
-                      <Textarea 
-                        name="description"
-                        value={formData.description}
-                        onChange={handleFormChange}
-                        placeholder="Describe your product..."
-                        className="min-h-[150px] border-0 focus-visible:ring-0 resize-none"
-                      />
+                    <div>
+                      <Label className="text-sm font-medium text-gray-700 block mb-2 flex items-center">
+                        <span className="bg-blue-100 p-1 rounded-md mr-2">
+                          <ImageIcon className="h-4 w-4 text-blue-700" />
+                        </span>
+                        Description
+                      </Label>
+                      <div className="mt-2 border rounded-lg overflow-hidden">
+                        <Textarea 
+                          name="description"
+                          value={formData.description}
+                          onChange={handleFormChange}
+                          placeholder="Describe your product..."
+                          className="min-h-[150px] border-0 focus-visible:ring-0 resize-none bg-gradient-to-r from-white to-gray-50"
+                        />
+                      </div>
                     </div>
                   </div>
                 </div>
 
-                {/* Upload Section */}
-                <div>
-                  <Label className="text-base font-medium">Images</Label>
-                  <div className="mt-2 border border-dashed rounded-lg p-4">
+                {/* Upload Section - custom design */}
+                <div className="bg-gradient-to-br from-white to-blue-50 rounded-2xl p-6 shadow-lg border border-indigo-100">
+                  <div className="flex items-center mb-5">
+                    <div className="h-10 w-1 bg-gradient-to-b from-purple-500 to-pink-600 rounded-full mr-4"></div>
+                    <h3 className="text-xl font-bold text-gray-800">Product Gallery</h3>
+                  </div>
+                  
+                  <div className="border-2 border-dashed border-indigo-200 rounded-xl p-8 bg-white hover:bg-blue-50 transition-colors relative overflow-hidden">
+                    {/* Create decorative elements */}
+                    <div className="absolute top-0 right-0 w-32 h-32 bg-indigo-100 opacity-30 rounded-full -mr-16 -mt-16"></div>
+                    <div className="absolute bottom-0 left-0 w-32 h-32 bg-blue-100 opacity-30 rounded-full -ml-16 -mb-16"></div>
+                    
                     <input
                       type="file"
                       ref={fileInputRef}
@@ -689,44 +740,47 @@ export function ProductDrawer({
                     
                     {selectedFiles.length === 0 ? (
                       <div 
-                        className="flex items-center justify-center h-32 bg-gray-50 rounded-md cursor-pointer"
+                        className="flex items-center justify-center h-40 cursor-pointer relative z-10"
                         onClick={() => fileInputRef.current?.click()}
                       >
                         <div className="text-center">
-                          <Upload className="w-8 h-8 mx-auto text-gray-400" />
-                          <p className="mt-2 text-sm text-gray-500">
-                            Drop your files here, or{" "}
-                            <span className="text-blue-500 hover:underline">browse</span>
+                          <div className="mb-4 bg-indigo-50 p-4 rounded-full inline-block">
+                            <Upload className="w-8 h-8 text-indigo-600" />
+                          </div>
+                          <p className="text-base text-gray-600 font-medium">
+                            Drop files here or{" "}
+                            <span className="text-blue-600 underline">browse</span>
                           </p>
-                          <p className="text-xs text-gray-400 mt-1">
+                          <p className="text-sm text-gray-400 mt-2">
                             PNG, JPG up to 10MB
                           </p>
                         </div>
                       </div>
                     ) : (
-                      <div className="space-y-3">
-                        <div className="grid grid-cols-3 gap-3">
+                      <div className="space-y-4 relative z-10">
+                        <div className="grid grid-cols-3 gap-4">
                           {imageUrls.map((url, index) => (
-                            <div key={index} className="relative group">
+                            <div key={index} className="relative group rounded-xl overflow-hidden shadow-md transform transition-transform hover:scale-105">
                               <img 
                                 src={url} 
                                 alt={`Preview ${index}`} 
-                                className="h-24 w-full object-cover rounded-md"
+                                className="h-32 w-full object-cover"
                               />
+                              <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
                               <button
                                 type="button"
-                                className="absolute top-1 right-1 bg-white rounded-full p-1 shadow-sm opacity-0 group-hover:opacity-100 transition-opacity"
+                                className="absolute bottom-2 right-2 bg-white/90 rounded-full p-1.5 shadow-lg opacity-0 group-hover:opacity-100 transition-all transform group-hover:scale-110"
                                 onClick={() => removeFile(index)}
                               >
-                                <X className="h-4 w-4" />
+                                <X className="h-4 w-4 text-red-500" />
                               </button>
                             </div>
                           ))}
                           <div
-                            className="h-24 flex items-center justify-center border border-dashed rounded-md cursor-pointer hover:bg-gray-50"
+                            className="h-32 flex items-center justify-center rounded-xl border-2 border-dashed border-indigo-200 cursor-pointer bg-indigo-50/50 hover:bg-indigo-100/50 transition-colors transform hover:scale-105"
                             onClick={() => fileInputRef.current?.click()}
                           >
-                            <Plus className="h-6 w-6 text-gray-400" />
+                            <Plus className="h-6 w-6 text-indigo-400" />
                           </div>
                         </div>
                       </div>
@@ -735,8 +789,11 @@ export function ProductDrawer({
                 </div>
 
                 {/* Download Link */}
-                <div>
-                  <Label className="text-base font-medium">Download Link</Label>
+                <div className="bg-white rounded-xl p-6 shadow-sm">
+                  <h3 className="text-lg font-semibold flex items-center gap-2 text-gray-800 mb-4">
+                    <Download className="h-5 w-5 text-[#1e2c51]" />
+                    Download Link
+                  </h3>
                   <Input 
                     name="downloadLink"
                     value={formData.downloadLink}
@@ -747,8 +804,11 @@ export function ProductDrawer({
                 </div>
 
                 {/* Access Settings */}
-                <div className="space-y-4">
-                  <h3 className="text-base font-medium">Access Settings</h3>
+                <div className="bg-white rounded-xl p-6 shadow-sm space-y-4">
+                  <h3 className="text-lg font-semibold flex items-center gap-2 text-gray-800">
+                    <Timer className="h-5 w-5 text-[#1e2c51]" />
+                    Access Settings
+                  </h3>
                   <div className="grid grid-cols-2 gap-4">
                     <div>
                       <div className="flex items-center justify-between">
@@ -804,176 +864,149 @@ export function ProductDrawer({
                 </div>
               </div>
 
-              {/* Right Column */}
-              <div className="space-y-8">
-                {/* Categories - Replace with Hierarchical Categories */}
-                <div>
-                  <div className="flex items-center justify-between mb-4">
-                    <h3 className="text-base font-medium">Categories</h3>
-                    <Button 
-                      variant="outline" 
-                      size="sm" 
-                      className="flex items-center gap-1"
-                      onClick={() => handleAddCategory("")}
-                    >
-                      <PlusCircle className="h-4 w-4" />
-                      Add Category
-                    </Button>
+              {/* Right Column - Floating Card Design */}
+              <div className="space-y-8 relative">
+                <div className="sticky top-20 space-y-6">
+                  {/* Categories - Unique Card */}
+                  <div className="bg-white rounded-2xl p-6 shadow-lg border border-indigo-100 relative overflow-hidden">
+                    <div className="absolute top-0 right-0 w-64 h-64 bg-gradient-to-br from-indigo-100 to-purple-50 opacity-50 rounded-full -mr-32 -mt-32 z-0"></div>
+                    
+                    <div className="relative z-10">
+                      <div className="flex items-center justify-between mb-6">
+                        <div className="flex items-center">
+                          <span className="bg-indigo-100 p-2 rounded-lg mr-3">
+                            <Tag className="h-5 w-5 text-indigo-600" />
+                          </span>
+                          <h3 className="text-xl font-bold text-gray-800">Categories</h3>
+                        </div>
+                        <Button 
+                          variant="outline" 
+                          size="sm" 
+                          className="border-indigo-200 text-indigo-700 hover:bg-indigo-50 rounded-lg"
+                          onClick={() => handleAddCategory("")}
+                        >
+                          <PlusCircle className="h-4 w-4 mr-1" />
+                          Add Category
+                        </Button>
+                      </div>
+                      <div className="border border-indigo-100 rounded-xl p-4 max-h-[350px] overflow-y-auto bg-gradient-to-br from-white to-indigo-50/30">
+                        <CategoryTree items={categoryStructure} />
+                      </div>
+                    </div>
                   </div>
-                  <div className="border rounded-lg p-4 max-h-[400px] overflow-y-auto">
-                    <CategoryTree items={categoryStructure} />
-                  </div>
-                  {selectedCategoryPaths.length > 0 && (
-                    <div className="mt-3">
-                      <p className="text-sm text-gray-500">Selected categories:</p>
-                      <div className="mt-2 flex flex-wrap gap-2">
-                        {selectedCategoryPaths.map(path => {
-                          const parts = path.split('/');
-                          const readableParts = parts.map((part, index) => {
-                            let currentPath = parts.slice(0, index + 1).join('/');
-                            return getPathReadableName(currentPath);
-                          });
-                          const readablePath = readableParts.join(' > ');
-                          
-                          return (
-                            <div key={path} className="inline-flex items-center bg-gray-100 px-3 py-1 rounded-full text-xs">
-                              {readablePath}
-                              <button 
-                                onClick={() => handleCategoryPathChange(path, false)}
-                                className="ml-2 text-gray-500 hover:text-gray-700"
-                              >
-                                <X className="h-3 w-3" />
-                              </button>
+
+                  {/* Pricing - Creative Card */}
+                  <div className="bg-gradient-to-r from-white to-blue-50 rounded-2xl p-6 shadow-lg border border-indigo-100 relative overflow-hidden">
+                    <div className="absolute bottom-0 left-0 w-64 h-64 bg-gradient-to-tr from-blue-100 to-indigo-50 opacity-40 rounded-full -ml-32 -mb-32 z-0"></div>
+                    
+                    <div className="relative z-10">
+                      <div className="flex items-center mb-6">
+                        <span className="bg-blue-100 p-2 rounded-lg mr-3">
+                          <DollarSign className="h-5 w-5 text-blue-600" />
+                        </span>
+                        <h3 className="text-xl font-bold text-gray-800">Pricing</h3>
+                      </div>
+                      
+                      {/* Custom pricing inputs */}
+                      <div className="space-y-5">
+                        <div className="bg-white p-4 rounded-xl border border-blue-100">
+                          <Label className="text-sm font-medium text-gray-700 block mb-2">Final Price ($)</Label>
+                          <div className="relative">
+                            <div className="absolute left-3 top-3 h-5 w-5 text-blue-500">$</div>
+                            <Input 
+                              name="finalPrice"
+                              value={formData.finalPrice}
+                              onChange={handleFormChange}
+                              type="number" 
+                              className="pl-8 rounded-lg border-blue-200 focus:border-blue-400" 
+                              placeholder="79.99"
+                            />
+                          </div>
+                        </div>
+
+                        <div>
+                          <Label className="text-sm font-medium text-gray-700">Discount</Label>
+                          <div className="grid grid-cols-2 gap-2 mt-2">
+                            <div className="relative">
+                              <Percent className="absolute left-3 top-3 h-5 w-5 text-gray-500" />
+                              <Input 
+                                name="discountPercent"
+                                value={formData.discountPercent}
+                                onChange={handleFormChange}
+                                type="number"
+                                className="pl-10"
+                                placeholder="20"
+                              />
                             </div>
-                          );
-                        })}
+                            <Select
+                              defaultValue="percent"
+                              onValueChange={(value) => 
+                                handleFormChange({ target: { name: 'discountType', value } } as any)
+                              }
+                            >
+                              <SelectTrigger>
+                                <SelectValue placeholder="Type" />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="percent">Percent (%)</SelectItem>
+                                <SelectItem value="amount">Amount ($)</SelectItem>
+                              </SelectContent>
+                            </Select>
+                          </div>
+                        </div>
+
+                        {formData.regularPrice && Number(formData.regularPrice) > 0 && (
+                          <div className="mt-2 p-3 bg-gray-50 rounded-lg">
+                            <Label className="text-sm text-gray-600">Regular Price</Label>
+                            <p className="text-lg font-bold text-gray-700">
+                              ${Number(formData.regularPrice).toFixed(2)}
+                            </p>
+                            <p className="text-xs text-gray-500">
+                              Price before discount (the crossed-out price shown to customers)
+                            </p>
+                          </div>
+                        )}
                       </div>
                     </div>
-                  )}
-                </div>
-
-                {/* Pricing */}
-                <div className="space-y-4">
-                  <div>
-                    <Label className="text-base font-medium">Final Price ($)</Label>
-                    <div className="relative mt-2">
-                      <DollarSign className="absolute left-3 top-3 h-5 w-5 text-gray-500" />
-                      <Input 
-                        name="finalPrice"
-                        value={formData.finalPrice}
-                        onChange={handleFormChange}
-                        type="number" 
-                        className="pl-10" 
-                        placeholder="79.99"
-                      />
-                    </div>
                   </div>
-
-                  <div>
-                    <Label className="text-base font-medium">Discount</Label>
-                    <div className="grid grid-cols-2 gap-2 mt-2">
-                      <div className="relative">
-                        <Percent className="absolute left-3 top-3 h-5 w-5 text-gray-500" />
-                        <Input 
-                          name="discountPercent"
-                          value={formData.discountPercent}
-                          onChange={handleFormChange}
-                          type="number"
-                          className="pl-10"
-                          placeholder="20"
-                        />
-                      </div>
-                      <Select
-                        defaultValue="percent"
-                        onValueChange={(value) => 
-                          handleFormChange({ target: { name: 'discountType', value } } as any)
-                        }
-                      >
-                        <SelectTrigger>
-                          <SelectValue placeholder="Type" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="percent">Percent (%)</SelectItem>
-                          <SelectItem value="amount">Amount ($)</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-                  </div>
-
-                  {formData.regularPrice && Number(formData.regularPrice) > 0 && (
-                    <div className="mt-2 p-3 bg-gray-50 rounded-lg">
-                      <Label className="text-sm text-gray-600">Regular Price</Label>
-                      <p className="text-lg font-bold text-gray-700">
-                        ${Number(formData.regularPrice).toFixed(2)}
-                      </p>
-                      <p className="text-xs text-gray-500">
-                        Price before discount (the crossed-out price shown to customers)
-                      </p>
-                    </div>
-                  )}
-                </div>
-
-                {/* Stock Status */}
-                <div>
-                  <div className="flex items-center space-x-2">
-                    <Checkbox 
-                      id="inStock" 
-                      checked={inStock}
-                      onCheckedChange={(checked) => setInStock(checked as boolean)}
-                    />
-                    <label
-                      htmlFor="inStock"
-                      className="text-sm font-medium leading-none"
-                    >
-                      In Stock
-                    </label>
-                  </div>
-                </div>
-
-                {/* Featured Product */}
-                <div>
-                  <div className="flex items-center space-x-2">
-                    <Checkbox 
-                      id="featured" 
-                      checked={isFeatured}
-                      onCheckedChange={(checked) => setIsFeatured(checked as boolean)}
-                    />
-                    <label
-                      htmlFor="featured"
-                      className="text-sm font-medium leading-none"
-                    >
-                      Featured Product
-                    </label>
-                  </div>
-                  <p className="text-xs text-gray-500 mt-1">
-                    Featured products appear in highlighted sections
-                  </p>
                 </div>
               </div>
             </div>
           </div>
           
-          {/* Move the actions inside SheetContent instead of after it */}
-          <div className="fixed bottom-0 right-0 w-[75vw] p-6 bg-white border-t">
-            <div className="flex items-center justify-end gap-3 max-w-[75vw] mx-auto">
-              <SheetClose asChild>
+          {/* Custom floating action bar */}
+          <div className="fixed bottom-8 right-8 left-8 z-20">
+            <div className="flex items-center justify-end gap-4 max-w-[calc(85%-4rem)] ml-auto">
+              <div className="bg-white/95 backdrop-blur-lg py-3 px-6 rounded-2xl shadow-2xl border border-indigo-100 flex items-center gap-4">
+                <SheetClose asChild>
+                  <Button 
+                    variant="outline" 
+                    size="lg"
+                    className="px-8 rounded-xl border-indigo-200 text-indigo-700 hover:bg-indigo-50"
+                    disabled={isLoading}
+                  >
+                    Cancel
+                  </Button>
+                </SheetClose>
                 <Button 
-                  variant="outline" 
                   size="lg"
-                  className="px-8"
+                  className="px-8 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white shadow-md"
+                  onClick={handleSubmit}
                   disabled={isLoading}
                 >
-                  Cancel
+                  {isLoading ? (
+                    <div className="flex items-center gap-3">
+                      <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                      Creating...
+                    </div>
+                  ) : (
+                    <div className="flex items-center gap-2">
+                      <span>Create Product</span>
+                      <ChevronRight className="h-4 w-4" />
+                    </div>
+                  )}
                 </Button>
-              </SheetClose>
-              <Button 
-                size="lg"
-                className="bg-[#1e2c51] text-white hover:bg-[#1e2c51]/90 px-8"
-                onClick={handleSubmit}
-                disabled={isLoading}
-              >
-                {isLoading ? "Saving..." : "Save"}
-              </Button>
+              </div>
             </div>
           </div>
         </SheetContent>

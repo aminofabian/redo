@@ -73,8 +73,8 @@ export async function POST(request: Request) {
       mode: "payment",
     //   success_url: `${request.headers.get('origin')}/success?session_id={CHECKOUT_SESSION_ID}`,
     //   success_url: `${returnUrl || request.headers.get('origin') || ''}/success?session_id={CHECKOUT_SESSION_ID}`,
-      success_url: `https://b73a-41-90-172-244.ngrok-free.app/success?session_id={CHECKOUT_SESSION_ID}`,
-       cancel_url: `https://b73a-41-90-172-244.ngrok-free.app/cancel`,
+      success_url: `https://https://rnstudentresources.vercel.app/success?session_id={CHECKOUT_SESSION_ID}`,
+       cancel_url: `https://https://rnstudentresources.vercel.app/cancel`,
        metadata: {
         orderId, 
       },

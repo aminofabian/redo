@@ -1,14 +1,14 @@
 import { auth } from "@/auth";
 import { redirect } from "next/navigation";
-import MaterialsClient from "./materials-client";
+import DownloadsClient from "./downloads-client";
 import { Session } from "next-auth";
 
-export default async function MaterialsPage() {
+export default async function DownloadsPage() {
   const session = await auth();
   
   if (!session) {
     redirect("/auth/login");
   }
   
-  return <MaterialsClient session={session as Session} />;
-}
+  return <DownloadsClient session={session as Session} />;
+} 

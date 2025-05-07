@@ -35,6 +35,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Session } from "next-auth";
+import { Skeleton } from "@/components/ui/skeleton";
 
 // Interfaces for all data types
 interface OrderStats {
@@ -85,6 +86,32 @@ interface Notification {
   type: string;
 }
 
+// Add this near the top of the file
+const API_ENDPOINTS = {
+  orderStats: '/api/order/count',
+  dashboardStats: '/api/dashboard/stats',
+  materials: '/api/dashboard/materials',
+  recommendations: '/api/dashboard/recommendations',
+  notifications: '/api/dashboard/notifications'
+} as const;
+
+const StatsSkeleton = () => (
+  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+    {[1, 2, 3, 4].map((i) => (
+      <div key={i} className="bg-white rounded-xl shadow-sm p-4 border border-gray-100">
+        <div className="flex justify-between items-start">
+          <div className="space-y-2">
+            <Skeleton className="h-4 w-24" />
+            <Skeleton className="h-8 w-16" />
+            <Skeleton className="h-3 w-20" />
+          </div>
+          <Skeleton className="h-10 w-10 rounded-lg" />
+        </div>
+      </div>
+    ))}
+  </div>
+);
+
 export default function DashboardClient({ session }: { session: Session }) {
   // State for order statistics
   const [orderStats, setOrderStats] = useState<OrderStats | null>(null);
@@ -101,25 +128,46 @@ export default function DashboardClient({ session }: { session: Session }) {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    // Fetch all the data
     const fetchAllData = async () => {
       setLoading(true);
       try {
-        // Fetch order statistics
-        await fetchOrderStats();
-        
-        // Fetch dashboard statistics
-        await fetchDashboardStats();
-        
-        // Fetch purchased materials
-        await fetchPurchasedMaterials();
-        
-        // Fetch recommended resources
-        await fetchRecommendations();
-        
-        // Fetch notifications
-        await fetchNotifications();
-        
+        // Fetch all data in parallel
+        const [
+          orderStatsRes,
+          dashboardStatsRes,
+          materialsRes,
+          recommendationsRes,
+          notificationsRes
+        ] = await Promise.all([
+          fetch(API_ENDPOINTS.orderStats),
+          fetch(API_ENDPOINTS.dashboardStats),
+          fetch(API_ENDPOINTS.materials),
+          fetch(API_ENDPOINTS.recommendations),
+          fetch(API_ENDPOINTS.notifications)
+        ]);
+
+        // Process all responses in parallel
+        const [
+          orderStatsData,
+          dashboardStatsData,
+          materialsData,
+          recommendationsData,
+          notificationsData
+        ] = await Promise.all([
+          orderStatsRes.json(),
+          dashboardStatsRes.json(),
+          materialsRes.json(),
+          recommendationsRes.json(),
+          notificationsRes.json()
+        ]);
+
+        // Update all state at once to minimize re-renders
+        setOrderStats(orderStatsData);
+        setDashboardStats(transformDashboardStats(dashboardStatsData));
+        setPurchasedMaterials(materialsData);
+        setRecommendedResources(transformRecommendations(recommendationsData));
+        setNotifications(notificationsData);
+
       } catch (err) {
         setError(err instanceof Error ? err.message : 'An error occurred while fetching dashboard data');
       } finally {
@@ -130,173 +178,49 @@ export default function DashboardClient({ session }: { session: Session }) {
     fetchAllData();
   }, []);
 
-  // Function to fetch order statistics
-  const fetchOrderStats = async () => {
-    try {
-      const response = await fetch('/api/order/count');
-      
-      if (!response.ok) {
-        throw new Error('Failed to fetch order statistics');
-      }
-      
-      const data = await response.json();
-      setOrderStats(data);
-    } catch (err) {
-      console.error('Error fetching order stats:', err);
-      // Fallback data if API fails
-      setOrderStats({
-        totalOrders: 0,
-        unpaidOrders: 0,
-        completedOrders: 0,
-        totalSpent: 0,
-        coursesInCart: 0
-      });
-    }
+  // Move transformation logic outside of fetch functions
+  const transformDashboardStats = (data: any): DashboardStat[] => {
+    return [
+      {
+        id: 1,
+        title: "Courses Enrolled",
+        value: data.coursesEnrolled,
+        icon: BookOpen,
+        trend: "+2",
+        color: "bg-blue-500",
+      },
+      {
+        id: 2,
+        title: "Materials Downloaded",
+        value: data.materialsDownloaded,
+        icon: Download,
+        trend: "+5",
+        color: "bg-green-500",
+      },
+      {
+        id: 3,
+        title: "Tests Completed",
+        value: data.testsCompleted,
+        icon: CheckCircle,
+        trend: "+3",
+        color: "bg-purple-500",
+      },
+      {
+        id: 4,
+        title: "Study Hours",
+        value: data.studyHours,
+        icon: Clock,
+        trend: "+7",
+        color: "bg-amber-500",
+      },
+    ];
   };
 
-  // Function to fetch dashboard statistics
-  const fetchDashboardStats = async () => {
-    try {
-      const response = await fetch('/api/dashboard/stats');
-      
-      if (!response.ok) {
-        throw new Error('Failed to fetch dashboard statistics');
-      }
-      
-      const data = await response.json();
-      
-      // Transform API data to dashboard stats format
-      const stats: DashboardStat[] = [
-        {
-          id: 1,
-          title: "Courses Enrolled",
-          value: data.coursesEnrolled,
-          icon: BookOpen,
-          trend: "+2",
-          color: "bg-blue-500",
-        },
-        {
-          id: 2,
-          title: "Materials Downloaded",
-          value: data.materialsDownloaded,
-          icon: Download,
-          trend: "+5",
-          color: "bg-green-500",
-        },
-        {
-          id: 3,
-          title: "Tests Completed",
-          value: data.testsCompleted,
-          icon: CheckCircle,
-          trend: "+3",
-          color: "bg-purple-500",
-        },
-        {
-          id: 4,
-          title: "Study Hours",
-          value: data.studyHours,
-          icon: Clock,
-          trend: "+7",
-          color: "bg-amber-500",
-        },
-      ];
-      
-      setDashboardStats(stats);
-    } catch (err) {
-      console.error('Error fetching dashboard stats:', err);
-      // Fallback data if API fails
-      setDashboardStats([
-        {
-          id: 1,
-          title: "Courses Enrolled",
-          value: 0,
-          icon: BookOpen,
-          trend: "0",
-          color: "bg-blue-500",
-        },
-        {
-          id: 2,
-          title: "Materials Downloaded",
-          value: 0,
-          icon: Download,
-          trend: "0",
-          color: "bg-green-500",
-        },
-        {
-          id: 3,
-          title: "Tests Completed",
-          value: 0,
-          icon: CheckCircle,
-          trend: "0",
-          color: "bg-purple-500",
-        },
-        {
-          id: 4,
-          title: "Study Hours",
-          value: 0,
-          icon: Clock,
-          trend: "0",
-          color: "bg-amber-500",
-        },
-      ]);
-    }
-  };
-
-  // Function to fetch purchased materials
-  const fetchPurchasedMaterials = async () => {
-    try {
-      const response = await fetch('/api/dashboard/materials');
-      
-      if (!response.ok) {
-        throw new Error('Failed to fetch purchased materials');
-      }
-      
-      const data = await response.json();
-      setPurchasedMaterials(data);
-    } catch (err) {
-      console.error('Error fetching purchased materials:', err);
-      // Empty array as fallback
-      setPurchasedMaterials([]);
-    }
-  };
-
-  // Function to fetch recommended resources
-  const fetchRecommendations = async () => {
-    try {
-      const response = await fetch('/api/dashboard/recommendations');
-      
-      if (!response.ok) {
-        throw new Error('Failed to fetch recommendations');
-      }
-      
-      const data = await response.json();
-      setRecommendedResources(data.map((item: any) => ({
-        ...item,
-        icon: getIconForTag(item.tag)
-      })));
-    } catch (err) {
-      console.error('Error fetching recommendations:', err);
-      // Empty array as fallback
-      setRecommendedResources([]);
-    }
-  };
-
-  // Function to fetch notifications
-  const fetchNotifications = async () => {
-    try {
-      const response = await fetch('/api/dashboard/notifications');
-      
-      if (!response.ok) {
-        throw new Error('Failed to fetch notifications');
-      }
-      
-      const data = await response.json();
-      setNotifications(data);
-    } catch (err) {
-      console.error('Error fetching notifications:', err);
-      // Empty array as fallback
-      setNotifications([]);
-    }
+  const transformRecommendations = (data: any[]): Recommendation[] => {
+    return data.map(item => ({
+      ...item,
+      icon: getIconForTag(item.tag)
+    }));
   };
 
   // Helper function to determine icon based on tag
@@ -315,13 +239,21 @@ export default function DashboardClient({ session }: { session: Session }) {
 
   if (loading) {
     return (
-      <div className="max-w-7xl mx-auto px-4 py-8">
-        <div className="flex items-center justify-center h-64">
-          <div className="text-center">
-            <div className="w-16 h-16 border-4 border-t-blue-600 border-blue-200 rounded-full animate-spin mx-auto mb-4"></div>
-            <p className="text-xl font-medium text-gray-700">Loading your dashboard...</p>
-            <p className="text-gray-500 mt-2">Fetching your latest learning data</p>
+      <div className="max-w-7xl mx-auto px-4 py-8 space-y-8">
+        <div className="flex justify-between items-center">
+          <div>
+            <Skeleton className="h-8 w-64 mb-2" />
+            <Skeleton className="h-4 w-48" />
           </div>
+          <div className="flex items-center space-x-4">
+            <Skeleton className="h-10 w-10 rounded-full" />
+            <Skeleton className="h-10 w-10 rounded-full" />
+          </div>
+        </div>
+
+        <div>
+          <Skeleton className="h-6 w-48 mb-4" />
+          <StatsSkeleton />
         </div>
       </div>
     );

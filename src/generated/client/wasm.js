@@ -182,6 +182,8 @@ exports.Prisma.ProductScalarFieldEnum = {
   isPublished: 'isPublished',
   featured: 'featured',
   downloadUrl: 'downloadUrl',
+  fileType: 'fileType',
+  fileSize: 'fileSize',
   viewCount: 'viewCount',
   downloadCount: 'downloadCount',
   purchaseCount: 'purchaseCount',
@@ -325,6 +327,14 @@ exports.Prisma.OrderItemScalarFieldEnum = {
   createdAt: 'createdAt'
 };
 
+exports.Prisma.DownloadScalarFieldEnum = {
+  id: 'id',
+  userId: 'userId',
+  productId: 'productId',
+  purchaseId: 'purchaseId',
+  downloadedAt: 'downloadedAt'
+};
+
 exports.Prisma.SortOrder = {
   asc: 'asc',
   desc: 'desc'
@@ -373,7 +383,8 @@ exports.Prisma.ModelName = {
   PackageDiscount: 'PackageDiscount',
   CategoryPath: 'CategoryPath',
   Order: 'Order',
-  OrderItem: 'OrderItem'
+  OrderItem: 'OrderItem',
+  Download: 'Download'
 };
 
 /**
