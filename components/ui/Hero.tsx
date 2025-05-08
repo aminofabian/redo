@@ -4,17 +4,22 @@ import { motion } from "framer-motion";
 import Image from "next/image";
 import { Button } from "./button";
 import { ArrowRight, Download, ShieldCheck, HeadphonesIcon, ThumbsUp, PiggyBank } from "lucide-react";
+import React from "react";
 
-// Update the CategoryItem interface to match database structure
-interface CategoryItem {
+// Update the interface to match CategoryPath structure
+interface CategoryPathItem {
   id: string;
-  name: string;
-  slug: string;
-  description?: string | null;
-  image?: string;
-  productCount: number;
-  averagePrice?: number;
-  studentCount?: number;
+  path: string;
+  level1?: string | null;
+  level2?: string | null;
+  level3?: string | null;
+  level4?: string | null;
+  level5?: string | null;
+  product: {
+    id: number;
+    title: string;
+    price: number;
+  };
 }
 
 const triggers = [
@@ -40,15 +45,15 @@ const triggers = [
   }
 ];
 
-// Update the Hero component to use database categories
-const Hero = ({ categories = [] }: { categories?: CategoryItem[] }) => {
+// Update the Hero component to use CategoryPath
+const Hero = ({ categoryPaths = [] }: { categoryPaths?: CategoryPathItem[] }) => {
   console.log("HERO: Component rendering");
-  console.log(`HERO: Received ${categories?.length || 0} categories from parent`);
-  
-  if (categories && categories.length > 0) {
-    console.log("HERO: Using database categories:", categories.map(c => c.name));
+  console.log(`HERO: Received ${categoryPaths?.length || 0} category paths from parent`);
+
+  if (categoryPaths.length > 0) {
+    console.log("HERO: Using category paths:", categoryPaths.map(p => p.level2 || 'University'));
   } else {
-    console.log("HERO: No categories from database, using placeholders");
+    console.log("HERO: No categories available, using placeholders");
   }
   
   return (
@@ -112,9 +117,9 @@ const Hero = ({ categories = [] }: { categories?: CategoryItem[] }) => {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5, delay: 0.3 }}
         >
-          {(categories || []).map((category, index) => (
+          {categoryPaths.map((path, index) => (
             <motion.div
-              key={category.id}
+              key={path.id}
               className="group relative bg-white rounded-xl overflow-hidden shadow-md hover:shadow-xl transition-all duration-300 cursor-pointer"
               whileHover={{ y: -5 }}
               initial={{ opacity: 0, y: 20 + (index * 5) }}
@@ -129,44 +134,22 @@ const Hero = ({ categories = [] }: { categories?: CategoryItem[] }) => {
             >
               <div className="aspect-[4/3] relative">
                 <Image
-                  src={category.image || '/images/default-category.jpg'}
-                  alt={category.name}
+                  src={`/universities/${path.level2?.toLowerCase()}.jpg` || '/images/default-category.jpg'}
+                  alt={path.level2 || 'University'}
                   fill
                   sizes="(max-width: 768px) 50vw, (max-width: 1200px) 33vw, 14vw"
                   className="object-cover group-hover:scale-105 transition-transform duration-500"
+                  onError={(e) => {
+                    // Fallback to default image if university image not found
+                    (e.target as HTMLImageElement).src = '/images/default-category.jpg'
+                  }}
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
                 
                 <div className="absolute bottom-0 left-0 right-0 p-3">
                   <h3 className="text-sm font-semibold text-white mb-1 flex items-center">
-                    {category.name}
-                    {category.productCount > 10 && (
-                      <span className="ml-1 inline-block w-2 h-2 bg-green-400 rounded-full"></span>
-                    )}
+                    {path.level2 || 'University'}
                   </h3>
-                  
-                  <div className="text-[10px] text-white/90">
-                    <div className="flex items-center">
-                      <span>{category.productCount} Resource{category.productCount !== 1 ? 's' : ''}</span>
-                      
-                      <div className="ml-1 flex-1 h-1 bg-white/20 rounded-full overflow-hidden">
-                        <div 
-                          className="h-full bg-[#5d8e9a]" 
-                          style={{ width: `${Math.min(category.productCount * 10, 100)}%` }}
-                        />
-                      </div>
-                    </div>
-                    
-                    {category.averagePrice && (
-                      <div className="mt-1 flex justify-between items-center">
-                        <span>Avg. ${category.averagePrice.toFixed(2)}</span>
-                        <span className="text-[9px] opacity-80">
-                          {category.averagePrice < 50 ? 'Budget' : 
-                           category.averagePrice < 80 ? 'Standard' : 'Premium'}
-                        </span>
-                      </div>
-                    )}
-                  </div>
                 </div>
               </div>
             </motion.div>
