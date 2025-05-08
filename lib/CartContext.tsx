@@ -3,6 +3,28 @@
 import { createContext, useContext, useEffect, useState } from 'react';
 import { toast } from 'react-hot-toast';
 
+// Helper function to handle BigInt serialization
+function safeJSONStringify(obj: any): string {
+  return JSON.stringify(obj, (key, value) => 
+    typeof value === 'bigint' ? value.toString() : value
+  );
+}
+
+// Helper function to handle BigInt parsing
+function safeJSONParse(text: string): any {
+  return JSON.parse(text, (key, value) => {
+    // If this looks like a BigInt string that was stringified, convert it back
+    if (typeof value === 'string' && /^\d+$/.test(value) && value.length > 15) {
+      try {
+        return BigInt(value);
+      } catch (e) {
+        return value;
+      }
+    }
+    return value;
+  });
+}
+
 interface CartItem {
   id: number;
   title: string;
@@ -45,12 +67,27 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     const savedCart = localStorage.getItem('cart');
     if (savedCart) {
-      setItems(JSON.parse(savedCart));
+      try {
+        // Use safe parsing to handle potential BigInt values
+        setItems(safeJSONParse(savedCart));
+      } catch (error) {
+        console.error('Error parsing cart:', error);
+        // If there's an error, start with an empty cart
+        setItems([]);
+        localStorage.removeItem('cart');
+      }
     }
   }, []);
 
   useEffect(() => {
-    localStorage.setItem('cart', JSON.stringify(items));
+    try {
+      // Use safe stringification to handle BigInt values
+      localStorage.setItem('cart', safeJSONStringify(items));
+    } catch (error) {
+      console.error('Error saving cart:', error);
+      // If serialization fails, let the user know
+      toast.error('Failed to save cart');
+    }
   }, [items]);
 
   const addItem = (newItem: Omit<CartItem, 'quantity'>) => {
