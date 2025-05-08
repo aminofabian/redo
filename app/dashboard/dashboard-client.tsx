@@ -14,14 +14,25 @@ import {
   BookMarked,
   Bell,
   Plus,
+  Minus,
   ShoppingCart,
   X,
   Sparkles,
   Zap,
   Rocket,
-  LogOut
+  LogOut,
+  Trash2,
+  ArrowRight
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+  DialogDescription
+} from "@/components/ui/dialog";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
 import { signOut } from "next-auth/react";
@@ -36,6 +47,7 @@ import {
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Session } from "next-auth";
 import { Skeleton } from "@/components/ui/skeleton";
+import { useCart } from "@/lib/CartContext";
 
 // Interfaces for all data types
 interface OrderStats {
@@ -123,6 +135,11 @@ export default function DashboardClient({ session }: { session: Session }) {
   const [recommendedResources, setRecommendedResources] = useState<Recommendation[]>([]);
   // State for notifications
   const [notifications, setNotifications] = useState<Notification[]>([]);
+  
+  // Cart state through context
+  const { items: cartItems, totalPrice, removeItem, updateQuantity } = useCart();
+  const [showCartSection, setShowCartSection] = useState(true);
+  const [showCheckoutModal, setShowCheckoutModal] = useState(false);
   
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -216,7 +233,13 @@ export default function DashboardClient({ session }: { session: Session }) {
     ];
   };
 
-  const transformRecommendations = (data: any[]): Recommendation[] => {
+  const transformRecommendations = (data: any): Recommendation[] => {
+    // Ensure data is an array before attempting to map
+    if (!data || !Array.isArray(data)) {
+      console.error('Recommendations data is not an array:', data);
+      return []; // Return empty array as fallback
+    }
+    
     return data.map(item => ({
       ...item,
       icon: getIconForTag(item.tag)
@@ -314,6 +337,7 @@ export default function DashboardClient({ session }: { session: Session }) {
   // Determine if sections should be shown based on data
   const showMaterials = purchasedMaterials.length > 0;
   const showRecommendations = recommendedResources.length > 0;
+  const hasCartItems = cartItems.length > 0;
 
   return (
     <div className="max-w-7xl mx-auto px-4 py-8 space-y-8">
@@ -412,9 +436,20 @@ export default function DashboardClient({ session }: { session: Session }) {
               <p className="text-2xl font-bold">{orderStats.totalOrders}</p>
             </div>
             
-            <div className="bg-gray-50 rounded-lg p-4">
-              <h3 className="text-sm text-gray-500">Unpaid Orders</h3>
-              <p className="text-2xl font-bold">{orderStats.unpaidOrders}</p>
+            <div 
+              className="bg-blue-50 rounded-lg p-4 cursor-pointer hover:bg-blue-100 transition-all duration-200 transform hover:scale-[1.02] hover:shadow-md border border-blue-100 relative group"
+              onClick={() => setShowCheckoutModal(true)}
+            >
+              <div className="absolute top-2 right-2 bg-blue-600 text-white text-xs px-1.5 py-0.5 rounded opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex items-center">
+                <ShoppingCart className="h-3 w-3 mr-1" />
+                <span>View Cart</span>
+              </div>
+              <h3 className="text-sm text-blue-600 font-medium">Unpaid Orders</h3>
+              <p className="text-2xl font-bold text-blue-700">{orderStats.unpaidOrders}</p>
+              <div className="mt-2 text-xs text-blue-500 flex items-center">
+                <span>Click to checkout</span>
+                <ArrowRight className="ml-1 h-3 w-3" />
+              </div>
             </div>
             
             <div className="bg-gray-50 rounded-lg p-4">
@@ -538,6 +573,95 @@ export default function DashboardClient({ session }: { session: Session }) {
         </div>
       )}
 
+      {/* Cart Section */}
+      {showCartSection && (
+        <div>
+          <div className="flex justify-between items-center mb-4">
+            <h2 className="text-xl font-semibold">Your Cart</h2>
+            {hasCartItems && (
+              <Button variant="ghost" asChild>
+                <Link href="/cart">View Full Cart</Link>
+              </Button>
+            )}
+          </div>
+          
+          {hasCartItems ? (
+            <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+              <div className="divide-y divide-gray-100">
+                {cartItems.slice(0, 3).map((item) => (
+                  <div key={item.id} className="p-4 flex items-center justify-between">
+                    <div className="flex items-center space-x-3">
+                      <div className="bg-blue-50 p-2 rounded-lg">
+                        <ShoppingCart className="h-5 w-5 text-blue-500" />
+                      </div>
+                      <div>
+                        <h3 className="font-medium">{item.title}</h3>
+                        <div className="flex items-center mt-1">
+                          <span className="text-sm font-medium">${item.finalPrice || item.price}</span>
+                          <span className="mx-2 text-gray-400">•</span>
+                          <div className="flex items-center space-x-2">
+                            <button 
+                              onClick={() => updateQuantity(item.id, Math.max(1, item.quantity - 1))}
+                              className="text-gray-500 hover:text-gray-700"
+                            >
+                              <Minus className="h-3 w-3" />
+                            </button>
+                            <span className="text-sm">{item.quantity}</span>
+                            <button 
+                              onClick={() => updateQuantity(item.id, item.quantity + 1)}
+                              className="text-gray-500 hover:text-gray-700"
+                            >
+                              <Plus className="h-3 w-3" />
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                    <button 
+                      onClick={() => removeItem(item.id)}
+                      className="text-gray-400 hover:text-red-500 transition-colors"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </button>
+                  </div>
+                ))}
+                
+                {cartItems.length > 3 && (
+                  <div className="p-3 bg-gray-50 text-center text-sm text-gray-500">
+                    +{cartItems.length - 3} more items in your cart
+                  </div>
+                )}
+              </div>
+              
+              <div className="bg-gray-50 p-4">
+                <div className="flex justify-between mb-2">
+                  <span className="font-medium">Total:</span>
+                  <span className="font-bold">${totalPrice.toFixed(2)}</span>
+                </div>
+                <Button className="w-full mt-2" asChild>
+                  <Link href="/cart/checkout">
+                    Proceed to Checkout <ArrowRight className="ml-2 h-4 w-4" />
+                  </Link>
+                </Button>
+              </div>
+            </div>
+          ) : (
+            <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-100 text-center">
+              <div className="flex justify-center mb-4">
+                <div className="bg-gray-100 p-3 rounded-full">
+                  <ShoppingCart className="h-6 w-6 text-gray-400" />
+                </div>
+              </div>
+              <h3 className="font-medium">Your cart is empty</h3>
+              <p className="text-gray-500 mt-1">Add items to your cart to see them here</p>
+              <Button asChild className="mt-4">
+                <Link href="/store">Browse Products</Link>
+              </Button>
+            </div>
+          )}
+        </div>
+      )}
+
       {/* Quick Actions */}
       <div>
         <h2 className="text-xl font-semibold mb-4">Quick Actions</h2>
@@ -554,6 +678,144 @@ export default function DashboardClient({ session }: { session: Session }) {
           ))}
         </div>
       </div>
+      {/* Checkout Modal */}
+      <Dialog open={showCheckoutModal} onOpenChange={setShowCheckoutModal}>
+        <DialogContent className="sm:max-w-md md:max-w-3xl p-0 overflow-hidden rounded-xl">
+          <div className="bg-blue-50 p-6 border-b border-blue-100">
+            <DialogHeader className="pb-0">
+              <div className="flex items-center gap-3">
+                <div className="bg-blue-100 p-2 rounded-full">
+                  <ShoppingCart className="h-5 w-5 text-blue-600" />
+                </div>
+                <DialogTitle className="text-xl text-blue-900">Checkout</DialogTitle>
+              </div>
+              <DialogDescription className="text-blue-700 mt-2">
+                Review your cart items before proceeding to payment
+              </DialogDescription>
+            </DialogHeader>
+          </div>
+          
+          {cartItems.length > 0 ? (
+            <>
+              <div className="max-h-[50vh] overflow-y-auto px-6 py-4">
+                <h3 className="font-medium text-gray-700 mb-4 flex items-center gap-2">
+                  <span className="inline-flex items-center justify-center rounded-full bg-blue-100 h-5 w-5 text-xs text-blue-600">{cartItems.length}</span>
+                  Items in Your Cart
+                </h3>
+                <div className="divide-y divide-gray-100 rounded-lg border border-gray-200 bg-white">
+                  {cartItems.map((item) => (
+                    <div key={item.id} className="p-4 flex items-center justify-between hover:bg-gray-50 transition-colors">
+                      <div className="flex items-center space-x-3">
+                        <div className="bg-blue-50 p-2.5 rounded-full h-10 w-10 flex items-center justify-center flex-shrink-0">
+                          <ShoppingCart className="h-5 w-5 text-blue-500" />
+                        </div>
+                        <div>
+                          <h3 className="font-medium">{item.title}</h3>
+                          <div className="flex items-center mt-1">
+                            <span className="text-sm font-medium">
+                              ${(item.finalPrice || item.price).toFixed(2)}
+                            </span>
+                            <span className="mx-2 text-gray-400">•</span>
+                            <div className="flex items-center space-x-2">
+                              <button 
+                                onClick={() => updateQuantity(item.id, Math.max(1, item.quantity - 1))}
+                                className="text-gray-500 hover:text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-full h-5 w-5 flex items-center justify-center"
+                                aria-label="Decrease quantity"
+                              >
+                                <Minus className="h-3 w-3" />
+                              </button>
+                              <span className="text-sm font-medium w-5 text-center">{item.quantity}</span>
+                              <button 
+                                onClick={() => updateQuantity(item.id, item.quantity + 1)}
+                                className="text-gray-500 hover:text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-full h-5 w-5 flex items-center justify-center"
+                                aria-label="Increase quantity"
+                              >
+                                <Plus className="h-3 w-3" />
+                              </button>
+                            </div>
+                          </div>
+                          {item.isPackage && item.packageItems && (
+                            <div className="mt-2 pl-2 border-l-2 border-blue-100">
+                              <p className="text-xs text-gray-500 mb-1">Package Contents:</p>
+                              <ul className="text-xs text-gray-600 space-y-1">
+                                {item.packageItems.map((packageItem, index) => (
+                                  <li key={index}>
+                                    • {packageItem.title} - ${packageItem.price.toFixed(2)}
+                                  </li>
+                                ))}
+                              </ul>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <span className="text-sm font-medium">
+                          ${((item.finalPrice || item.price) * item.quantity).toFixed(2)}
+                        </span>
+                        <button 
+                          onClick={() => removeItem(item.id)}
+                          className="text-gray-400 hover:text-red-500 transition-colors"
+                        >
+                          <Trash2 className="h-4 w-4" aria-label="Remove item" />
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+              
+              
+              <div className="px-6 py-4 bg-gray-50 border-t border-gray-200">
+                <div className="space-y-3 mb-4">
+                  <div className="flex justify-between items-center text-sm">
+                    <span className="text-gray-600">Subtotal</span>
+                    <span className="font-medium">${totalPrice.toFixed(2)}</span>
+                  </div>
+                  <div className="flex justify-between items-center text-sm">
+                    <span className="text-gray-600">Taxes (10%)</span>
+                    <span className="font-medium">${(totalPrice * 0.1).toFixed(2)}</span>
+                  </div>
+                  <div className="flex justify-between items-center font-medium text-lg pt-3 border-t border-gray-200">
+                    <span>Total</span>
+                    <span className="text-blue-700">${(totalPrice * 1.1).toFixed(2)}</span>
+                  </div>
+                </div>
+                
+                <div className="flex flex-col sm:flex-row sm:justify-end gap-3 mt-6">
+                  <Button variant="outline" onClick={() => setShowCheckoutModal(false)} className="sm:order-1">
+                    Cancel
+                  </Button>
+                  <Button asChild className="bg-blue-600 hover:bg-blue-700 sm:order-2">
+                    <Link href="/cart/checkout" className="flex items-center justify-center">
+                      Proceed to Payment <ArrowRight className="ml-2 h-4 w-4" />
+                    </Link>
+                  </Button>
+                </div>
+              </div>
+            </>
+          ) : (
+            <div className="py-16 px-6 text-center">
+              <div className="flex justify-center mb-6">
+                <div className="bg-blue-50 p-5 rounded-full">
+                  <ShoppingCart className="h-8 w-8 text-blue-300" />
+                </div>
+              </div>
+              <h3 className="font-medium text-lg">Your cart is empty</h3>
+              <p className="text-gray-500 mt-2 mb-8 max-w-md mx-auto">Add some amazing resources to your cart before proceeding to checkout</p>
+              <div className="flex flex-col sm:flex-row justify-center gap-3">
+                <Button variant="outline" onClick={() => setShowCheckoutModal(false)} className="sm:order-1">
+                  Close
+                </Button>
+                <Button asChild className="bg-blue-600 hover:bg-blue-700 sm:order-2">
+                  <Link href="/store" onClick={() => setShowCheckoutModal(false)}>
+                    Browse Products
+                  </Link>
+                </Button>
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
