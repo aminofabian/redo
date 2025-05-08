@@ -12,7 +12,7 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
 export async function POST(request: Request) {
   try {
     const { cartItems,orderId } = await request.json();
-    const returnUrl = "https://b73a-41-90-172-244.ngrok-free.app"
+    const returnUrl = "rnstudentresources.vercel.app"
 
     if (!cartItems || !Array.isArray(cartItems)) {
       return NextResponse.json(
@@ -73,8 +73,8 @@ export async function POST(request: Request) {
       mode: "payment",
     //   success_url: `${request.headers.get('origin')}/success?session_id={CHECKOUT_SESSION_ID}`,
     //   success_url: `${returnUrl || request.headers.get('origin') || ''}/success?session_id={CHECKOUT_SESSION_ID}`,
-      success_url: `https://https://rnstudentresources.vercel.app/success?session_id={CHECKOUT_SESSION_ID}`,
-       cancel_url: `https://https://rnstudentresources.vercel.app/cancel`,
+      success_url: `rnstudentresources.vercel.app/success?session_id={CHECKOUT_SESSION_ID}`,
+       cancel_url: `rnstudentresources.vercel.app/cancel`,
        metadata: {
         orderId, 
       },
