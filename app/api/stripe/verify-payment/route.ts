@@ -58,20 +58,29 @@ export async function POST(request: NextRequest) {
     console.log("Looking for order with ID:", orderId);
     
     // Find the order in our database using the orderId from session metadata
-    const order = await prisma.order.findFirst({
-      where: {
-        id: orderId,
-        ...(userId ? { userId } : {})
-      },
-      include: {
-        orderItems: {
-          include: {
-            product: true
-          }
+    let order;
+    try {
+      order = await prisma.order.findUnique({
+        where: {
+          id: orderId
         },
-        user: true // Include user to get userId if not authenticated
-      }
-    });
+        include: {
+          orderItems: {
+            include: {
+              product: true
+            }
+          },
+          // Don't require user to avoid the "Field user is required to return data" error
+          user: false 
+        }
+      });
+    } catch (findError) {
+      console.error('Error finding order:', findError);
+      return NextResponse.json(
+        { success: false, message: "Error finding order", details: findError instanceof Error ? findError.message : "Unknown error" },
+        { status: 500 }
+      );
+    }
     
     console.log("Order found:", order ? "Yes" : "No");
 
@@ -82,9 +91,22 @@ export async function POST(request: NextRequest) {
       );
     }
     
-    // If we didn't have userId from session, handle the case where user might be null
-    // This prevents the "Field user is required to return data, got `null` instead" error
-    userId = userId || (order.user?.id || 'guest-user');
+    // Since we excluded the user relation in our query to avoid the error,
+    // we'll just use the userId from session or a default guest user ID
+    // This prevents accessing order.user which would cause a TypeScript error
+    if (!userId) {
+      // If no userId from session, look it up separately to avoid the original error
+      try {
+        const orderUser = await prisma.order.findUnique({
+          where: { id: orderId },
+          select: { userId: true }
+        });
+        userId = orderUser?.userId || 'guest-user';
+      } catch (userLookupError) {
+        console.warn('Could not retrieve user ID for order, using guest user:', userLookupError);
+        userId = 'guest-user';
+      }
+    }
 
     // Extract the payment intent ID properly from the Stripe session
     // First check what type of data we're getting
