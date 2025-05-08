@@ -82,8 +82,9 @@ export async function POST(request: NextRequest) {
       );
     }
     
-    // If we didn't have userId from session, get it from the order
-    userId = userId || order.user.id;
+    // If we didn't have userId from session, handle the case where user might be null
+    // This prevents the "Field user is required to return data, got `null` instead" error
+    userId = userId || (order.user?.id || 'guest-user');
 
     // Extract the payment intent ID properly from the Stripe session
     // First check what type of data we're getting
@@ -177,7 +178,7 @@ export async function POST(request: NextRequest) {
           accessExpires = expiryDate;
         }
 
-        // At this point, userId should be defined from order.user.id if it wasn't from the session
+        // At this point, userId should be defined from order.user?.id or as 'guest-user' if the user is null
         // But we'll add a safety check to satisfy TypeScript
         if (!userId) {
           throw new Error("User ID is required for purchase creation");
