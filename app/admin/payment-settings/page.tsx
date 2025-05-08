@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation";
 import { auth } from "@/auth";
-import PaymentSettingsClient from "@/components/admin/PaymentSettingsClient";
+import PaymentSettingsClient from "../../../components/admin/PaymentSettingsClient";
 
 export default async function PaymentSettingsPage() {
   const sessionData = await auth();
