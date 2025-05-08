@@ -86,7 +86,7 @@ model PasswordResetToken {
 }
 
 model Product {
-  id              Int      @id @default(autoincrement())
+  id              BigInt   @id @default(autoincrement())
   title           String
   slug            String   @unique
   description     String?  @db.Text
@@ -144,7 +144,7 @@ model ProductImage {
   alt       String?
   isPrimary Boolean @default(false)
   product   Product @relation(fields: [productId], references: [id], onDelete: Cascade)
-  productId Int
+  productId BigInt
 
   createdAt DateTime @default(now())
 
@@ -175,7 +175,7 @@ model Category {
 
 model CategoryProduct {
   product    Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
-  productId  Int
+  productId  BigInt
   category   Category @relation(fields: [categoryId], references: [id], onDelete: Cascade)
   categoryId String
 
@@ -272,7 +272,7 @@ model Transaction {
 model Purchase {
   id        String  @id @default(cuid())
   product   Product @relation(fields: [productId], references: [id])
-  productId Int
+  productId BigInt
   user      User    @relation(fields: [userId], references: [id])
   userId    String
   amount    Decimal @db.Decimal(10, 2)
@@ -300,7 +300,7 @@ model Review {
   rating    Int     @db.SmallInt
   comment   String? @db.Text
   product   Product @relation(fields: [productId], references: [id], onDelete: Cascade)
-  productId Int
+  productId BigInt
   user      User    @relation(fields: [userId], references: [id])
   userId    String
 
@@ -324,7 +324,7 @@ model PackageDiscount {
 model CategoryPath {
   id        String  @id @default(cuid())
   product   Product @relation(fields: [productId], references: [id], onDelete: Cascade)
-  productId Int
+  productId BigInt
   path      String // Full path string e.g. "university/chamberlain/nr322"
   level1    String? // First level segment (e.g. "university")
   level2    String? // Second level segment (e.g. "chamberlain")
@@ -369,7 +369,7 @@ model OrderItem {
   order     Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
   orderId   String
   product   Product  @relation(fields: [productId], references: [id])
-  productId Int
+  productId BigInt
   quantity  Int      @default(1)
   price     Decimal  @db.Decimal(10, 2)
   createdAt DateTime @default(now())
@@ -381,7 +381,7 @@ model OrderItem {
 model Download {
   id           String   @id @default(cuid())
   userId       String
-  productId    Int // Changed from String to Int to match Product.id type
+  productId    BigInt // Changed to BigInt to match Product.id type
   purchaseId   String
   downloadedAt DateTime @default(now())
 

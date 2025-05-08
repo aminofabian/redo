@@ -30,6 +30,15 @@ export async function POST(request: Request) {
       };
     }
     
+    // First, check if the user exists in the database
+    let userExists = false;
+    if (session?.user?.id) {
+      const user = await prisma.user.findUnique({
+        where: { id: session.user.id }
+      });
+      userExists = !!user;
+    }
+
     // First, create the product without a finalized slug
     // We'll update it after we know the ID
     const product = await prisma.product.create({
@@ -47,10 +56,10 @@ export async function POST(request: Request) {
         inStock: data.inStock || true,
         isPublished: data.isPublished || true,
         featured: data.featured || false,
-        // Direct assignment instead of object spread
-        ...(session?.user?.id 
+        // Only connect to user if they exist in the database
+        ...(userExists && session?.user?.id 
           ? { createdBy: { connect: { id: session.user.id } } } 
-          : {} as any),
+          : {}),
         // Handle images if needed
         images: data.images && data.images.length > 0 ? {
           create: data.images.map((img: ImageInput) => ({
@@ -59,7 +68,7 @@ export async function POST(request: Request) {
             isPrimary: img.isPrimary || false
           }))
         } : undefined,
-      } as any
+      }
     });
 
 
@@ -162,12 +171,21 @@ async function saveProduct(data: ProductData, existingProductId: number | null =
         });
       } else {
         // For creation
+        // First check if the user exists
+        let userExists = false;
+        if (userId) {
+          const user = await tx.user.findUnique({
+            where: { id: userId }
+          });
+          userExists = !!user;
+        }
+        
         product = await tx.product.create({
           data: {
             ...productDataBasic,
-            ...(userId 
+            ...(userExists && userId 
               ? { createdBy: { connect: { id: userId } } } 
-              : {} as any),
+              : {}),
             // Images handling for creation
             ...(images && images.length > 0 ? {
               images: { create: images.map((img: ImageInput) => ({
