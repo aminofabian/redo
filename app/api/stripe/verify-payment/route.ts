@@ -25,17 +25,12 @@ export async function POST(request: NextRequest) {
       );
     }
     
-    // Get the authenticated user
+    // Get the authenticated user (if available)
     const authSession = await getAuthSession();
-    if (!authSession?.user || !authSession.user.id) {
-      return NextResponse.json(
-        { success: false, message: "Authentication required" },
-        { status: 401 }
-      );
-    }
+    let userId = authSession?.user?.id;
     
-    // Now TypeScript knows user cannot be null for the rest of the function
-    const userId = authSession.user.id;
+    // If we don't have a userId from the session, we'll try to find the order by sessionId only
+    // This allows the verification to work even if the user is not authenticated during the redirect
     
     // Retrieve the Stripe session
     const stripeSession = await stripe.checkout.sessions.retrieve(sessionId, {
@@ -50,17 +45,19 @@ export async function POST(request: NextRequest) {
     }
 
     // Find the order in our database using the Stripe session ID as payment intent ID
+    // If we have a userId, include it in the query for extra security
     const order = await prisma.order.findFirst({
       where: {
         paymentIntentId: sessionId,
-        userId: userId
+        ...(userId ? { userId } : {})
       },
       include: {
         orderItems: {
           include: {
             product: true
           }
-        }
+        },
+        user: true // Include user to get userId if not authenticated
       }
     });
 
@@ -70,6 +67,9 @@ export async function POST(request: NextRequest) {
         { status: 404 }
       );
     }
+    
+    // If we didn't have userId from session, get it from the order
+    userId = userId || order.user.id;
 
     // Prepare transaction data
     const transactionData = {
@@ -122,10 +122,16 @@ export async function POST(request: NextRequest) {
           accessExpires = expiryDate;
         }
 
+        // At this point, userId should be defined from order.user.id if it wasn't from the session
+        // But we'll add a safety check to satisfy TypeScript
+        if (!userId) {
+          throw new Error("User ID is required for purchase creation");
+        }
+        
         const purchase = await tx.purchase.create({
           data: {
             productId: item.productId,
-            userId: userId,
+            userId: userId, // Now userId is guaranteed to be defined
             amount: item.price,
             accessExpires,
             downloadsLeft: item.product.downloadLimit,
