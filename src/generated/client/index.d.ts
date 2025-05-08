@@ -466,8 +466,8 @@ export namespace Prisma {
   export import Exact = $Public.Exact
 
   /**
-   * Prisma Client JS version: 6.6.0
-   * Query Engine version: f676762280b54cd07c770017ed3711ddde35f37a
+   * Prisma Client JS version: 6.7.0
+   * Query Engine version: 3cff47a7f5d65c3ea74883f1d736e41d68ce91ed
    */
   export type PrismaVersion = {
     client: string
@@ -8280,7 +8280,7 @@ export namespace Prisma {
   }
 
   export type ProductSumAggregateOutputType = {
-    id: number | null
+    id: bigint | null
     price: Decimal | null
     discountAmount: Decimal | null
     discountPercent: number | null
@@ -8294,7 +8294,7 @@ export namespace Prisma {
   }
 
   export type ProductMinAggregateOutputType = {
-    id: number | null
+    id: bigint | null
     title: string | null
     slug: string | null
     description: string | null
@@ -8321,7 +8321,7 @@ export namespace Prisma {
   }
 
   export type ProductMaxAggregateOutputType = {
-    id: number | null
+    id: bigint | null
     title: string | null
     slug: string | null
     description: string | null
@@ -8573,7 +8573,7 @@ export namespace Prisma {
   }
 
   export type ProductGroupByOutputType = {
-    id: number
+    id: bigint
     title: string
     slug: string
     description: string | null
@@ -8769,7 +8769,7 @@ export namespace Prisma {
       createdBy: Prisma.$UserPayload<ExtArgs> | null
     }
     scalars: $Extensions.GetPayloadResult<{
-      id: number
+      id: bigint
       title: string
       slug: string
       description: string | null
@@ -9224,7 +9224,7 @@ export namespace Prisma {
    * Fields of the Product model
    */
   interface ProductFieldRefs {
-    readonly id: FieldRef<"Product", 'Int'>
+    readonly id: FieldRef<"Product", 'BigInt'>
     readonly title: FieldRef<"Product", 'String'>
     readonly slug: FieldRef<"Product", 'String'>
     readonly description: FieldRef<"Product", 'String'>
@@ -9866,7 +9866,7 @@ export namespace Prisma {
   }
 
   export type ProductImageSumAggregateOutputType = {
-    productId: number | null
+    productId: bigint | null
   }
 
   export type ProductImageMinAggregateOutputType = {
@@ -9874,7 +9874,7 @@ export namespace Prisma {
     url: string | null
     alt: string | null
     isPrimary: boolean | null
-    productId: number | null
+    productId: bigint | null
     createdAt: Date | null
   }
 
@@ -9883,7 +9883,7 @@ export namespace Prisma {
     url: string | null
     alt: string | null
     isPrimary: boolean | null
-    productId: number | null
+    productId: bigint | null
     createdAt: Date | null
   }
 
@@ -10025,7 +10025,7 @@ export namespace Prisma {
     url: string
     alt: string | null
     isPrimary: boolean
-    productId: number
+    productId: bigint
     createdAt: Date
     _count: ProductImageCountAggregateOutputType | null
     _avg: ProductImageAvgAggregateOutputType | null
@@ -10108,7 +10108,7 @@ export namespace Prisma {
       url: string
       alt: string | null
       isPrimary: boolean
-      productId: number
+      productId: bigint
       createdAt: Date
     }, ExtArgs["result"]["productImage"]>
     composites: {}
@@ -10538,7 +10538,7 @@ export namespace Prisma {
     readonly url: FieldRef<"ProductImage", 'String'>
     readonly alt: FieldRef<"ProductImage", 'String'>
     readonly isPrimary: FieldRef<"ProductImage", 'Boolean'>
-    readonly productId: FieldRef<"ProductImage", 'Int'>
+    readonly productId: FieldRef<"ProductImage", 'BigInt'>
     readonly createdAt: FieldRef<"ProductImage", 'DateTime'>
   }
     
@@ -12205,16 +12205,16 @@ export namespace Prisma {
   }
 
   export type CategoryProductSumAggregateOutputType = {
-    productId: number | null
+    productId: bigint | null
   }
 
   export type CategoryProductMinAggregateOutputType = {
-    productId: number | null
+    productId: bigint | null
     categoryId: string | null
   }
 
   export type CategoryProductMaxAggregateOutputType = {
-    productId: number | null
+    productId: bigint | null
     categoryId: string | null
   }
 
@@ -12336,7 +12336,7 @@ export namespace Prisma {
   }
 
   export type CategoryProductGroupByOutputType = {
-    productId: number
+    productId: bigint
     categoryId: string
     _count: CategoryProductCountAggregateOutputType | null
     _avg: CategoryProductAvgAggregateOutputType | null
@@ -12406,7 +12406,7 @@ export namespace Prisma {
       category: Prisma.$CategoryPayload<ExtArgs>
     }
     scalars: $Extensions.GetPayloadResult<{
-      productId: number
+      productId: bigint
       categoryId: string
     }, ExtArgs["result"]["categoryProduct"]>
     composites: {}
@@ -12833,7 +12833,7 @@ export namespace Prisma {
    * Fields of the CategoryProduct model
    */
   interface CategoryProductFieldRefs {
-    readonly productId: FieldRef<"CategoryProduct", 'Int'>
+    readonly productId: FieldRef<"CategoryProduct", 'BigInt'>
     readonly categoryId: FieldRef<"CategoryProduct", 'String'>
   }
     
@@ -15836,14 +15836,14 @@ export namespace Prisma {
   }
 
   export type PurchaseSumAggregateOutputType = {
-    productId: number | null
+    productId: bigint | null
     amount: Decimal | null
     downloadsLeft: number | null
   }
 
   export type PurchaseMinAggregateOutputType = {
     id: string | null
-    productId: number | null
+    productId: bigint | null
     userId: string | null
     amount: Decimal | null
     accessExpires: Date | null
@@ -15855,7 +15855,7 @@ export namespace Prisma {
 
   export type PurchaseMaxAggregateOutputType = {
     id: string | null
-    productId: number | null
+    productId: bigint | null
     userId: string | null
     amount: Decimal | null
     accessExpires: Date | null
@@ -16016,7 +16016,7 @@ export namespace Prisma {
 
   export type PurchaseGroupByOutputType = {
     id: string
-    productId: number
+    productId: bigint
     userId: string
     amount: Decimal
     accessExpires: Date | null
@@ -16129,7 +16129,7 @@ export namespace Prisma {
     }
     scalars: $Extensions.GetPayloadResult<{
       id: string
-      productId: number
+      productId: bigint
       userId: string
       amount: Prisma.Decimal
       accessExpires: Date | null
@@ -16565,7 +16565,7 @@ export namespace Prisma {
    */
   interface PurchaseFieldRefs {
     readonly id: FieldRef<"Purchase", 'String'>
-    readonly productId: FieldRef<"Purchase", 'Int'>
+    readonly productId: FieldRef<"Purchase", 'BigInt'>
     readonly userId: FieldRef<"Purchase", 'String'>
     readonly amount: FieldRef<"Purchase", 'Decimal'>
     readonly accessExpires: FieldRef<"Purchase", 'DateTime'>
@@ -17054,14 +17054,14 @@ export namespace Prisma {
 
   export type ReviewSumAggregateOutputType = {
     rating: number | null
-    productId: number | null
+    productId: bigint | null
   }
 
   export type ReviewMinAggregateOutputType = {
     id: string | null
     rating: number | null
     comment: string | null
-    productId: number | null
+    productId: bigint | null
     userId: string | null
     createdAt: Date | null
     updatedAt: Date | null
@@ -17071,7 +17071,7 @@ export namespace Prisma {
     id: string | null
     rating: number | null
     comment: string | null
-    productId: number | null
+    productId: bigint | null
     userId: string | null
     createdAt: Date | null
     updatedAt: Date | null
@@ -17220,7 +17220,7 @@ export namespace Prisma {
     id: string
     rating: number
     comment: string | null
-    productId: number
+    productId: bigint
     userId: string
     createdAt: Date
     updatedAt: Date
@@ -17315,7 +17315,7 @@ export namespace Prisma {
       id: string
       rating: number
       comment: string | null
-      productId: number
+      productId: bigint
       userId: string
       createdAt: Date
       updatedAt: Date
@@ -17747,7 +17747,7 @@ export namespace Prisma {
     readonly id: FieldRef<"Review", 'String'>
     readonly rating: FieldRef<"Review", 'Int'>
     readonly comment: FieldRef<"Review", 'String'>
-    readonly productId: FieldRef<"Review", 'Int'>
+    readonly productId: FieldRef<"Review", 'BigInt'>
     readonly userId: FieldRef<"Review", 'String'>
     readonly createdAt: FieldRef<"Review", 'DateTime'>
     readonly updatedAt: FieldRef<"Review", 'DateTime'>
@@ -19228,12 +19228,12 @@ export namespace Prisma {
   }
 
   export type CategoryPathSumAggregateOutputType = {
-    productId: number | null
+    productId: bigint | null
   }
 
   export type CategoryPathMinAggregateOutputType = {
     id: string | null
-    productId: number | null
+    productId: bigint | null
     path: string | null
     level1: string | null
     level2: string | null
@@ -19244,7 +19244,7 @@ export namespace Prisma {
 
   export type CategoryPathMaxAggregateOutputType = {
     id: string | null
-    productId: number | null
+    productId: bigint | null
     path: string | null
     level1: string | null
     level2: string | null
@@ -19396,7 +19396,7 @@ export namespace Prisma {
 
   export type CategoryPathGroupByOutputType = {
     id: string
-    productId: number
+    productId: bigint
     path: string
     level1: string | null
     level2: string | null
@@ -19489,7 +19489,7 @@ export namespace Prisma {
     }
     scalars: $Extensions.GetPayloadResult<{
       id: string
-      productId: number
+      productId: bigint
       path: string
       level1: string | null
       level2: string | null
@@ -19921,7 +19921,7 @@ export namespace Prisma {
    */
   interface CategoryPathFieldRefs {
     readonly id: FieldRef<"CategoryPath", 'String'>
-    readonly productId: FieldRef<"CategoryPath", 'Int'>
+    readonly productId: FieldRef<"CategoryPath", 'BigInt'>
     readonly path: FieldRef<"CategoryPath", 'String'>
     readonly level1: FieldRef<"CategoryPath", 'String'>
     readonly level2: FieldRef<"CategoryPath", 'String'>
@@ -21584,7 +21584,7 @@ export namespace Prisma {
   }
 
   export type OrderItemSumAggregateOutputType = {
-    productId: number | null
+    productId: bigint | null
     quantity: number | null
     price: Decimal | null
   }
@@ -21592,7 +21592,7 @@ export namespace Prisma {
   export type OrderItemMinAggregateOutputType = {
     id: string | null
     orderId: string | null
-    productId: number | null
+    productId: bigint | null
     quantity: number | null
     price: Decimal | null
     createdAt: Date | null
@@ -21601,7 +21601,7 @@ export namespace Prisma {
   export type OrderItemMaxAggregateOutputType = {
     id: string | null
     orderId: string | null
-    productId: number | null
+    productId: bigint | null
     quantity: number | null
     price: Decimal | null
     createdAt: Date | null
@@ -21747,7 +21747,7 @@ export namespace Prisma {
   export type OrderItemGroupByOutputType = {
     id: string
     orderId: string
-    productId: number
+    productId: bigint
     quantity: number
     price: Decimal
     createdAt: Date
@@ -21837,7 +21837,7 @@ export namespace Prisma {
     scalars: $Extensions.GetPayloadResult<{
       id: string
       orderId: string
-      productId: number
+      productId: bigint
       quantity: number
       price: Prisma.Decimal
       createdAt: Date
@@ -22268,7 +22268,7 @@ export namespace Prisma {
   interface OrderItemFieldRefs {
     readonly id: FieldRef<"OrderItem", 'String'>
     readonly orderId: FieldRef<"OrderItem", 'String'>
-    readonly productId: FieldRef<"OrderItem", 'Int'>
+    readonly productId: FieldRef<"OrderItem", 'BigInt'>
     readonly quantity: FieldRef<"OrderItem", 'Int'>
     readonly price: FieldRef<"OrderItem", 'Decimal'>
     readonly createdAt: FieldRef<"OrderItem", 'DateTime'>
@@ -22703,13 +22703,13 @@ export namespace Prisma {
   }
 
   export type DownloadSumAggregateOutputType = {
-    productId: number | null
+    productId: bigint | null
   }
 
   export type DownloadMinAggregateOutputType = {
     id: string | null
     userId: string | null
-    productId: number | null
+    productId: bigint | null
     purchaseId: string | null
     downloadedAt: Date | null
   }
@@ -22717,7 +22717,7 @@ export namespace Prisma {
   export type DownloadMaxAggregateOutputType = {
     id: string | null
     userId: string | null
-    productId: number | null
+    productId: bigint | null
     purchaseId: string | null
     downloadedAt: Date | null
   }
@@ -22854,7 +22854,7 @@ export namespace Prisma {
   export type DownloadGroupByOutputType = {
     id: string
     userId: string
-    productId: number
+    productId: bigint
     purchaseId: string
     downloadedAt: Date
     _count: DownloadCountAggregateOutputType | null
@@ -22946,7 +22946,7 @@ export namespace Prisma {
     scalars: $Extensions.GetPayloadResult<{
       id: string
       userId: string
-      productId: number
+      productId: bigint
       purchaseId: string
       downloadedAt: Date
     }, ExtArgs["result"]["download"]>
@@ -23377,7 +23377,7 @@ export namespace Prisma {
   interface DownloadFieldRefs {
     readonly id: FieldRef<"Download", 'String'>
     readonly userId: FieldRef<"Download", 'String'>
-    readonly productId: FieldRef<"Download", 'Int'>
+    readonly productId: FieldRef<"Download", 'BigInt'>
     readonly purchaseId: FieldRef<"Download", 'String'>
     readonly downloadedAt: FieldRef<"Download", 'DateTime'>
   }
@@ -24183,6 +24183,20 @@ export namespace Prisma {
 
 
   /**
+   * Reference to a field of type 'BigInt'
+   */
+  export type BigIntFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'BigInt'>
+    
+
+
+  /**
+   * Reference to a field of type 'BigInt[]'
+   */
+  export type ListBigIntFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'BigInt[]'>
+    
+
+
+  /**
    * Reference to a field of type 'Decimal'
    */
   export type DecimalFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Decimal'>
@@ -24568,7 +24582,7 @@ export namespace Prisma {
     AND?: ProductWhereInput | ProductWhereInput[]
     OR?: ProductWhereInput[]
     NOT?: ProductWhereInput | ProductWhereInput[]
-    id?: IntFilter<"Product"> | number
+    id?: BigIntFilter<"Product"> | bigint | number
     title?: StringFilter<"Product"> | string
     slug?: StringFilter<"Product"> | string
     description?: StringNullableFilter<"Product"> | string | null
@@ -24638,7 +24652,7 @@ export namespace Prisma {
   }
 
   export type ProductWhereUniqueInput = Prisma.AtLeast<{
-    id?: number
+    id?: bigint | number
     slug?: string
     AND?: ProductWhereInput | ProductWhereInput[]
     OR?: ProductWhereInput[]
@@ -24711,7 +24725,7 @@ export namespace Prisma {
     AND?: ProductScalarWhereWithAggregatesInput | ProductScalarWhereWithAggregatesInput[]
     OR?: ProductScalarWhereWithAggregatesInput[]
     NOT?: ProductScalarWhereWithAggregatesInput | ProductScalarWhereWithAggregatesInput[]
-    id?: IntWithAggregatesFilter<"Product"> | number
+    id?: BigIntWithAggregatesFilter<"Product"> | bigint | number
     title?: StringWithAggregatesFilter<"Product"> | string
     slug?: StringWithAggregatesFilter<"Product"> | string
     description?: StringNullableWithAggregatesFilter<"Product"> | string | null
@@ -24745,7 +24759,7 @@ export namespace Prisma {
     url?: StringFilter<"ProductImage"> | string
     alt?: StringNullableFilter<"ProductImage"> | string | null
     isPrimary?: BoolFilter<"ProductImage"> | boolean
-    productId?: IntFilter<"ProductImage"> | number
+    productId?: BigIntFilter<"ProductImage"> | bigint | number
     createdAt?: DateTimeFilter<"ProductImage"> | Date | string
     product?: XOR<ProductScalarRelationFilter, ProductWhereInput>
   }
@@ -24768,7 +24782,7 @@ export namespace Prisma {
     url?: StringFilter<"ProductImage"> | string
     alt?: StringNullableFilter<"ProductImage"> | string | null
     isPrimary?: BoolFilter<"ProductImage"> | boolean
-    productId?: IntFilter<"ProductImage"> | number
+    productId?: BigIntFilter<"ProductImage"> | bigint | number
     createdAt?: DateTimeFilter<"ProductImage"> | Date | string
     product?: XOR<ProductScalarRelationFilter, ProductWhereInput>
   }, "id">
@@ -24795,7 +24809,7 @@ export namespace Prisma {
     url?: StringWithAggregatesFilter<"ProductImage"> | string
     alt?: StringNullableWithAggregatesFilter<"ProductImage"> | string | null
     isPrimary?: BoolWithAggregatesFilter<"ProductImage"> | boolean
-    productId?: IntWithAggregatesFilter<"ProductImage"> | number
+    productId?: BigIntWithAggregatesFilter<"ProductImage"> | bigint | number
     createdAt?: DateTimeWithAggregatesFilter<"ProductImage"> | Date | string
   }
 
@@ -24893,7 +24907,7 @@ export namespace Prisma {
     AND?: CategoryProductWhereInput | CategoryProductWhereInput[]
     OR?: CategoryProductWhereInput[]
     NOT?: CategoryProductWhereInput | CategoryProductWhereInput[]
-    productId?: IntFilter<"CategoryProduct"> | number
+    productId?: BigIntFilter<"CategoryProduct"> | bigint | number
     categoryId?: StringFilter<"CategoryProduct"> | string
     product?: XOR<ProductScalarRelationFilter, ProductWhereInput>
     category?: XOR<CategoryScalarRelationFilter, CategoryWhereInput>
@@ -24911,7 +24925,7 @@ export namespace Prisma {
     AND?: CategoryProductWhereInput | CategoryProductWhereInput[]
     OR?: CategoryProductWhereInput[]
     NOT?: CategoryProductWhereInput | CategoryProductWhereInput[]
-    productId?: IntFilter<"CategoryProduct"> | number
+    productId?: BigIntFilter<"CategoryProduct"> | bigint | number
     categoryId?: StringFilter<"CategoryProduct"> | string
     product?: XOR<ProductScalarRelationFilter, ProductWhereInput>
     category?: XOR<CategoryScalarRelationFilter, CategoryWhereInput>
@@ -24931,7 +24945,7 @@ export namespace Prisma {
     AND?: CategoryProductScalarWhereWithAggregatesInput | CategoryProductScalarWhereWithAggregatesInput[]
     OR?: CategoryProductScalarWhereWithAggregatesInput[]
     NOT?: CategoryProductScalarWhereWithAggregatesInput | CategoryProductScalarWhereWithAggregatesInput[]
-    productId?: IntWithAggregatesFilter<"CategoryProduct"> | number
+    productId?: BigIntWithAggregatesFilter<"CategoryProduct"> | bigint | number
     categoryId?: StringWithAggregatesFilter<"CategoryProduct"> | string
   }
 
@@ -25188,7 +25202,7 @@ export namespace Prisma {
     OR?: PurchaseWhereInput[]
     NOT?: PurchaseWhereInput | PurchaseWhereInput[]
     id?: StringFilter<"Purchase"> | string
-    productId?: IntFilter<"Purchase"> | number
+    productId?: BigIntFilter<"Purchase"> | bigint | number
     userId?: StringFilter<"Purchase"> | string
     amount?: DecimalFilter<"Purchase"> | Decimal | DecimalJsLike | number | string
     accessExpires?: DateTimeNullableFilter<"Purchase"> | Date | string | null
@@ -25223,7 +25237,7 @@ export namespace Prisma {
     AND?: PurchaseWhereInput | PurchaseWhereInput[]
     OR?: PurchaseWhereInput[]
     NOT?: PurchaseWhereInput | PurchaseWhereInput[]
-    productId?: IntFilter<"Purchase"> | number
+    productId?: BigIntFilter<"Purchase"> | bigint | number
     userId?: StringFilter<"Purchase"> | string
     amount?: DecimalFilter<"Purchase"> | Decimal | DecimalJsLike | number | string
     accessExpires?: DateTimeNullableFilter<"Purchase"> | Date | string | null
@@ -25259,7 +25273,7 @@ export namespace Prisma {
     OR?: PurchaseScalarWhereWithAggregatesInput[]
     NOT?: PurchaseScalarWhereWithAggregatesInput | PurchaseScalarWhereWithAggregatesInput[]
     id?: StringWithAggregatesFilter<"Purchase"> | string
-    productId?: IntWithAggregatesFilter<"Purchase"> | number
+    productId?: BigIntWithAggregatesFilter<"Purchase"> | bigint | number
     userId?: StringWithAggregatesFilter<"Purchase"> | string
     amount?: DecimalWithAggregatesFilter<"Purchase"> | Decimal | DecimalJsLike | number | string
     accessExpires?: DateTimeNullableWithAggregatesFilter<"Purchase"> | Date | string | null
@@ -25276,7 +25290,7 @@ export namespace Prisma {
     id?: StringFilter<"Review"> | string
     rating?: IntFilter<"Review"> | number
     comment?: StringNullableFilter<"Review"> | string | null
-    productId?: IntFilter<"Review"> | number
+    productId?: BigIntFilter<"Review"> | bigint | number
     userId?: StringFilter<"Review"> | string
     createdAt?: DateTimeFilter<"Review"> | Date | string
     updatedAt?: DateTimeFilter<"Review"> | Date | string
@@ -25303,7 +25317,7 @@ export namespace Prisma {
     NOT?: ReviewWhereInput | ReviewWhereInput[]
     rating?: IntFilter<"Review"> | number
     comment?: StringNullableFilter<"Review"> | string | null
-    productId?: IntFilter<"Review"> | number
+    productId?: BigIntFilter<"Review"> | bigint | number
     userId?: StringFilter<"Review"> | string
     createdAt?: DateTimeFilter<"Review"> | Date | string
     updatedAt?: DateTimeFilter<"Review"> | Date | string
@@ -25333,7 +25347,7 @@ export namespace Prisma {
     id?: StringWithAggregatesFilter<"Review"> | string
     rating?: IntWithAggregatesFilter<"Review"> | number
     comment?: StringNullableWithAggregatesFilter<"Review"> | string | null
-    productId?: IntWithAggregatesFilter<"Review"> | number
+    productId?: BigIntWithAggregatesFilter<"Review"> | bigint | number
     userId?: StringWithAggregatesFilter<"Review"> | string
     createdAt?: DateTimeWithAggregatesFilter<"Review"> | Date | string
     updatedAt?: DateTimeWithAggregatesFilter<"Review"> | Date | string
@@ -25403,7 +25417,7 @@ export namespace Prisma {
     OR?: CategoryPathWhereInput[]
     NOT?: CategoryPathWhereInput | CategoryPathWhereInput[]
     id?: StringFilter<"CategoryPath"> | string
-    productId?: IntFilter<"CategoryPath"> | number
+    productId?: BigIntFilter<"CategoryPath"> | bigint | number
     path?: StringFilter<"CategoryPath"> | string
     level1?: StringNullableFilter<"CategoryPath"> | string | null
     level2?: StringNullableFilter<"CategoryPath"> | string | null
@@ -25431,7 +25445,7 @@ export namespace Prisma {
     AND?: CategoryPathWhereInput | CategoryPathWhereInput[]
     OR?: CategoryPathWhereInput[]
     NOT?: CategoryPathWhereInput | CategoryPathWhereInput[]
-    productId?: IntFilter<"CategoryPath"> | number
+    productId?: BigIntFilter<"CategoryPath"> | bigint | number
     path?: StringFilter<"CategoryPath"> | string
     level1?: StringNullableFilter<"CategoryPath"> | string | null
     level2?: StringNullableFilter<"CategoryPath"> | string | null
@@ -25462,7 +25476,7 @@ export namespace Prisma {
     OR?: CategoryPathScalarWhereWithAggregatesInput[]
     NOT?: CategoryPathScalarWhereWithAggregatesInput | CategoryPathScalarWhereWithAggregatesInput[]
     id?: StringWithAggregatesFilter<"CategoryPath"> | string
-    productId?: IntWithAggregatesFilter<"CategoryPath"> | number
+    productId?: BigIntWithAggregatesFilter<"CategoryPath"> | bigint | number
     path?: StringWithAggregatesFilter<"CategoryPath"> | string
     level1?: StringNullableWithAggregatesFilter<"CategoryPath"> | string | null
     level2?: StringNullableWithAggregatesFilter<"CategoryPath"> | string | null
@@ -25570,7 +25584,7 @@ export namespace Prisma {
     NOT?: OrderItemWhereInput | OrderItemWhereInput[]
     id?: StringFilter<"OrderItem"> | string
     orderId?: StringFilter<"OrderItem"> | string
-    productId?: IntFilter<"OrderItem"> | number
+    productId?: BigIntFilter<"OrderItem"> | bigint | number
     quantity?: IntFilter<"OrderItem"> | number
     price?: DecimalFilter<"OrderItem"> | Decimal | DecimalJsLike | number | string
     createdAt?: DateTimeFilter<"OrderItem"> | Date | string
@@ -25595,7 +25609,7 @@ export namespace Prisma {
     OR?: OrderItemWhereInput[]
     NOT?: OrderItemWhereInput | OrderItemWhereInput[]
     orderId?: StringFilter<"OrderItem"> | string
-    productId?: IntFilter<"OrderItem"> | number
+    productId?: BigIntFilter<"OrderItem"> | bigint | number
     quantity?: IntFilter<"OrderItem"> | number
     price?: DecimalFilter<"OrderItem"> | Decimal | DecimalJsLike | number | string
     createdAt?: DateTimeFilter<"OrderItem"> | Date | string
@@ -25623,7 +25637,7 @@ export namespace Prisma {
     NOT?: OrderItemScalarWhereWithAggregatesInput | OrderItemScalarWhereWithAggregatesInput[]
     id?: StringWithAggregatesFilter<"OrderItem"> | string
     orderId?: StringWithAggregatesFilter<"OrderItem"> | string
-    productId?: IntWithAggregatesFilter<"OrderItem"> | number
+    productId?: BigIntWithAggregatesFilter<"OrderItem"> | bigint | number
     quantity?: IntWithAggregatesFilter<"OrderItem"> | number
     price?: DecimalWithAggregatesFilter<"OrderItem"> | Decimal | DecimalJsLike | number | string
     createdAt?: DateTimeWithAggregatesFilter<"OrderItem"> | Date | string
@@ -25635,7 +25649,7 @@ export namespace Prisma {
     NOT?: DownloadWhereInput | DownloadWhereInput[]
     id?: StringFilter<"Download"> | string
     userId?: StringFilter<"Download"> | string
-    productId?: IntFilter<"Download"> | number
+    productId?: BigIntFilter<"Download"> | bigint | number
     purchaseId?: StringFilter<"Download"> | string
     downloadedAt?: DateTimeFilter<"Download"> | Date | string
     user?: XOR<UserScalarRelationFilter, UserWhereInput>
@@ -25660,7 +25674,7 @@ export namespace Prisma {
     OR?: DownloadWhereInput[]
     NOT?: DownloadWhereInput | DownloadWhereInput[]
     userId?: StringFilter<"Download"> | string
-    productId?: IntFilter<"Download"> | number
+    productId?: BigIntFilter<"Download"> | bigint | number
     purchaseId?: StringFilter<"Download"> | string
     downloadedAt?: DateTimeFilter<"Download"> | Date | string
     user?: XOR<UserScalarRelationFilter, UserWhereInput>
@@ -25687,7 +25701,7 @@ export namespace Prisma {
     NOT?: DownloadScalarWhereWithAggregatesInput | DownloadScalarWhereWithAggregatesInput[]
     id?: StringWithAggregatesFilter<"Download"> | string
     userId?: StringWithAggregatesFilter<"Download"> | string
-    productId?: IntWithAggregatesFilter<"Download"> | number
+    productId?: BigIntWithAggregatesFilter<"Download"> | bigint | number
     purchaseId?: StringWithAggregatesFilter<"Download"> | string
     downloadedAt?: DateTimeWithAggregatesFilter<"Download"> | Date | string
   }
@@ -26062,6 +26076,7 @@ export namespace Prisma {
   }
 
   export type ProductCreateInput = {
+    id?: bigint | number
     title: string
     slug: string
     description?: string | null
@@ -26095,7 +26110,7 @@ export namespace Prisma {
   }
 
   export type ProductUncheckedCreateInput = {
-    id?: number
+    id?: bigint | number
     title: string
     slug: string
     description?: string | null
@@ -26129,6 +26144,7 @@ export namespace Prisma {
   }
 
   export type ProductUpdateInput = {
+    id?: BigIntFieldUpdateOperationsInput | bigint | number
     title?: StringFieldUpdateOperationsInput | string
     slug?: StringFieldUpdateOperationsInput | string
     description?: NullableStringFieldUpdateOperationsInput | string | null
@@ -26162,7 +26178,7 @@ export namespace Prisma {
   }
 
   export type ProductUncheckedUpdateInput = {
-    id?: IntFieldUpdateOperationsInput | number
+    id?: BigIntFieldUpdateOperationsInput | bigint | number
     title?: StringFieldUpdateOperationsInput | string
     slug?: StringFieldUpdateOperationsInput | string
     description?: NullableStringFieldUpdateOperationsInput | string | null
@@ -26196,7 +26212,7 @@ export namespace Prisma {
   }
 
   export type ProductCreateManyInput = {
-    id?: number
+    id?: bigint | number
     title: string
     slug: string
     description?: string | null
@@ -26223,6 +26239,7 @@ export namespace Prisma {
   }
 
   export type ProductUpdateManyMutationInput = {
+    id?: BigIntFieldUpdateOperationsInput | bigint | number
     title?: StringFieldUpdateOperationsInput | string
     slug?: StringFieldUpdateOperationsInput | string
     description?: NullableStringFieldUpdateOperationsInput | string | null
@@ -26248,7 +26265,7 @@ export namespace Prisma {
   }
 
   export type ProductUncheckedUpdateManyInput = {
-    id?: IntFieldUpdateOperationsInput | number
+    id?: BigIntFieldUpdateOperationsInput | bigint | number
     title?: StringFieldUpdateOperationsInput | string
     slug?: StringFieldUpdateOperationsInput | string
     description?: NullableStringFieldUpdateOperationsInput | string | null
@@ -26288,7 +26305,7 @@ export namespace Prisma {
     url: string
     alt?: string | null
     isPrimary?: boolean
-    productId: number
+    productId: bigint | number
     createdAt?: Date | string
   }
 
@@ -26306,7 +26323,7 @@ export namespace Prisma {
     url?: StringFieldUpdateOperationsInput | string
     alt?: NullableStringFieldUpdateOperationsInput | string | null
     isPrimary?: BoolFieldUpdateOperationsInput | boolean
-    productId?: IntFieldUpdateOperationsInput | number
+    productId?: BigIntFieldUpdateOperationsInput | bigint | number
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
@@ -26315,7 +26332,7 @@ export namespace Prisma {
     url: string
     alt?: string | null
     isPrimary?: boolean
-    productId: number
+    productId: bigint | number
     createdAt?: Date | string
   }
 
@@ -26332,7 +26349,7 @@ export namespace Prisma {
     url?: StringFieldUpdateOperationsInput | string
     alt?: NullableStringFieldUpdateOperationsInput | string | null
     isPrimary?: BoolFieldUpdateOperationsInput | boolean
-    productId?: IntFieldUpdateOperationsInput | number
+    productId?: BigIntFieldUpdateOperationsInput | bigint | number
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
@@ -26440,7 +26457,7 @@ export namespace Prisma {
   }
 
   export type CategoryProductUncheckedCreateInput = {
-    productId: number
+    productId: bigint | number
     categoryId: string
   }
 
@@ -26450,12 +26467,12 @@ export namespace Prisma {
   }
 
   export type CategoryProductUncheckedUpdateInput = {
-    productId?: IntFieldUpdateOperationsInput | number
+    productId?: BigIntFieldUpdateOperationsInput | bigint | number
     categoryId?: StringFieldUpdateOperationsInput | string
   }
 
   export type CategoryProductCreateManyInput = {
-    productId: number
+    productId: bigint | number
     categoryId: string
   }
 
@@ -26464,7 +26481,7 @@ export namespace Prisma {
   }
 
   export type CategoryProductUncheckedUpdateManyInput = {
-    productId?: IntFieldUpdateOperationsInput | number
+    productId?: BigIntFieldUpdateOperationsInput | bigint | number
     categoryId?: StringFieldUpdateOperationsInput | string
   }
 
@@ -26784,7 +26801,7 @@ export namespace Prisma {
 
   export type PurchaseUncheckedCreateInput = {
     id?: string
-    productId: number
+    productId: bigint | number
     userId: string
     amount: Decimal | DecimalJsLike | number | string
     accessExpires?: Date | string | null
@@ -26812,7 +26829,7 @@ export namespace Prisma {
 
   export type PurchaseUncheckedUpdateInput = {
     id?: StringFieldUpdateOperationsInput | string
-    productId?: IntFieldUpdateOperationsInput | number
+    productId?: BigIntFieldUpdateOperationsInput | bigint | number
     userId?: StringFieldUpdateOperationsInput | string
     amount?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     accessExpires?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -26826,7 +26843,7 @@ export namespace Prisma {
 
   export type PurchaseCreateManyInput = {
     id?: string
-    productId: number
+    productId: bigint | number
     userId: string
     amount: Decimal | DecimalJsLike | number | string
     accessExpires?: Date | string | null
@@ -26848,7 +26865,7 @@ export namespace Prisma {
 
   export type PurchaseUncheckedUpdateManyInput = {
     id?: StringFieldUpdateOperationsInput | string
-    productId?: IntFieldUpdateOperationsInput | number
+    productId?: BigIntFieldUpdateOperationsInput | bigint | number
     userId?: StringFieldUpdateOperationsInput | string
     amount?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     accessExpires?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -26872,7 +26889,7 @@ export namespace Prisma {
     id?: string
     rating: number
     comment?: string | null
-    productId: number
+    productId: bigint | number
     userId: string
     createdAt?: Date | string
     updatedAt?: Date | string
@@ -26892,7 +26909,7 @@ export namespace Prisma {
     id?: StringFieldUpdateOperationsInput | string
     rating?: IntFieldUpdateOperationsInput | number
     comment?: NullableStringFieldUpdateOperationsInput | string | null
-    productId?: IntFieldUpdateOperationsInput | number
+    productId?: BigIntFieldUpdateOperationsInput | bigint | number
     userId?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -26902,7 +26919,7 @@ export namespace Prisma {
     id?: string
     rating: number
     comment?: string | null
-    productId: number
+    productId: bigint | number
     userId: string
     createdAt?: Date | string
     updatedAt?: Date | string
@@ -26920,7 +26937,7 @@ export namespace Prisma {
     id?: StringFieldUpdateOperationsInput | string
     rating?: IntFieldUpdateOperationsInput | number
     comment?: NullableStringFieldUpdateOperationsInput | string | null
-    productId?: IntFieldUpdateOperationsInput | number
+    productId?: BigIntFieldUpdateOperationsInput | bigint | number
     userId?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -27002,7 +27019,7 @@ export namespace Prisma {
 
   export type CategoryPathUncheckedCreateInput = {
     id?: string
-    productId: number
+    productId: bigint | number
     path: string
     level1?: string | null
     level2?: string | null
@@ -27024,7 +27041,7 @@ export namespace Prisma {
 
   export type CategoryPathUncheckedUpdateInput = {
     id?: StringFieldUpdateOperationsInput | string
-    productId?: IntFieldUpdateOperationsInput | number
+    productId?: BigIntFieldUpdateOperationsInput | bigint | number
     path?: StringFieldUpdateOperationsInput | string
     level1?: NullableStringFieldUpdateOperationsInput | string | null
     level2?: NullableStringFieldUpdateOperationsInput | string | null
@@ -27035,7 +27052,7 @@ export namespace Prisma {
 
   export type CategoryPathCreateManyInput = {
     id?: string
-    productId: number
+    productId: bigint | number
     path: string
     level1?: string | null
     level2?: string | null
@@ -27056,7 +27073,7 @@ export namespace Prisma {
 
   export type CategoryPathUncheckedUpdateManyInput = {
     id?: StringFieldUpdateOperationsInput | string
-    productId?: IntFieldUpdateOperationsInput | number
+    productId?: BigIntFieldUpdateOperationsInput | bigint | number
     path?: StringFieldUpdateOperationsInput | string
     level1?: NullableStringFieldUpdateOperationsInput | string | null
     level2?: NullableStringFieldUpdateOperationsInput | string | null
@@ -27177,7 +27194,7 @@ export namespace Prisma {
   export type OrderItemUncheckedCreateInput = {
     id?: string
     orderId: string
-    productId: number
+    productId: bigint | number
     quantity?: number
     price: Decimal | DecimalJsLike | number | string
     createdAt?: Date | string
@@ -27195,7 +27212,7 @@ export namespace Prisma {
   export type OrderItemUncheckedUpdateInput = {
     id?: StringFieldUpdateOperationsInput | string
     orderId?: StringFieldUpdateOperationsInput | string
-    productId?: IntFieldUpdateOperationsInput | number
+    productId?: BigIntFieldUpdateOperationsInput | bigint | number
     quantity?: IntFieldUpdateOperationsInput | number
     price?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -27204,7 +27221,7 @@ export namespace Prisma {
   export type OrderItemCreateManyInput = {
     id?: string
     orderId: string
-    productId: number
+    productId: bigint | number
     quantity?: number
     price: Decimal | DecimalJsLike | number | string
     createdAt?: Date | string
@@ -27220,7 +27237,7 @@ export namespace Prisma {
   export type OrderItemUncheckedUpdateManyInput = {
     id?: StringFieldUpdateOperationsInput | string
     orderId?: StringFieldUpdateOperationsInput | string
-    productId?: IntFieldUpdateOperationsInput | number
+    productId?: BigIntFieldUpdateOperationsInput | bigint | number
     quantity?: IntFieldUpdateOperationsInput | number
     price?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -27237,7 +27254,7 @@ export namespace Prisma {
   export type DownloadUncheckedCreateInput = {
     id?: string
     userId: string
-    productId: number
+    productId: bigint | number
     purchaseId: string
     downloadedAt?: Date | string
   }
@@ -27253,7 +27270,7 @@ export namespace Prisma {
   export type DownloadUncheckedUpdateInput = {
     id?: StringFieldUpdateOperationsInput | string
     userId?: StringFieldUpdateOperationsInput | string
-    productId?: IntFieldUpdateOperationsInput | number
+    productId?: BigIntFieldUpdateOperationsInput | bigint | number
     purchaseId?: StringFieldUpdateOperationsInput | string
     downloadedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
@@ -27261,7 +27278,7 @@ export namespace Prisma {
   export type DownloadCreateManyInput = {
     id?: string
     userId: string
-    productId: number
+    productId: bigint | number
     purchaseId: string
     downloadedAt?: Date | string
   }
@@ -27274,7 +27291,7 @@ export namespace Prisma {
   export type DownloadUncheckedUpdateManyInput = {
     id?: StringFieldUpdateOperationsInput | string
     userId?: StringFieldUpdateOperationsInput | string
-    productId?: IntFieldUpdateOperationsInput | number
+    productId?: BigIntFieldUpdateOperationsInput | bigint | number
     purchaseId?: StringFieldUpdateOperationsInput | string
     downloadedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
@@ -27685,15 +27702,15 @@ export namespace Prisma {
     expires?: SortOrder
   }
 
-  export type IntFilter<$PrismaModel = never> = {
-    equals?: number | IntFieldRefInput<$PrismaModel>
-    in?: number[] | ListIntFieldRefInput<$PrismaModel>
-    notIn?: number[] | ListIntFieldRefInput<$PrismaModel>
-    lt?: number | IntFieldRefInput<$PrismaModel>
-    lte?: number | IntFieldRefInput<$PrismaModel>
-    gt?: number | IntFieldRefInput<$PrismaModel>
-    gte?: number | IntFieldRefInput<$PrismaModel>
-    not?: NestedIntFilter<$PrismaModel> | number
+  export type BigIntFilter<$PrismaModel = never> = {
+    equals?: bigint | number | BigIntFieldRefInput<$PrismaModel>
+    in?: bigint[] | number[] | ListBigIntFieldRefInput<$PrismaModel>
+    notIn?: bigint[] | number[] | ListBigIntFieldRefInput<$PrismaModel>
+    lt?: bigint | number | BigIntFieldRefInput<$PrismaModel>
+    lte?: bigint | number | BigIntFieldRefInput<$PrismaModel>
+    gt?: bigint | number | BigIntFieldRefInput<$PrismaModel>
+    gte?: bigint | number | BigIntFieldRefInput<$PrismaModel>
+    not?: NestedBigIntFilter<$PrismaModel> | bigint | number
   }
 
   export type DecimalFilter<$PrismaModel = never> = {
@@ -27716,6 +27733,17 @@ export namespace Prisma {
     gt?: Decimal | DecimalJsLike | number | string | DecimalFieldRefInput<$PrismaModel>
     gte?: Decimal | DecimalJsLike | number | string | DecimalFieldRefInput<$PrismaModel>
     not?: NestedDecimalNullableFilter<$PrismaModel> | Decimal | DecimalJsLike | number | string | null
+  }
+
+  export type IntFilter<$PrismaModel = never> = {
+    equals?: number | IntFieldRefInput<$PrismaModel>
+    in?: number[] | ListIntFieldRefInput<$PrismaModel>
+    notIn?: number[] | ListIntFieldRefInput<$PrismaModel>
+    lt?: number | IntFieldRefInput<$PrismaModel>
+    lte?: number | IntFieldRefInput<$PrismaModel>
+    gt?: number | IntFieldRefInput<$PrismaModel>
+    gte?: number | IntFieldRefInput<$PrismaModel>
+    not?: NestedIntFilter<$PrismaModel> | number
   }
 
   export type OrderItemListRelationFilter = {
@@ -27872,20 +27900,20 @@ export namespace Prisma {
     totalRevenue?: SortOrder
   }
 
-  export type IntWithAggregatesFilter<$PrismaModel = never> = {
-    equals?: number | IntFieldRefInput<$PrismaModel>
-    in?: number[] | ListIntFieldRefInput<$PrismaModel>
-    notIn?: number[] | ListIntFieldRefInput<$PrismaModel>
-    lt?: number | IntFieldRefInput<$PrismaModel>
-    lte?: number | IntFieldRefInput<$PrismaModel>
-    gt?: number | IntFieldRefInput<$PrismaModel>
-    gte?: number | IntFieldRefInput<$PrismaModel>
-    not?: NestedIntWithAggregatesFilter<$PrismaModel> | number
+  export type BigIntWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: bigint | number | BigIntFieldRefInput<$PrismaModel>
+    in?: bigint[] | number[] | ListBigIntFieldRefInput<$PrismaModel>
+    notIn?: bigint[] | number[] | ListBigIntFieldRefInput<$PrismaModel>
+    lt?: bigint | number | BigIntFieldRefInput<$PrismaModel>
+    lte?: bigint | number | BigIntFieldRefInput<$PrismaModel>
+    gt?: bigint | number | BigIntFieldRefInput<$PrismaModel>
+    gte?: bigint | number | BigIntFieldRefInput<$PrismaModel>
+    not?: NestedBigIntWithAggregatesFilter<$PrismaModel> | bigint | number
     _count?: NestedIntFilter<$PrismaModel>
     _avg?: NestedFloatFilter<$PrismaModel>
-    _sum?: NestedIntFilter<$PrismaModel>
-    _min?: NestedIntFilter<$PrismaModel>
-    _max?: NestedIntFilter<$PrismaModel>
+    _sum?: NestedBigIntFilter<$PrismaModel>
+    _min?: NestedBigIntFilter<$PrismaModel>
+    _max?: NestedBigIntFilter<$PrismaModel>
   }
 
   export type DecimalWithAggregatesFilter<$PrismaModel = never> = {
@@ -27918,6 +27946,22 @@ export namespace Prisma {
     _sum?: NestedDecimalNullableFilter<$PrismaModel>
     _min?: NestedDecimalNullableFilter<$PrismaModel>
     _max?: NestedDecimalNullableFilter<$PrismaModel>
+  }
+
+  export type IntWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: number | IntFieldRefInput<$PrismaModel>
+    in?: number[] | ListIntFieldRefInput<$PrismaModel>
+    notIn?: number[] | ListIntFieldRefInput<$PrismaModel>
+    lt?: number | IntFieldRefInput<$PrismaModel>
+    lte?: number | IntFieldRefInput<$PrismaModel>
+    gt?: number | IntFieldRefInput<$PrismaModel>
+    gte?: number | IntFieldRefInput<$PrismaModel>
+    not?: NestedIntWithAggregatesFilter<$PrismaModel> | number
+    _count?: NestedIntFilter<$PrismaModel>
+    _avg?: NestedFloatFilter<$PrismaModel>
+    _sum?: NestedIntFilter<$PrismaModel>
+    _min?: NestedIntFilter<$PrismaModel>
+    _max?: NestedIntFilter<$PrismaModel>
   }
 
   export type ProductScalarRelationFilter = {
@@ -28038,7 +28082,7 @@ export namespace Prisma {
   }
 
   export type CategoryProductProductIdCategoryIdCompoundUniqueInput = {
-    productId: number
+    productId: bigint | number
     categoryId: string
   }
 
@@ -28439,7 +28483,7 @@ export namespace Prisma {
   }
 
   export type CategoryPathProductIdPathCompoundUniqueInput = {
-    productId: number
+    productId: bigint | number
     path: string
   }
 
@@ -29070,6 +29114,14 @@ export namespace Prisma {
     connectOrCreate?: CategoryPathCreateOrConnectWithoutProductInput | CategoryPathCreateOrConnectWithoutProductInput[]
     createMany?: CategoryPathCreateManyProductInputEnvelope
     connect?: CategoryPathWhereUniqueInput | CategoryPathWhereUniqueInput[]
+  }
+
+  export type BigIntFieldUpdateOperationsInput = {
+    set?: bigint | number
+    increment?: bigint | number
+    decrement?: bigint | number
+    multiply?: bigint | number
+    divide?: bigint | number
   }
 
   export type DecimalFieldUpdateOperationsInput = {
@@ -30030,6 +30082,17 @@ export namespace Prisma {
     _max?: NestedBoolFilter<$PrismaModel>
   }
 
+  export type NestedBigIntFilter<$PrismaModel = never> = {
+    equals?: bigint | number | BigIntFieldRefInput<$PrismaModel>
+    in?: bigint[] | number[] | ListBigIntFieldRefInput<$PrismaModel>
+    notIn?: bigint[] | number[] | ListBigIntFieldRefInput<$PrismaModel>
+    lt?: bigint | number | BigIntFieldRefInput<$PrismaModel>
+    lte?: bigint | number | BigIntFieldRefInput<$PrismaModel>
+    gt?: bigint | number | BigIntFieldRefInput<$PrismaModel>
+    gte?: bigint | number | BigIntFieldRefInput<$PrismaModel>
+    not?: NestedBigIntFilter<$PrismaModel> | bigint | number
+  }
+
   export type NestedDecimalFilter<$PrismaModel = never> = {
     equals?: Decimal | DecimalJsLike | number | string | DecimalFieldRefInput<$PrismaModel>
     in?: Decimal[] | DecimalJsLike[] | number[] | string[] | ListDecimalFieldRefInput<$PrismaModel>
@@ -30052,20 +30115,20 @@ export namespace Prisma {
     not?: NestedDecimalNullableFilter<$PrismaModel> | Decimal | DecimalJsLike | number | string | null
   }
 
-  export type NestedIntWithAggregatesFilter<$PrismaModel = never> = {
-    equals?: number | IntFieldRefInput<$PrismaModel>
-    in?: number[] | ListIntFieldRefInput<$PrismaModel>
-    notIn?: number[] | ListIntFieldRefInput<$PrismaModel>
-    lt?: number | IntFieldRefInput<$PrismaModel>
-    lte?: number | IntFieldRefInput<$PrismaModel>
-    gt?: number | IntFieldRefInput<$PrismaModel>
-    gte?: number | IntFieldRefInput<$PrismaModel>
-    not?: NestedIntWithAggregatesFilter<$PrismaModel> | number
+  export type NestedBigIntWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: bigint | number | BigIntFieldRefInput<$PrismaModel>
+    in?: bigint[] | number[] | ListBigIntFieldRefInput<$PrismaModel>
+    notIn?: bigint[] | number[] | ListBigIntFieldRefInput<$PrismaModel>
+    lt?: bigint | number | BigIntFieldRefInput<$PrismaModel>
+    lte?: bigint | number | BigIntFieldRefInput<$PrismaModel>
+    gt?: bigint | number | BigIntFieldRefInput<$PrismaModel>
+    gte?: bigint | number | BigIntFieldRefInput<$PrismaModel>
+    not?: NestedBigIntWithAggregatesFilter<$PrismaModel> | bigint | number
     _count?: NestedIntFilter<$PrismaModel>
     _avg?: NestedFloatFilter<$PrismaModel>
-    _sum?: NestedIntFilter<$PrismaModel>
-    _min?: NestedIntFilter<$PrismaModel>
-    _max?: NestedIntFilter<$PrismaModel>
+    _sum?: NestedBigIntFilter<$PrismaModel>
+    _min?: NestedBigIntFilter<$PrismaModel>
+    _max?: NestedBigIntFilter<$PrismaModel>
   }
 
   export type NestedFloatFilter<$PrismaModel = never> = {
@@ -30109,6 +30172,22 @@ export namespace Prisma {
     _sum?: NestedDecimalNullableFilter<$PrismaModel>
     _min?: NestedDecimalNullableFilter<$PrismaModel>
     _max?: NestedDecimalNullableFilter<$PrismaModel>
+  }
+
+  export type NestedIntWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: number | IntFieldRefInput<$PrismaModel>
+    in?: number[] | ListIntFieldRefInput<$PrismaModel>
+    notIn?: number[] | ListIntFieldRefInput<$PrismaModel>
+    lt?: number | IntFieldRefInput<$PrismaModel>
+    lte?: number | IntFieldRefInput<$PrismaModel>
+    gt?: number | IntFieldRefInput<$PrismaModel>
+    gte?: number | IntFieldRefInput<$PrismaModel>
+    not?: NestedIntWithAggregatesFilter<$PrismaModel> | number
+    _count?: NestedIntFilter<$PrismaModel>
+    _avg?: NestedFloatFilter<$PrismaModel>
+    _sum?: NestedIntFilter<$PrismaModel>
+    _min?: NestedIntFilter<$PrismaModel>
+    _max?: NestedIntFilter<$PrismaModel>
   }
   export type NestedJsonFilter<$PrismaModel = never> =
     | PatchUndefined<
@@ -30414,7 +30493,7 @@ export namespace Prisma {
     id?: string
     rating: number
     comment?: string | null
-    productId: number
+    productId: bigint | number
     createdAt?: Date | string
     updatedAt?: Date | string
   }
@@ -30430,6 +30509,7 @@ export namespace Prisma {
   }
 
   export type ProductCreateWithoutCreatedByInput = {
+    id?: bigint | number
     title: string
     slug: string
     description?: string | null
@@ -30462,7 +30542,7 @@ export namespace Prisma {
   }
 
   export type ProductUncheckedCreateWithoutCreatedByInput = {
-    id?: number
+    id?: bigint | number
     title: string
     slug: string
     description?: string | null
@@ -30519,7 +30599,7 @@ export namespace Prisma {
 
   export type PurchaseUncheckedCreateWithoutUserInput = {
     id?: string
-    productId: number
+    productId: bigint | number
     amount: Decimal | DecimalJsLike | number | string
     accessExpires?: Date | string | null
     downloadsLeft?: number | null
@@ -30587,7 +30667,7 @@ export namespace Prisma {
 
   export type DownloadUncheckedCreateWithoutUserInput = {
     id?: string
-    productId: number
+    productId: bigint | number
     purchaseId: string
     downloadedAt?: Date | string
   }
@@ -30685,7 +30765,7 @@ export namespace Prisma {
     id?: StringFilter<"Review"> | string
     rating?: IntFilter<"Review"> | number
     comment?: StringNullableFilter<"Review"> | string | null
-    productId?: IntFilter<"Review"> | number
+    productId?: BigIntFilter<"Review"> | bigint | number
     userId?: StringFilter<"Review"> | string
     createdAt?: DateTimeFilter<"Review"> | Date | string
     updatedAt?: DateTimeFilter<"Review"> | Date | string
@@ -30711,7 +30791,7 @@ export namespace Prisma {
     AND?: ProductScalarWhereInput | ProductScalarWhereInput[]
     OR?: ProductScalarWhereInput[]
     NOT?: ProductScalarWhereInput | ProductScalarWhereInput[]
-    id?: IntFilter<"Product"> | number
+    id?: BigIntFilter<"Product"> | bigint | number
     title?: StringFilter<"Product"> | string
     slug?: StringFilter<"Product"> | string
     description?: StringNullableFilter<"Product"> | string | null
@@ -30758,7 +30838,7 @@ export namespace Prisma {
     OR?: PurchaseScalarWhereInput[]
     NOT?: PurchaseScalarWhereInput | PurchaseScalarWhereInput[]
     id?: StringFilter<"Purchase"> | string
-    productId?: IntFilter<"Purchase"> | number
+    productId?: BigIntFilter<"Purchase"> | bigint | number
     userId?: StringFilter<"Purchase"> | string
     amount?: DecimalFilter<"Purchase"> | Decimal | DecimalJsLike | number | string
     accessExpires?: DateTimeNullableFilter<"Purchase"> | Date | string | null
@@ -30823,7 +30903,7 @@ export namespace Prisma {
     NOT?: DownloadScalarWhereInput | DownloadScalarWhereInput[]
     id?: StringFilter<"Download"> | string
     userId?: StringFilter<"Download"> | string
-    productId?: IntFilter<"Download"> | number
+    productId?: BigIntFilter<"Download"> | bigint | number
     purchaseId?: StringFilter<"Download"> | string
     downloadedAt?: DateTimeFilter<"Download"> | Date | string
   }
@@ -31081,7 +31161,7 @@ export namespace Prisma {
     NOT?: OrderItemScalarWhereInput | OrderItemScalarWhereInput[]
     id?: StringFilter<"OrderItem"> | string
     orderId?: StringFilter<"OrderItem"> | string
-    productId?: IntFilter<"OrderItem"> | number
+    productId?: BigIntFilter<"OrderItem"> | bigint | number
     quantity?: IntFilter<"OrderItem"> | number
     price?: DecimalFilter<"OrderItem"> | Decimal | DecimalJsLike | number | string
     createdAt?: DateTimeFilter<"OrderItem"> | Date | string
@@ -31111,7 +31191,7 @@ export namespace Prisma {
     url?: StringFilter<"ProductImage"> | string
     alt?: StringNullableFilter<"ProductImage"> | string | null
     isPrimary?: BoolFilter<"ProductImage"> | boolean
-    productId?: IntFilter<"ProductImage"> | number
+    productId?: BigIntFilter<"ProductImage"> | bigint | number
     createdAt?: DateTimeFilter<"ProductImage"> | Date | string
   }
 
@@ -31151,7 +31231,7 @@ export namespace Prisma {
     AND?: CategoryProductScalarWhereInput | CategoryProductScalarWhereInput[]
     OR?: CategoryProductScalarWhereInput[]
     NOT?: CategoryProductScalarWhereInput | CategoryProductScalarWhereInput[]
-    productId?: IntFilter<"CategoryProduct"> | number
+    productId?: BigIntFilter<"CategoryProduct"> | bigint | number
     categoryId?: StringFilter<"CategoryProduct"> | string
   }
 
@@ -31208,7 +31288,7 @@ export namespace Prisma {
     OR?: CategoryPathScalarWhereInput[]
     NOT?: CategoryPathScalarWhereInput | CategoryPathScalarWhereInput[]
     id?: StringFilter<"CategoryPath"> | string
-    productId?: IntFilter<"CategoryPath"> | number
+    productId?: BigIntFilter<"CategoryPath"> | bigint | number
     path?: StringFilter<"CategoryPath"> | string
     level1?: StringNullableFilter<"CategoryPath"> | string | null
     level2?: StringNullableFilter<"CategoryPath"> | string | null
@@ -31267,6 +31347,7 @@ export namespace Prisma {
   }
 
   export type ProductCreateWithoutImagesInput = {
+    id?: bigint | number
     title: string
     slug: string
     description?: string | null
@@ -31299,7 +31380,7 @@ export namespace Prisma {
   }
 
   export type ProductUncheckedCreateWithoutImagesInput = {
-    id?: number
+    id?: bigint | number
     title: string
     slug: string
     description?: string | null
@@ -31348,6 +31429,7 @@ export namespace Prisma {
   }
 
   export type ProductUpdateWithoutImagesInput = {
+    id?: BigIntFieldUpdateOperationsInput | bigint | number
     title?: StringFieldUpdateOperationsInput | string
     slug?: StringFieldUpdateOperationsInput | string
     description?: NullableStringFieldUpdateOperationsInput | string | null
@@ -31380,7 +31462,7 @@ export namespace Prisma {
   }
 
   export type ProductUncheckedUpdateWithoutImagesInput = {
-    id?: IntFieldUpdateOperationsInput | number
+    id?: BigIntFieldUpdateOperationsInput | bigint | number
     title?: StringFieldUpdateOperationsInput | string
     slug?: StringFieldUpdateOperationsInput | string
     description?: NullableStringFieldUpdateOperationsInput | string | null
@@ -31417,7 +31499,7 @@ export namespace Prisma {
   }
 
   export type CategoryProductUncheckedCreateWithoutCategoryInput = {
-    productId: number
+    productId: bigint | number
   }
 
   export type CategoryProductCreateOrConnectWithoutCategoryInput = {
@@ -31589,6 +31671,7 @@ export namespace Prisma {
   }
 
   export type ProductCreateWithoutCategoriesInput = {
+    id?: bigint | number
     title: string
     slug: string
     description?: string | null
@@ -31621,7 +31704,7 @@ export namespace Prisma {
   }
 
   export type ProductUncheckedCreateWithoutCategoriesInput = {
-    id?: number
+    id?: bigint | number
     title: string
     slug: string
     description?: string | null
@@ -31703,6 +31786,7 @@ export namespace Prisma {
   }
 
   export type ProductUpdateWithoutCategoriesInput = {
+    id?: BigIntFieldUpdateOperationsInput | bigint | number
     title?: StringFieldUpdateOperationsInput | string
     slug?: StringFieldUpdateOperationsInput | string
     description?: NullableStringFieldUpdateOperationsInput | string | null
@@ -31735,7 +31819,7 @@ export namespace Prisma {
   }
 
   export type ProductUncheckedUpdateWithoutCategoriesInput = {
-    id?: IntFieldUpdateOperationsInput | number
+    id?: BigIntFieldUpdateOperationsInput | bigint | number
     title?: StringFieldUpdateOperationsInput | string
     slug?: StringFieldUpdateOperationsInput | string
     description?: NullableStringFieldUpdateOperationsInput | string | null
@@ -31960,7 +32044,7 @@ export namespace Prisma {
 
   export type PurchaseUncheckedCreateWithoutTransactionsInput = {
     id?: string
-    productId: number
+    productId: bigint | number
     userId: string
     amount: Decimal | DecimalJsLike | number | string
     accessExpires?: Date | string | null
@@ -32093,7 +32177,7 @@ export namespace Prisma {
 
   export type PurchaseUncheckedUpdateWithoutTransactionsInput = {
     id?: StringFieldUpdateOperationsInput | string
-    productId?: IntFieldUpdateOperationsInput | number
+    productId?: BigIntFieldUpdateOperationsInput | bigint | number
     userId?: StringFieldUpdateOperationsInput | string
     amount?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     accessExpires?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -32121,6 +32205,7 @@ export namespace Prisma {
   }
 
   export type ProductCreateWithoutPurchasesInput = {
+    id?: bigint | number
     title: string
     slug: string
     description?: string | null
@@ -32153,7 +32238,7 @@ export namespace Prisma {
   }
 
   export type ProductUncheckedCreateWithoutPurchasesInput = {
-    id?: number
+    id?: bigint | number
     title: string
     slug: string
     description?: string | null
@@ -32295,7 +32380,7 @@ export namespace Prisma {
   export type DownloadUncheckedCreateWithoutPurchaseInput = {
     id?: string
     userId: string
-    productId: number
+    productId: bigint | number
     downloadedAt?: Date | string
   }
 
@@ -32321,6 +32406,7 @@ export namespace Prisma {
   }
 
   export type ProductUpdateWithoutPurchasesInput = {
+    id?: BigIntFieldUpdateOperationsInput | bigint | number
     title?: StringFieldUpdateOperationsInput | string
     slug?: StringFieldUpdateOperationsInput | string
     description?: NullableStringFieldUpdateOperationsInput | string | null
@@ -32353,7 +32439,7 @@ export namespace Prisma {
   }
 
   export type ProductUncheckedUpdateWithoutPurchasesInput = {
-    id?: IntFieldUpdateOperationsInput | number
+    id?: BigIntFieldUpdateOperationsInput | bigint | number
     title?: StringFieldUpdateOperationsInput | string
     slug?: StringFieldUpdateOperationsInput | string
     description?: NullableStringFieldUpdateOperationsInput | string | null
@@ -32467,6 +32553,7 @@ export namespace Prisma {
   }
 
   export type ProductCreateWithoutReviewsInput = {
+    id?: bigint | number
     title: string
     slug: string
     description?: string | null
@@ -32499,7 +32586,7 @@ export namespace Prisma {
   }
 
   export type ProductUncheckedCreateWithoutReviewsInput = {
-    id?: number
+    id?: bigint | number
     title: string
     slug: string
     description?: string | null
@@ -32591,6 +32678,7 @@ export namespace Prisma {
   }
 
   export type ProductUpdateWithoutReviewsInput = {
+    id?: BigIntFieldUpdateOperationsInput | bigint | number
     title?: StringFieldUpdateOperationsInput | string
     slug?: StringFieldUpdateOperationsInput | string
     description?: NullableStringFieldUpdateOperationsInput | string | null
@@ -32623,7 +32711,7 @@ export namespace Prisma {
   }
 
   export type ProductUncheckedUpdateWithoutReviewsInput = {
-    id?: IntFieldUpdateOperationsInput | number
+    id?: BigIntFieldUpdateOperationsInput | bigint | number
     title?: StringFieldUpdateOperationsInput | string
     slug?: StringFieldUpdateOperationsInput | string
     description?: NullableStringFieldUpdateOperationsInput | string | null
@@ -32705,6 +32793,7 @@ export namespace Prisma {
   }
 
   export type ProductCreateWithoutCategoryPathInput = {
+    id?: bigint | number
     title: string
     slug: string
     description?: string | null
@@ -32737,7 +32826,7 @@ export namespace Prisma {
   }
 
   export type ProductUncheckedCreateWithoutCategoryPathInput = {
-    id?: number
+    id?: bigint | number
     title: string
     slug: string
     description?: string | null
@@ -32786,6 +32875,7 @@ export namespace Prisma {
   }
 
   export type ProductUpdateWithoutCategoryPathInput = {
+    id?: BigIntFieldUpdateOperationsInput | bigint | number
     title?: StringFieldUpdateOperationsInput | string
     slug?: StringFieldUpdateOperationsInput | string
     description?: NullableStringFieldUpdateOperationsInput | string | null
@@ -32818,7 +32908,7 @@ export namespace Prisma {
   }
 
   export type ProductUncheckedUpdateWithoutCategoryPathInput = {
-    id?: IntFieldUpdateOperationsInput | number
+    id?: BigIntFieldUpdateOperationsInput | bigint | number
     title?: StringFieldUpdateOperationsInput | string
     slug?: StringFieldUpdateOperationsInput | string
     description?: NullableStringFieldUpdateOperationsInput | string | null
@@ -32903,7 +32993,7 @@ export namespace Prisma {
 
   export type OrderItemUncheckedCreateWithoutOrderInput = {
     id?: string
-    productId: number
+    productId: bigint | number
     quantity?: number
     price: Decimal | DecimalJsLike | number | string
     createdAt?: Date | string
@@ -33118,6 +33208,7 @@ export namespace Prisma {
   }
 
   export type ProductCreateWithoutOrderItemsInput = {
+    id?: bigint | number
     title: string
     slug: string
     description?: string | null
@@ -33150,7 +33241,7 @@ export namespace Prisma {
   }
 
   export type ProductUncheckedCreateWithoutOrderItemsInput = {
-    id?: number
+    id?: bigint | number
     title: string
     slug: string
     description?: string | null
@@ -33238,6 +33329,7 @@ export namespace Prisma {
   }
 
   export type ProductUpdateWithoutOrderItemsInput = {
+    id?: BigIntFieldUpdateOperationsInput | bigint | number
     title?: StringFieldUpdateOperationsInput | string
     slug?: StringFieldUpdateOperationsInput | string
     description?: NullableStringFieldUpdateOperationsInput | string | null
@@ -33270,7 +33362,7 @@ export namespace Prisma {
   }
 
   export type ProductUncheckedUpdateWithoutOrderItemsInput = {
-    id?: IntFieldUpdateOperationsInput | number
+    id?: BigIntFieldUpdateOperationsInput | bigint | number
     title?: StringFieldUpdateOperationsInput | string
     slug?: StringFieldUpdateOperationsInput | string
     description?: NullableStringFieldUpdateOperationsInput | string | null
@@ -33346,6 +33438,7 @@ export namespace Prisma {
   }
 
   export type ProductCreateWithoutDownloadsInput = {
+    id?: bigint | number
     title: string
     slug: string
     description?: string | null
@@ -33378,7 +33471,7 @@ export namespace Prisma {
   }
 
   export type ProductUncheckedCreateWithoutDownloadsInput = {
-    id?: number
+    id?: bigint | number
     title: string
     slug: string
     description?: string | null
@@ -33430,7 +33523,7 @@ export namespace Prisma {
 
   export type PurchaseUncheckedCreateWithoutDownloadsInput = {
     id?: string
-    productId: number
+    productId: bigint | number
     userId: string
     amount: Decimal | DecimalJsLike | number | string
     accessExpires?: Date | string | null
@@ -33507,6 +33600,7 @@ export namespace Prisma {
   }
 
   export type ProductUpdateWithoutDownloadsInput = {
+    id?: BigIntFieldUpdateOperationsInput | bigint | number
     title?: StringFieldUpdateOperationsInput | string
     slug?: StringFieldUpdateOperationsInput | string
     description?: NullableStringFieldUpdateOperationsInput | string | null
@@ -33539,7 +33633,7 @@ export namespace Prisma {
   }
 
   export type ProductUncheckedUpdateWithoutDownloadsInput = {
-    id?: IntFieldUpdateOperationsInput | number
+    id?: BigIntFieldUpdateOperationsInput | bigint | number
     title?: StringFieldUpdateOperationsInput | string
     slug?: StringFieldUpdateOperationsInput | string
     description?: NullableStringFieldUpdateOperationsInput | string | null
@@ -33597,7 +33691,7 @@ export namespace Prisma {
 
   export type PurchaseUncheckedUpdateWithoutDownloadsInput = {
     id?: StringFieldUpdateOperationsInput | string
-    productId?: IntFieldUpdateOperationsInput | number
+    productId?: BigIntFieldUpdateOperationsInput | bigint | number
     userId?: StringFieldUpdateOperationsInput | string
     amount?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     accessExpires?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -33632,13 +33726,13 @@ export namespace Prisma {
     id?: string
     rating: number
     comment?: string | null
-    productId: number
+    productId: bigint | number
     createdAt?: Date | string
     updatedAt?: Date | string
   }
 
   export type ProductCreateManyCreatedByInput = {
-    id?: number
+    id?: bigint | number
     title: string
     slug: string
     description?: string | null
@@ -33665,7 +33759,7 @@ export namespace Prisma {
 
   export type PurchaseCreateManyUserInput = {
     id?: string
-    productId: number
+    productId: bigint | number
     amount: Decimal | DecimalJsLike | number | string
     accessExpires?: Date | string | null
     downloadsLeft?: number | null
@@ -33689,7 +33783,7 @@ export namespace Prisma {
 
   export type DownloadCreateManyUserInput = {
     id?: string
-    productId: number
+    productId: bigint | number
     purchaseId: string
     downloadedAt?: Date | string
   }
@@ -33767,7 +33861,7 @@ export namespace Prisma {
     id?: StringFieldUpdateOperationsInput | string
     rating?: IntFieldUpdateOperationsInput | number
     comment?: NullableStringFieldUpdateOperationsInput | string | null
-    productId?: IntFieldUpdateOperationsInput | number
+    productId?: BigIntFieldUpdateOperationsInput | bigint | number
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
@@ -33776,12 +33870,13 @@ export namespace Prisma {
     id?: StringFieldUpdateOperationsInput | string
     rating?: IntFieldUpdateOperationsInput | number
     comment?: NullableStringFieldUpdateOperationsInput | string | null
-    productId?: IntFieldUpdateOperationsInput | number
+    productId?: BigIntFieldUpdateOperationsInput | bigint | number
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
   export type ProductUpdateWithoutCreatedByInput = {
+    id?: BigIntFieldUpdateOperationsInput | bigint | number
     title?: StringFieldUpdateOperationsInput | string
     slug?: StringFieldUpdateOperationsInput | string
     description?: NullableStringFieldUpdateOperationsInput | string | null
@@ -33814,7 +33909,7 @@ export namespace Prisma {
   }
 
   export type ProductUncheckedUpdateWithoutCreatedByInput = {
-    id?: IntFieldUpdateOperationsInput | number
+    id?: BigIntFieldUpdateOperationsInput | bigint | number
     title?: StringFieldUpdateOperationsInput | string
     slug?: StringFieldUpdateOperationsInput | string
     description?: NullableStringFieldUpdateOperationsInput | string | null
@@ -33847,7 +33942,7 @@ export namespace Prisma {
   }
 
   export type ProductUncheckedUpdateManyWithoutCreatedByInput = {
-    id?: IntFieldUpdateOperationsInput | number
+    id?: BigIntFieldUpdateOperationsInput | bigint | number
     title?: StringFieldUpdateOperationsInput | string
     slug?: StringFieldUpdateOperationsInput | string
     description?: NullableStringFieldUpdateOperationsInput | string | null
@@ -33887,7 +33982,7 @@ export namespace Prisma {
 
   export type PurchaseUncheckedUpdateWithoutUserInput = {
     id?: StringFieldUpdateOperationsInput | string
-    productId?: IntFieldUpdateOperationsInput | number
+    productId?: BigIntFieldUpdateOperationsInput | bigint | number
     amount?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     accessExpires?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     downloadsLeft?: NullableIntFieldUpdateOperationsInput | number | null
@@ -33900,7 +33995,7 @@ export namespace Prisma {
 
   export type PurchaseUncheckedUpdateManyWithoutUserInput = {
     id?: StringFieldUpdateOperationsInput | string
-    productId?: IntFieldUpdateOperationsInput | number
+    productId?: BigIntFieldUpdateOperationsInput | bigint | number
     amount?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     accessExpires?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     downloadsLeft?: NullableIntFieldUpdateOperationsInput | number | null
@@ -33959,14 +34054,14 @@ export namespace Prisma {
 
   export type DownloadUncheckedUpdateWithoutUserInput = {
     id?: StringFieldUpdateOperationsInput | string
-    productId?: IntFieldUpdateOperationsInput | number
+    productId?: BigIntFieldUpdateOperationsInput | bigint | number
     purchaseId?: StringFieldUpdateOperationsInput | string
     downloadedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
   export type DownloadUncheckedUpdateManyWithoutUserInput = {
     id?: StringFieldUpdateOperationsInput | string
-    productId?: IntFieldUpdateOperationsInput | number
+    productId?: BigIntFieldUpdateOperationsInput | bigint | number
     purchaseId?: StringFieldUpdateOperationsInput | string
     downloadedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
@@ -34204,7 +34299,7 @@ export namespace Prisma {
   }
 
   export type CategoryProductCreateManyCategoryInput = {
-    productId: number
+    productId: bigint | number
   }
 
   export type CategoryCreateManyParentInput = {
@@ -34224,11 +34319,11 @@ export namespace Prisma {
   }
 
   export type CategoryProductUncheckedUpdateWithoutCategoryInput = {
-    productId?: IntFieldUpdateOperationsInput | number
+    productId?: BigIntFieldUpdateOperationsInput | bigint | number
   }
 
   export type CategoryProductUncheckedUpdateManyWithoutCategoryInput = {
-    productId?: IntFieldUpdateOperationsInput | number
+    productId?: BigIntFieldUpdateOperationsInput | bigint | number
   }
 
   export type CategoryUpdateWithoutParentInput = {
@@ -34430,7 +34525,7 @@ export namespace Prisma {
   export type DownloadCreateManyPurchaseInput = {
     id?: string
     userId: string
-    productId: number
+    productId: bigint | number
     downloadedAt?: Date | string
   }
 
@@ -34506,20 +34601,20 @@ export namespace Prisma {
   export type DownloadUncheckedUpdateWithoutPurchaseInput = {
     id?: StringFieldUpdateOperationsInput | string
     userId?: StringFieldUpdateOperationsInput | string
-    productId?: IntFieldUpdateOperationsInput | number
+    productId?: BigIntFieldUpdateOperationsInput | bigint | number
     downloadedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
   export type DownloadUncheckedUpdateManyWithoutPurchaseInput = {
     id?: StringFieldUpdateOperationsInput | string
     userId?: StringFieldUpdateOperationsInput | string
-    productId?: IntFieldUpdateOperationsInput | number
+    productId?: BigIntFieldUpdateOperationsInput | bigint | number
     downloadedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
   export type OrderItemCreateManyOrderInput = {
     id?: string
-    productId: number
+    productId: bigint | number
     quantity?: number
     price: Decimal | DecimalJsLike | number | string
     createdAt?: Date | string
@@ -34535,7 +34630,7 @@ export namespace Prisma {
 
   export type OrderItemUncheckedUpdateWithoutOrderInput = {
     id?: StringFieldUpdateOperationsInput | string
-    productId?: IntFieldUpdateOperationsInput | number
+    productId?: BigIntFieldUpdateOperationsInput | bigint | number
     quantity?: IntFieldUpdateOperationsInput | number
     price?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -34543,7 +34638,7 @@ export namespace Prisma {
 
   export type OrderItemUncheckedUpdateManyWithoutOrderInput = {
     id?: StringFieldUpdateOperationsInput | string
-    productId?: IntFieldUpdateOperationsInput | number
+    productId?: BigIntFieldUpdateOperationsInput | bigint | number
     quantity?: IntFieldUpdateOperationsInput | number
     price?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string

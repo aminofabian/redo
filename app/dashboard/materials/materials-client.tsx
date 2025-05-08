@@ -11,7 +11,9 @@ import {
   PlayCircle,
   FileText,
   Clock,
-  CheckCircle
+  CheckCircle,
+  Calendar,
+  Download
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -23,7 +25,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Session } from "next-auth";
+import type { Session } from "next-auth";
 import { Progress } from "@/components/ui/progress";
 import Image from "next/image";
 import Link from "next/link";
@@ -36,13 +38,32 @@ interface Material {
   id: number;
   title: string;
   description: string;
-  type: string;
-  progress: number;
-  status: 'not_started' | 'in_progress' | 'completed';
-  lastAccessed: string;
+  type: string; // Document, PDF, Presentation, etc.
   thumbnailUrl: string;
-  driveUrl: string;
-  category: string;
+  downloadUrl: string | null;
+  driveUrl: string; // Alternative viewing option
+  category: string; // Pediatrics, Maternal Health, etc.
+  
+  // Purchase details
+  date: string; // Purchase date
+  formattedDate: string; // Formatted purchase date
+  
+  // Download details
+  isDownloadAvailable: boolean;
+  daysUntilExpiry: number;
+  expiryDate: string;
+  lastAccessed: string;
+  
+  // File details
+  fileSize: string;
+  fileFormat: string;
+  
+  // Metadata
+  author: string;
+  rating: number;
+  
+  // Progress tracking
+  status: string; // 'completed', 'in-progress', 'not-started'
 }
 
 export default function MaterialsClient({ session }: { session: Session }) {
@@ -51,7 +72,7 @@ export default function MaterialsClient({ session }: { session: Session }) {
   const [error, setError] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [filterType, setFilterType] = useState('all');
-  const [filterStatus, setFilterStatus] = useState('all');
+  const [filterCategory, setFilterCategory] = useState('all');
   const [sortBy, setSortBy] = useState('recent');
 
   useEffect(() => {
@@ -60,37 +81,91 @@ export default function MaterialsClient({ session }: { session: Session }) {
 
   const fetchMaterials = async () => {
     try {
-      const response = await fetch('/api/materials');
+      const response = await fetch('/api/dashboard/materials');
       if (!response.ok) throw new Error('Failed to fetch materials');
       
       const data = await response.json();
-      setMaterials(data);
+      console.log('Materials fetched:', data); // Log for debugging
+      
+      // Map API response for nursing materials downloads
+      const mappedMaterials = data.map((item: any) => ({
+        id: item.id,
+        title: item.title || '',
+        description: item.description || '',
+        type: item.type || '',
+        thumbnailUrl: item.image || '',
+        downloadUrl: item.downloadUrl,
+        driveUrl: item.driveUrl || item.downloadUrl || '',
+        category: item.category || '',
+        
+        // Purchase details
+        date: item.date || '',
+        formattedDate: item.formattedDate || '',
+        
+        // Download details
+        isDownloadAvailable: item.isDownloadAvailable,
+        daysUntilExpiry: item.daysUntilExpiry || 0,
+        expiryDate: item.expiryDate || '',
+        lastAccessed: item.lastAccessed || '',
+        
+        // File details
+        fileSize: item.fileSize || '',
+        fileFormat: item.fileFormat || '',
+        
+        // Metadata
+        author: item.author || '',
+        rating: item.rating || 0,
+        
+        // Progress tracking
+        status: item.status || 'not-started'
+      }));
+      
+      setMaterials(mappedMaterials);
     } catch (err) {
+      console.error('Error fetching materials:', err);
       setError(err instanceof Error ? err.message : 'An error occurred');
     } finally {
       setLoading(false);
     }
   };
 
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'completed':
-        return 'text-green-600 bg-green-50';
-      case 'in_progress':
+  const getFormatColor = (format: string | undefined) => {
+    switch (format?.toUpperCase()) {
+      case 'PDF':
+        return 'text-red-600 bg-red-50';
+      case 'DOC':
+      case 'DOCX':
         return 'text-blue-600 bg-blue-50';
+      case 'PPT':
+      case 'PPTX':
+        return 'text-orange-600 bg-orange-50';
+      case 'XLS':
+      case 'XLSX':
+        return 'text-green-600 bg-green-50';
+      case 'ZIP':
+        return 'text-purple-600 bg-purple-50';
       default:
         return 'text-gray-600 bg-gray-50';
     }
   };
 
-  const getStatusIcon = (status: string) => {
-    switch (status) {
-      case 'completed':
-        return CheckCircle;
-      case 'in_progress':
-        return Clock;
-      default:
+  const getFormatIcon = (format: string | undefined) => {
+    switch (format?.toUpperCase()) {
+      case 'PDF':
+        return FileText;
+      case 'DOC':
+      case 'DOCX':
+        return FileText;
+      case 'PPT':
+      case 'PPTX':
         return PlayCircle;
+      case 'XLS':
+      case 'XLSX':
+        return FileText;
+      case 'ZIP':
+        return FileText;
+      default:
+        return FileText;
     }
   };
 
@@ -98,18 +173,18 @@ export default function MaterialsClient({ session }: { session: Session }) {
     .filter(material => {
       const matchesSearch = material.title.toLowerCase().includes(searchQuery.toLowerCase());
       const matchesType = filterType === 'all' || material.type === filterType;
-      const matchesStatus = filterStatus === 'all' || material.status === filterStatus;
-      return matchesSearch && matchesType && matchesStatus;
+      const matchesCategory = filterCategory === 'all' || material.category === filterCategory;
+      return matchesSearch && matchesType && matchesCategory;
     })
     .sort((a, b) => {
       switch (sortBy) {
         case 'name':
           return a.title.localeCompare(b.title);
-        case 'progress':
-          return b.progress - a.progress;
+        case 'format':
+          return (a.fileFormat || '').localeCompare(b.fileFormat || '');
         case 'recent':
         default:
-          return new Date(b.lastAccessed).getTime() - new Date(a.lastAccessed).getTime();
+          return new Date(b.date).getTime() - new Date(a.date).getTime();
       }
     });
 
@@ -222,16 +297,18 @@ export default function MaterialsClient({ session }: { session: Session }) {
                 <SelectItem value="PowerPoint">Presentations</SelectItem>
               </SelectContent>
             </Select>
-            <Select value={filterStatus} onValueChange={setFilterStatus}>
+            <Select value={filterCategory} onValueChange={setFilterCategory}>
               <SelectTrigger className="w-[180px] bg-white">
-                <CheckCircle className="h-4 w-4 mr-2" />
-                <SelectValue placeholder="Filter by status" />
+                <BookOpen className="h-4 w-4 mr-2" />
+                <SelectValue placeholder="Filter by category" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">All Status</SelectItem>
-                <SelectItem value="not_started">Not Started</SelectItem>
-                <SelectItem value="in_progress">In Progress</SelectItem>
-                <SelectItem value="completed">Completed</SelectItem>
+                <SelectItem value="all">All Categories</SelectItem>
+                <SelectItem value="Pediatrics">Pediatrics</SelectItem>
+                <SelectItem value="Maternal Health">Maternal Health</SelectItem>
+                <SelectItem value="Mental Health">Mental Health</SelectItem>
+                <SelectItem value="NCLEX">NCLEX Resources</SelectItem>
+                <SelectItem value="Clinical Skills">Clinical Skills</SelectItem>
               </SelectContent>
             </Select>
             <Select value={sortBy} onValueChange={setSortBy}>
@@ -242,116 +319,93 @@ export default function MaterialsClient({ session }: { session: Session }) {
               <SelectContent>
                 <SelectItem value="recent">Most Recent</SelectItem>
                 <SelectItem value="name">Name</SelectItem>
-                <SelectItem value="progress">Progress</SelectItem>
+                <SelectItem value="format">File Format</SelectItem>
               </SelectContent>
             </Select>
           </div>
         </div>
       </Card>
 
-      {/* Materials Grid with Enhanced Cards */}
+      {/* Materials Simple Row Layout */}
       {filteredMaterials.length > 0 ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {filteredMaterials.map((material) => {
-            const StatusIcon = getStatusIcon(material.status);
-            
-            return (
-              <Card key={material.id} className="overflow-hidden hover:shadow-lg transition-shadow">
-                <div className="flex h-full">
-                  {/* Thumbnail with Overlay */}
-                  <div className="w-1/3 relative group">
-                    <Image
-                      src={material.thumbnailUrl}
-                      alt={material.title}
-                      width={200}
-                      height={200}
-                      className="object-cover h-full brightness-90 group-hover:brightness-100 transition-all"
-                    />
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
-                  </div>
-                  
-                  {/* Enhanced Content Section */}
-                  <div className="w-2/3 p-6 flex flex-col">
-                    <div className="flex-1">
-                      <div className="flex items-start justify-between">
-                        <div>
-                          <h3 className="font-medium text-lg line-clamp-1">{material.title}</h3>
-                          <Badge variant="secondary" className="mt-1">
-                            {material.category}
-                          </Badge>
+        <div className="overflow-hidden rounded-md border">
+          <table className="w-full text-sm">
+            <thead className="bg-muted/50">
+              <tr className="text-left">
+                <th className="p-3 font-medium">Product</th>
+                <th className="p-3 font-medium">Category</th>
+                <th className="p-3 font-medium">Format</th>
+                <th className="p-3 font-medium">Expiry</th>
+                <th className="p-3 font-medium">Size</th>
+                <th className="p-3 font-medium text-right">Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {filteredMaterials.map((material) => {
+                const FormatIcon = getFormatIcon(material.fileFormat);
+                return (
+                  <tr key={material.id} className="border-t hover:bg-muted/50">
+                    <td className="p-3">
+                      <div className="font-medium">{material.title}</div>
+                      <div className="text-xs text-muted-foreground">Purchased: {material.formattedDate}</div>
+                    </td>
+                    <td className="p-3">
+                      <Badge variant="secondary">{material.category}</Badge>
+                    </td>
+                    <td className="p-3">
+                      <Badge 
+                        variant="outline" 
+                        className={`${getFormatColor(material.fileFormat)} capitalize`}
+                      >
+                        <FormatIcon className="h-3 w-3 mr-1" />
+                        {material.fileFormat || 'Document'}
+                      </Badge>
+                    </td>
+                    <td className="p-3">
+                      {material.isDownloadAvailable ? (
+                        <div className="text-sm text-blue-600 font-medium">
+                          {material.daysUntilExpiry} days left
                         </div>
-                        <Badge 
-                          variant="outline" 
-                          className={`${getStatusColor(material.status)} capitalize`}
-                        >
-                          <StatusIcon className="h-3 w-3 mr-1" />
-                          {material.status.replace('_', ' ')}
-                        </Badge>
-                      </div>
-                      
-                      <ScrollArea className="h-[60px] mt-2">
-                        <p className="text-sm text-muted-foreground">
-                          {material.description}
-                        </p>
-                      </ScrollArea>
-                      
-                      <div className="mt-4 space-y-2">
-                        <div className="flex justify-between text-sm text-muted-foreground">
-                          <span>Progress</span>
-                          <span>{material.progress}%</span>
+                      ) : (
+                        <div className="text-sm text-red-600 font-medium">
+                          Expired
                         </div>
-                        <Progress 
-                          value={material.progress} 
-                          className="h-2"
-                          // Add different colors based on progress
-                          style={{
-                            background: material.progress >= 100 
-                              ? 'var(--green-100)' 
-                              : 'var(--slate-100)',
-                            '--progress-color': material.progress >= 100 
-                              ? 'var(--green-600)' 
-                              : 'var(--blue-600)'
-                          } as any}
-                        />
-                      </div>
-                    </div>
-                    
-                    <Separator className="my-4" />
-                    
-                    <div className="flex items-center justify-between">
-                      <span className="text-xs text-muted-foreground">
-                        Last accessed: {new Date(material.lastAccessed).toLocaleDateString()}
-                      </span>
-                      <div className="flex gap-2">
-                        <Button size="sm" variant="outline" asChild>
-                          <Link href={material.driveUrl} target="_blank">
-                            <ExternalLink className="h-4 w-4 mr-1" />
-                            Open
+                      )}
+                    </td>
+                    <td className="p-3">
+                      {material.fileSize}
+                    </td>
+                    <td className="p-3 text-right space-x-1">
+                      {material.downloadUrl && material.isDownloadAvailable && (
+                        <Button size="sm" variant="outline" className="bg-blue-50 text-blue-700 border-blue-200 hover:bg-blue-100 hover:text-blue-800" asChild>
+                          <Link href={material.downloadUrl} target="_blank">
+                            <Download className="h-3 w-3 mr-1" />
+                            Download
                           </Link>
                         </Button>
-                        <Button size="sm" asChild>
-                          <Link href={`/dashboard/materials/${material.id}`}>
-                            View Details
-                          </Link>
-                        </Button>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </Card>
-            );
-          })}
+                      )}
+                      <Button size="sm" variant="ghost" asChild>
+                        <Link href={material.driveUrl} target="_blank">
+                          <ExternalLink className="h-3 w-3" />
+                        </Link>
+                      </Button>
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
         </div>
       ) : (
         <Card className="p-12 text-center">
           <BookOpen className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
           <h3 className="text-lg font-medium">No materials found</h3>
           <p className="text-muted-foreground mt-1">
-            {searchQuery || filterType !== 'all' || filterStatus !== 'all'
+            {searchQuery || filterType !== 'all' || filterCategory !== 'all'
               ? 'Try adjusting your search or filters'
-              : 'You haven\'t purchased any materials yet'}
+              : 'You haven\'t purchased any nursing materials yet'}
           </p>
-          {!searchQuery && filterType === 'all' && filterStatus === 'all' && (
+          {!searchQuery && filterType === 'all' && filterCategory === 'all' && (
             <Button asChild className="mt-6">
               <Link href="/store">Browse our catalog</Link>
             </Button>

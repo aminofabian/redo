@@ -10,10 +10,18 @@ export async function GET() {
       return new NextResponse("Unauthorized", { status: 401 });
     }
 
+    // Extract user ID from session token
+    const userId = (session as any)?.user?.id || (session as any)?.id;
+    
+    if (!userId) {
+      console.error("[MATERIALS_ERROR] No user ID found in session");
+      return new NextResponse("User ID not found", { status: 400 });
+    }
+
     // Fetch user's purchased materials with more details
     const purchases = await db.purchase.findMany({
       where: {
-        userId: session.user.id,
+        userId: userId,
         status: "COMPLETED",
       },
       include: {
@@ -46,6 +54,9 @@ export async function GET() {
       }
     });
 
+    // Log how many purchases were found
+    console.log(`[MATERIALS] Found ${purchases.length} completed purchases`);
+
     // Transform the data for the client
     const materials = purchases.map(purchase => ({
       id: purchase.product.id,
@@ -64,6 +75,7 @@ export async function GET() {
     
   } catch (error) {
     console.error("[MATERIALS_GET]", error);
+    console.error("[MATERIALS_GET_STACK]", error instanceof Error ? error.stack : 'No stack trace');
     return new NextResponse("Internal Error", { status: 500 });
   }
 }
