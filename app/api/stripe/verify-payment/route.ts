@@ -89,28 +89,46 @@ export async function POST(request: NextRequest) {
     const paymentIntentId = stripeSession.payment_intent as string;
     console.log("Payment Intent ID:", paymentIntentId);
     
-    // Prepare transaction data
+    // Get the gateway ID from environment or use default
+    const gatewayId = process.env.STRIPE_GATEWAY_ID || 'stripe';
+    console.log("Using payment gateway ID:", gatewayId);
+    
+    // Prepare transaction data with proper Prisma relation syntax
     const transactionData = {
       amount: order.totalAmount,
       currency: order.currency,
       status: 'completed',
-      gatewayId: process.env.STRIPE_GATEWAY_ID || 'stripe', // Use configured gateway ID
-      externalReference: paymentIntentId,
-      purchaseId: null, // Will update this after creating purchases
-      userId: userId,
+      // Use the relation field instead of direct foreign key assignment
+      paymentGateway: {
+        // Use connect if the gateway already exists with this ID
+        connect: { id: gatewayId }
+      },
+      // Store the payment intent ID in an appropriate field - likely gatewayTransactionId
+      gatewayTransactionId: paymentIntentId,
       completedAt: new Date(),
       metadata: {
         stripeSessionId: sessionId,
         paymentMethod: 'card', // Assuming card payment through Stripe
       }
     };
+    
+    // Log transaction data for debugging
+    console.log("Transaction data prepared:", JSON.stringify(transactionData, null, 2));
 
     // Begin a transaction to ensure all updates happen together
     const result = await prisma.$transaction(async (tx) => {
       // 1. Create the transaction record
-      const transaction = await tx.transaction.create({
-        data: transactionData
-      });
+      let transaction;
+      try {
+        console.log("Creating transaction record...");
+        transaction = await tx.transaction.create({
+          data: transactionData
+        });
+        console.log("Transaction created with ID:", transaction.id);
+      } catch (err) {
+        console.error("Error creating transaction:", err);
+        throw err; // Re-throw to abort the transaction
+      }
 
       // 2. Update the order status with transaction ID and payment intent ID
       const updatedOrder = await tx.order.update({
