@@ -37,8 +37,8 @@ export async function GET() {
       },
       orderBy: {
         createdAt: 'desc'
-      },
-      take: 4, // Limit to recent 4 purchases
+      }
+      // Removed the take: 4 limit to show all purchased materials
     });
 
     // Transform the data for the dashboard - using the existing database schema
