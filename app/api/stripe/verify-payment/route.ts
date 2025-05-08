@@ -44,11 +44,23 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Find the order in our database using the Stripe session ID as payment intent ID
-    // If we have a userId, include it in the query for extra security
+    // Get order ID from the Stripe session metadata
+    // Stripe puts the metadata we set during checkout session creation here
+    const orderId = stripeSession.metadata?.orderId;
+    
+    if (!orderId) {
+      return NextResponse.json(
+        { success: false, message: "No order ID found in session metadata" },
+        { status: 400 }
+      );
+    }
+    
+    console.log("Looking for order with ID:", orderId);
+    
+    // Find the order in our database using the orderId from session metadata
     const order = await prisma.order.findFirst({
       where: {
-        paymentIntentId: sessionId,
+        id: orderId,
         ...(userId ? { userId } : {})
       },
       include: {
@@ -60,6 +72,8 @@ export async function POST(request: NextRequest) {
         user: true // Include user to get userId if not authenticated
       }
     });
+    
+    console.log("Order found:", order ? "Yes" : "No");
 
     if (!order) {
       return NextResponse.json(
@@ -71,13 +85,17 @@ export async function POST(request: NextRequest) {
     // If we didn't have userId from session, get it from the order
     userId = userId || order.user.id;
 
+    // Get the payment intent ID from the Stripe session
+    const paymentIntentId = stripeSession.payment_intent as string;
+    console.log("Payment Intent ID:", paymentIntentId);
+    
     // Prepare transaction data
     const transactionData = {
       amount: order.totalAmount,
       currency: order.currency,
       status: 'completed',
       gatewayId: process.env.STRIPE_GATEWAY_ID || 'stripe', // Use configured gateway ID
-      externalReference: stripeSession.payment_intent as string,
+      externalReference: paymentIntentId,
       purchaseId: null, // Will update this after creating purchases
       userId: userId,
       completedAt: new Date(),
@@ -94,13 +112,14 @@ export async function POST(request: NextRequest) {
         data: transactionData
       });
 
-      // 2. Update the order status
+      // 2. Update the order status with transaction ID and payment intent ID
       const updatedOrder = await tx.order.update({
         where: { id: order.id },
         data: {
           status: 'paid',
           paymentStatus: 'paid',
-          transactionId: transaction.id
+          transactionId: transaction.id,
+          paymentIntentId: paymentIntentId // Store the payment intent ID in the order
         },
         include: {
           orderItems: {
