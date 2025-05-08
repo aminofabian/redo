@@ -89,46 +89,50 @@ export async function POST(request: NextRequest) {
     const paymentIntentId = stripeSession.payment_intent as string;
     console.log("Payment Intent ID:", paymentIntentId);
     
-    // Get the gateway ID from environment or use default
-    const gatewayId = process.env.STRIPE_GATEWAY_ID || 'stripe';
-    console.log("Using payment gateway ID:", gatewayId);
-    
-    // Prepare transaction data with proper Prisma relation syntax
+    // Prepare transaction data without trying to connect to a payment gateway
+    // This will avoid the 500 error if the payment gateway doesn't exist
     const transactionData = {
       amount: order.totalAmount,
       currency: order.currency,
       status: 'completed',
-      // Use the relation field instead of direct foreign key assignment
-      paymentGateway: {
-        // Use connect if the gateway already exists with this ID
-        connect: { id: gatewayId }
-      },
-      // Store the payment intent ID in an appropriate field - likely gatewayTransactionId
+      // Remove the payment gateway relation that's causing errors
+      // We'll just store the gateway ID as a transaction ID instead
       gatewayTransactionId: paymentIntentId,
       completedAt: new Date(),
       metadata: {
         stripeSessionId: sessionId,
         paymentMethod: 'card', // Assuming card payment through Stripe
+        gatewayName: 'stripe' // Store the gateway name in metadata instead
       }
     };
     
     // Log transaction data for debugging
     console.log("Transaction data prepared:", JSON.stringify(transactionData, null, 2));
 
-    // Begin a transaction to ensure all updates happen together
-    const result = await prisma.$transaction(async (tx) => {
-      // 1. Create the transaction record
-      let transaction;
-      try {
-        console.log("Creating transaction record...");
-        transaction = await tx.transaction.create({
-          data: transactionData
-        });
-        console.log("Transaction created with ID:", transaction.id);
-      } catch (err) {
-        console.error("Error creating transaction:", err);
-        throw err; // Re-throw to abort the transaction
-      }
+    // Wrap the entire process in a try-catch block for better error reporting
+    try {
+      // Begin a transaction to ensure all updates happen together
+      const result = await prisma.$transaction(async (tx) => {
+        // 1. Create the transaction record
+        let transaction;
+        try {
+          console.log("Creating transaction record...");
+          transaction = await tx.transaction.create({
+            data: transactionData
+          });
+          console.log("Transaction created with ID:", transaction.id);
+        } catch (err) {
+          console.error("Error creating transaction:", err);
+          // Send detailed error info to console
+          if (err instanceof Error) {
+            console.error('Transaction create error details:', {
+              message: err.message,
+              name: err.name,
+              stack: err.stack,
+            });
+          }
+          throw err; // Re-throw to abort the transaction
+        }
 
       // 2. Update the order status with transaction ID and payment intent ID
       const updatedOrder = await tx.order.update({
@@ -189,29 +193,47 @@ export async function POST(request: NextRequest) {
       return { updatedOrder, purchases };
     });
 
-    // Format the response for the success page
-    const orderDetails = {
-      id: result.updatedOrder.id,
-      totalAmount: Number(result.updatedOrder.totalAmount),
-      items: result.updatedOrder.orderItems.map(item => ({
-        id: item.id,
-        title: item.product.title,
-        price: Number(item.price),
-        quantity: item.quantity,
-        downloadAvailable: Boolean(item.product.downloadUrl)
-      }))
-    };
+      // Format the response for the success page
+      const orderDetails = {
+        id: result.updatedOrder.id,
+        totalAmount: Number(result.updatedOrder.totalAmount),
+        items: result.updatedOrder.orderItems.map(item => ({
+          id: item.id,
+          title: item.product.title,
+          price: Number(item.price),
+          quantity: item.quantity,
+          downloadAvailable: Boolean(item.product.downloadUrl)
+        }))
+      };
 
-    return NextResponse.json({
-      success: true,
-      message: "Payment verified and order processed successfully",
-      orderId: result.updatedOrder.id,
-      orderDetails
-    });
+      return NextResponse.json({
+        success: true,
+        message: "Payment verified and order processed successfully",
+        orderId: result.updatedOrder.id,
+        orderDetails
+      });
+    } catch (txError) {
+      console.error("Error during transaction processing:", txError);
+      return NextResponse.json(
+        { success: false, message: "Transaction processing failed", details: txError instanceof Error ? txError.message : "Unknown error" },
+        { status: 500 }
+      );
+    }
   } catch (error) {
     console.error("Error verifying payment:", error);
+    
+    // We need to get the session ID from the URL again since searchParams isn't in this scope
+    const { searchParams: errorParams } = new URL(request.url);
+    const sessionIdForError = errorParams.get('session_id');
+    
+    // Send detailed error info to the frontend
     return NextResponse.json(
-      { success: false, message: "Failed to verify payment" },
+      { 
+        success: false, 
+        message: "Failed to verify payment", 
+        details: error instanceof Error ? error.message : "Unknown error",
+        session_id: sessionIdForError
+      },
       { status: 500 }
     );
   }
