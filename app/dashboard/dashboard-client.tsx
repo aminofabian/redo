@@ -260,8 +260,23 @@ export default function DashboardClient({ session }: { session: Session }) {
           // Log the material structure to debug what's coming from the API
           console.log(`Material ${material.id || 'unknown'} structure:`, material);
           
-          // Only use the actual database values, no hardcoded fallbacks
-          return material;
+          // Make sure we're properly mapping the data based on the API response
+          return {
+            id: material.id || '',
+            title: material.title || '',
+            type: material.type || 'Course',
+            image: material.image || '',
+            date: material.date || new Date().toISOString().split('T')[0],
+            progress: material.progress || 0,
+            productId: material.productId,
+            downloadExpiryDays: material.daysUntilExpiry || 30,
+            downloadUrl: material.downloadUrl,
+            driveUrl: material.driveUrl,
+            isDownloadAvailable: material.isDownloadAvailable,
+            fileFormat: material.fileFormat,
+            fileSize: material.fileSize,
+            status: material.status || 'not_started'
+          };
         }) : [];
 
         // Update state with required data
@@ -577,7 +592,8 @@ export default function DashboardClient({ session }: { session: Session }) {
             </Button>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-            {purchasedMaterials.map((material) => (
+            {/* Only show the 4 most recent materials on the dashboard */}
+            {purchasedMaterials.slice(0, 4).map((material) => (
               <div key={material.id} className="bg-white rounded-xl shadow-sm p-4 border border-gray-100 relative overflow-hidden">
                 {/* Purchase badge */}
                 <div className="absolute top-3 right-3 z-10">

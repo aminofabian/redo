@@ -43,7 +43,22 @@ export async function GET() {
 
     // Transform the data for the dashboard - using the existing database schema
     const currentDate = new Date();
-    const purchasedMaterials = purchases.map(purchase => {
+    
+    // Filter out duplicate products by keeping only the most recent purchase for each product
+    const uniqueProductsMap = new Map();
+    purchases.forEach(purchase => {
+      const productId = purchase.productId;
+      // If this product hasn't been seen yet, or this purchase is more recent than the one we've seen
+      if (!uniqueProductsMap.has(productId) || 
+          new Date(purchase.createdAt) > new Date(uniqueProductsMap.get(productId).createdAt)) {
+        uniqueProductsMap.set(productId, purchase);
+      }
+    });
+    
+    // Convert map to array of unique purchases
+    const uniquePurchases = Array.from(uniqueProductsMap.values());
+    
+    const purchasedMaterials = uniquePurchases.map(purchase => {
       const purchaseDate = new Date(purchase.createdAt);
       
       // Calculate days since purchase (will be needed for various calculations)
