@@ -85,9 +85,23 @@ export async function POST(request: NextRequest) {
     // If we didn't have userId from session, get it from the order
     userId = userId || order.user.id;
 
-    // Get the payment intent ID from the Stripe session
-    const paymentIntentId = stripeSession.payment_intent as string;
-    console.log("Payment Intent ID:", paymentIntentId);
+    // Extract the payment intent ID properly from the Stripe session
+    // First check what type of data we're getting
+    console.log("Payment intent type:", typeof stripeSession.payment_intent);
+    
+    // The payment_intent could be an object (when expanded) or just an ID string
+    let paymentIntentId: string;
+    if (typeof stripeSession.payment_intent === 'string') {
+      paymentIntentId = stripeSession.payment_intent;
+    } else if (stripeSession.payment_intent && typeof stripeSession.payment_intent === 'object') {
+      // It's the expanded object, so extract the id property
+      paymentIntentId = (stripeSession.payment_intent as any).id || '';
+    } else {
+      // Fallback
+      paymentIntentId = String(stripeSession.id); // Use session ID as fallback
+    }
+    
+    console.log("Extracted Payment Intent ID:", paymentIntentId);
     
     // Prepare transaction data without trying to connect to a payment gateway
     // This will avoid the 500 error if the payment gateway doesn't exist
