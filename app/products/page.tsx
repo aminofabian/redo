@@ -4,8 +4,31 @@ import prisma from "@/lib/db";
 import { Skeleton } from "@/components/ui/skeleton";
 import { revalidatePath } from 'next/cache';
 import type { Product } from "@/types/products";
+// Use Prisma types for database results
+import { Prisma } from "@prisma/client";
 
-type ProductWithRelations = Product;
+// Use Prisma's ProductWithIncludes type for database results
+type ProductWithRelations = Prisma.ProductGetPayload<{
+  include: {
+    images: true;
+    categories: {
+      include: {
+        category: true;
+      };
+    };
+    reviews: {
+      include: {
+        user: {
+          select: {
+            firstName: true;
+            lastName: true;
+            image: true;
+          };
+        };
+      };
+    };
+  };
+}>;
 
 // Server component to fetch products
 export default async function ResourcesPage() {
@@ -111,13 +134,18 @@ export default async function ResourcesPage() {
       finalPrice: Number(product.finalPrice),
       discountPercent: product.discountPercent ?? undefined,
       hasDiscount: Number(product.finalPrice) < Number(product.price),
-      monthlyPrice: Math.round(Number(product.finalPrice) / 3), // Monthly price calculation based on final price
+      monthlyPrice: Math.round(Number(product.finalPrice) / 3),
       rating: avgRating,
       reviews: product.reviews.length,
-      type: tags[0] || "Study Resource", // Use first category as type
+      type: tags[0] || "Study Resource",
       duration: product.accessDuration ? `${product.accessDuration} days` : "Lifetime",
       tags: tags,
-      categories: product.categories,
+      // Convert categories to plain objects with numeric IDs
+      categories: product.categories.map(cat => ({
+        ...cat,
+        categoryId: Number(cat.categoryId), 
+        productId: Number(cat.productId)
+      })),
       questions: product.description?.includes("questions") ? "2000+ Questions" : undefined,
       chapters: product.description?.includes("chapters") ? "15+ Chapters" : undefined,
       downloadLimit: product.downloadLimit ?? undefined,
