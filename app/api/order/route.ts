@@ -1,9 +1,18 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth/next';
-import { authOptions } from '@/app/api/auth/[...nextauth]/route';
+import { authOptions } from '@/auth';
 import { PrismaClient } from '@/src/generated/client';
 
 const prisma = new PrismaClient();
+
+// Add this type at the top of your file
+type SessionUser = {
+  user?: {
+    id: string;
+    email?: string;
+    name?: string;
+  };
+};
 
 export async function POST(req: Request) {
   try {
@@ -23,7 +32,7 @@ export async function POST(req: Request) {
     
     // First, try to get the user ID from the session
     try {
-      const session = await getServerSession(authOptions);
+      const session = await getServerSession(authOptions) as SessionUser;
       
       if (session?.user?.id) {
         userId = session.user.id;
@@ -122,7 +131,14 @@ export async function POST(req: Request) {
       const totalAmount = items.reduce((sum, item) => {
         // Use string comparison for BigInt IDs
         const product = products.find(p => p.id.toString() === item.productId.toString());
-        return sum + (product ? (product.finalPrice || product.price) * item.quantity : 0);
+        
+        if (!product) return sum;
+        
+        // Convert values to numbers to ensure they're numeric
+        const price = Number(product.finalPrice || product.price);
+        const quantity = Number(item.quantity);
+        
+        return sum + (price * quantity);
       }, 0);
       
       // Create the order

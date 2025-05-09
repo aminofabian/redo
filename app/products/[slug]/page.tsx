@@ -119,7 +119,7 @@ async function getRelatedProducts(productId: number, categoryIds: string[], limi
     }
   });
 
-  return products.map((product: Product) => serializeProduct(product));
+  return products.map((product) => serializeProduct(product as unknown as Product));
 }
 
 function serializeProduct(product: any): SerializableProduct {
@@ -299,7 +299,11 @@ export default async function ProductPage({ params }: { params: { slug: string }
         
         {/* Right column - Product details */}
         <div>
-          <CartSidebar />
+          <CartSidebar 
+            priceId={serializedProduct.id.toString()}
+            price={formattedFinalPrice}
+            description={serializedProduct.title}
+          />
           <div className="bg-white p-6 rounded-lg shadow-sm border mb-6">
             <h2 className="text-xl font-bold mb-4">Product Details</h2>
             <dl className="space-y-4">

@@ -7,28 +7,55 @@ import { revalidatePath } from 'next/cache';
 import { Prisma } from "@prisma/client";
 
 // Use Prisma's ProductWithIncludes type for database results
-type ProductWithRelations = Prisma.ProductGetPayload<{
-  include: {
-    images: true;
-    categories: {
-      include: {
-        category: true;
-      };
+type ProductWithRelations = {
+  id: string;
+  title: string;
+  description: string | null;
+  slug: string | null;
+  price: bigint;
+  finalPrice: bigint;
+  discountPercent: number | null;
+  accessDuration: number | null;
+  downloadLimit: number | null;
+  featured: boolean;
+  viewCount: number;
+  images: {
+    id: string;
+    createdAt: Date;
+    productId: bigint; // Change from number to bigint
+    url: string;
+    alt: string | null;
+    isPrimary: boolean;
+  }[];
+  categories: {
+    category: {
+      name: string;
+      id: string;
+      slug: string;
+      description: string | null;
+      createdAt: Date;
+      updatedAt: Date;
+      parentId: string | null;
     };
-    reviews: {
-      include: {
-        user: {
-          select: {
-            firstName: true;
-            lastName: true;
-            image: true;
-          };
-        };
-      };
+    categoryId: bigint;
+    productId: bigint;
+  }[];
+  reviews: {
+    user: {
+      firstName: string | null;
+      lastName: string | null;
+      image: string | null;
     };
-    CategoryPath: true;
-  };
-}>;
+    id: string;
+    userId: string;
+    rating: number;
+    comment: string | null;
+    productId: bigint; // Change from number to bigint
+    createdAt: Date;
+    updatedAt: Date;
+  }[];
+  CategoryPath: any[];
+};
 
 // Server component to fetch products
 export default async function ResourcesPage() {
@@ -63,7 +90,7 @@ export default async function ResourcesPage() {
       orderBy: {
         createdAt: 'desc'
       }
-    });
+    }) as unknown as ProductWithRelations[];
   } catch (error) {
     // Log the error for debugging
     console.error('Error fetching products:', error);
@@ -101,7 +128,7 @@ export default async function ResourcesPage() {
         orderBy: {
           createdAt: 'desc'
         }
-      });
+      }) as unknown as ProductWithRelations[];
     } catch (retryError) {
       console.error('Error retrying product fetch:', retryError);
       // If retry fails, return empty array to prevent page crash

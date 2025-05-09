@@ -30,7 +30,7 @@ function safeNextResponse(data: any, options: any = {}) {
 }
 
 export async function GET(
-  req: Request,
+  request: NextRequest,
   { params }: { params: { orderId: string } }
 ) {
   try {
@@ -41,44 +41,43 @@ export async function GET(
       include: {
         orderItems: {
           include: {
-            product: {
-              select: {
-                id: true,
-                title: true,
-              }
-            }
-          }
-        }
-      }
+            product: true,
+          },
+        },
+      },
     });
-    
+
     if (!order) {
       return new Response(
-        JSON.stringify({ error: 'Order not found' }), 
+        JSON.stringify({ error: 'Order not found' }),
         { status: 404, headers: { 'Content-Type': 'application/json' } }
       );
     }
-    
+
+    // Convert BigInt values to strings to prevent serialization issues
+    const serializedOrder = JSON.parse(JSON.stringify(order, (key, value) => 
+      typeof value === 'bigint' ? value.toString() : value
+    ));
+
+    // Prepare the response with the data you need
+    const response = {
+      finalPrice: serializedOrder.totalAmount,
+      productIds: serializedOrder.orderItems.map((item: any) => item.productId),
+      orderItems: serializedOrder.orderItems,
+      status: serializedOrder.status,
+    };
+
     return new Response(
-      JSON.stringify({
-        id: order.id,
-        finalPrice: order.totalAmount.toString(),
-        productIds: order.orderItems.map(item => item.productId.toString()),
-        items: order.orderItems.map(item => ({
-          id: item.id,
-          productId: item.productId,
-          title: item.product.title,
-          quantity: item.quantity,
-          price: item.price
-        }))
-      }),
+      JSON.stringify(response),
       { headers: { 'Content-Type': 'application/json' } }
     );
-    
   } catch (error) {
     console.error('Error fetching order:', error);
     return new Response(
-      JSON.stringify({ error: 'Failed to fetch order' }), 
+      JSON.stringify({ 
+        error: 'Failed to fetch order', 
+        details: error instanceof Error ? error.message : 'Unknown error'
+      }),
       { status: 500, headers: { 'Content-Type': 'application/json' } }
     );
   }
