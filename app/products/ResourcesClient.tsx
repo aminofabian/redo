@@ -661,168 +661,210 @@ export default function ResourcesClient({ initialResources }: { initialResources
 
   return (
     <div className="w-full">
-      {/* Search and Category bar */}
-      <div className="mb-6">
-        <div className="flex flex-col md:flex-row gap-4 mb-4">
-          <div className="relative flex-grow">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
-            <Input
-              placeholder="Search resources..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-10"
-            />
-          </div>
-          <Button 
-            variant="outline"
-            className={cn(
-              "flex items-center gap-2",
-              showFilterPanel && "bg-primary/10"
-            )}
-            onClick={() => setShowFilterPanel(!showFilterPanel)}
-          >
-            <SlidersHorizontal className="h-4 w-4" />
-            <span>Filters</span>
-            {activeFiltersCount > 0 && (
-              <Badge className="h-5 w-5 p-0 flex items-center justify-center text-xs rounded-full">
-                {activeFiltersCount}
-              </Badge>
-            )}
-          </Button>
-        </div>
-        
-        {/* Category filter tabs */}
-        <div className="flex flex-wrap gap-2 mb-4 overflow-x-auto pb-2">
-          {categories.map((category) => (
-            <button
-              key={category}
-              onClick={() => setSelectedCategory(category)}
-              className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${
-                selectedCategory === category
-                  ? "bg-primary text-white"
-                  : "bg-gray-100 hover:bg-gray-200 text-gray-800"
-              }`}
+      {/* Main grid layout with side menu on larger screens */}
+      <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+        {/* Side menu with university filters (hidden on mobile) */}
+        <div className="hidden lg:block bg-white p-4 rounded-lg shadow-sm">
+          <h3 className="font-semibold mb-3 text-lg">Universities</h3>
+          
+          <div className="space-y-1">
+            {/* All Universities option */}
+            <button 
+              onClick={() => handleFilterChange('university', "")}
+              className={cn(
+                "w-full text-left px-3 py-2 rounded text-sm font-medium transition-colors",
+                selectedFilters.university === "" 
+                  ? "bg-primary text-white" 
+                  : "hover:bg-gray-100"
+              )}
             >
-              {category}
+              All Universities
             </button>
-          ))}
-        </div>
-        
-        {/* Active filters display */}
-        {renderActiveFilters()}
-      </div>
-      
-      {/* Expanded filter panel - show regardless of options count */}
-      {showFilterPanel && (
-        <div className="bg-white rounded-lg shadow-md p-4 mb-6">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {filterGroups.map(group => (
-              <div key={group.id} className="space-y-2">
-                <h3 className="font-medium text-sm">{group.name}</h3>
-                {group.options.length > 0 ? (
-                  <div className="flex flex-wrap gap-2">
-                    {group.options.map(option => (
-                      <button
-                        key={option}
-                        onClick={() => handleFilterChange(group.id as FilterKey, option)}
-                        className={cn(
-                          "px-3 py-1 text-xs rounded-full border transition-colors",
-                          selectedFilters[group.id as FilterKey] === option
-                            ? "bg-primary text-white border-primary"
-                            : "bg-white hover:bg-gray-50 border-gray-200"
-                        )}
-                      >
-                        {option}
-                      </button>
-                    ))}
-                  </div>
-                ) : (
-                  <p className="text-xs text-gray-500">No {group.name.toLowerCase()} options available</p>
+            
+            {/* List each university as a filter option */}
+            {getUniversities().map(university => (
+              <button
+                key={university}
+                onClick={() => handleFilterChange('university', university)}
+                className={cn(
+                  "w-full text-left px-3 py-2 rounded text-sm font-medium transition-colors",
+                  selectedFilters.university === university 
+                    ? "bg-primary text-white" 
+                    : "hover:bg-gray-100"
                 )}
-              </div>
+              >
+                {university}
+              </button>
             ))}
           </div>
         </div>
-      )}
-      
-      {/* Controls row */}
-      <div className="flex flex-col sm:flex-row justify-between items-center mb-6 gap-4">
-        <div className="flex items-center gap-2">
-          <div className="text-sm text-gray-500">
-            Showing {filteredResources.length} of {initialResources.length} resources
-          </div>
-        </div>
         
-        <div className="flex items-center gap-4">
-          {/* Sort dropdown */}
-          <Popover>
-            <PopoverTrigger asChild>
-              <Button variant="outline" className="flex items-center gap-2">
-                <span>Sort: {sortOptions.find(opt => opt.value === sortBy)?.label}</span>
-                <ChevronDown className="h-4 w-4" />
+        {/* Main content area */}
+        <div className="lg:col-span-3">
+          {/* Search and Category bar */}
+          <div className="mb-6">
+            <div className="flex flex-col md:flex-row gap-4 mb-4">
+              <div className="relative flex-grow">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+                <Input
+                  placeholder="Search resources..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="pl-10"
+                />
+              </div>
+              <Button 
+                variant="outline"
+                className={cn(
+                  "flex items-center gap-2",
+                  showFilterPanel && "bg-primary/10"
+                )}
+                onClick={() => setShowFilterPanel(!showFilterPanel)}
+              >
+                <SlidersHorizontal className="h-4 w-4" />
+                <span>Filters</span>
+                {activeFiltersCount > 0 && (
+                  <Badge className="h-5 w-5 p-0 flex items-center justify-center text-xs rounded-full">
+                    {activeFiltersCount}
+                  </Badge>
+                )}
               </Button>
-            </PopoverTrigger>
-            <PopoverContent className="w-48 p-0">
-              <div className="flex flex-col">
-                {sortOptions.map(option => (
-                  <button
-                    key={option.value}
-                    className={cn(
-                      "px-4 py-2 text-sm text-left hover:bg-gray-100 transition-colors",
-                      sortBy === option.value && "bg-primary/10 font-medium"
+            </div>
+            
+            {/* Category filter tabs */}
+            <div className="flex flex-wrap gap-2 mb-4 overflow-x-auto pb-2">
+              {categories.map((category) => (
+                <button
+                  key={category}
+                  onClick={() => setSelectedCategory(category)}
+                  className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${
+                    selectedCategory === category
+                      ? "bg-primary text-white"
+                      : "bg-gray-100 hover:bg-gray-200 text-gray-800"
+                  }`}
+                >
+                  {category}
+                </button>
+              ))}
+            </div>
+            
+            {/* Active filters display */}
+            {renderActiveFilters()}
+          </div>
+          
+          {/* Expanded filter panel - show regardless of options count */}
+          {showFilterPanel && (
+            <div className="bg-white rounded-lg shadow-md p-4 mb-6">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                {filterGroups.map(group => (
+                  <div key={group.id} className="space-y-2">
+                    <h3 className="font-medium text-sm">{group.name}</h3>
+                    {group.options.length > 0 ? (
+                      <div className="flex flex-wrap gap-2">
+                        {group.options.map(option => (
+                          <button
+                            key={option}
+                            onClick={() => handleFilterChange(group.id as FilterKey, option)}
+                            className={cn(
+                              "px-3 py-1 text-xs rounded-full border transition-colors",
+                              selectedFilters[group.id as FilterKey] === option
+                                ? "bg-primary text-white border-primary"
+                                : "bg-white hover:bg-gray-50 border-gray-200"
+                            )}
+                          >
+                            {option}
+                          </button>
+                        ))}
+                      </div>
+                    ) : (
+                      <p className="text-xs text-gray-500">No {group.name.toLowerCase()} options available</p>
                     )}
-                    onClick={() => setSortBy(option.value)}
-                  >
-                    {option.label}
-                  </button>
+                  </div>
                 ))}
               </div>
-            </PopoverContent>
-          </Popover>
+            </div>
+          )}
           
-          {/* View mode toggle */}
-          <div className="flex items-center border rounded-md overflow-hidden">
-            <button
-              className={`p-2 ${viewMode === 'grid' ? 'bg-primary text-white' : 'bg-white text-gray-600 hover:bg-gray-100'}`}
-              onClick={() => setViewMode('grid')}
-              aria-label="Grid view"
-            >
-              <Grid className="h-4 w-4" />
-            </button>
-            <button
-              className={`p-2 ${viewMode === 'list' ? 'bg-primary text-white' : 'bg-white text-gray-600 hover:bg-gray-100'}`}
-              onClick={() => setViewMode('list')}
-              aria-label="List view"
-            >
-              <List className="h-4 w-4" />
-            </button>
+          {/* Controls row */}
+          <div className="flex flex-col sm:flex-row justify-between items-center mb-6 gap-4">
+            <div className="flex items-center gap-2">
+              <div className="text-sm text-gray-500">
+                Showing {filteredResources.length} of {initialResources.length} resources
+              </div>
+            </div>
+            
+            <div className="flex items-center gap-4">
+              {/* Sort dropdown */}
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button variant="outline" className="flex items-center gap-2">
+                    <span>Sort: {sortOptions.find(opt => opt.value === sortBy)?.label}</span>
+                    <ChevronDown className="h-4 w-4" />
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-48 p-0">
+                  <div className="flex flex-col">
+                    {sortOptions.map(option => (
+                      <button
+                        key={option.value}
+                        className={cn(
+                          "px-4 py-2 text-sm text-left hover:bg-gray-100 transition-colors",
+                          sortBy === option.value && "bg-primary/10 font-medium"
+                        )}
+                        onClick={() => setSortBy(option.value)}
+                      >
+                        {option.label}
+                      </button>
+                    ))}
+                  </div>
+                </PopoverContent>
+              </Popover>
+              
+              {/* View mode toggle */}
+              <div className="flex items-center border rounded-md overflow-hidden">
+                <button
+                  className={`p-2 ${viewMode === 'grid' ? 'bg-primary text-white' : 'bg-white text-gray-600 hover:bg-gray-100'}`}
+                  onClick={() => setViewMode('grid')}
+                  aria-label="Grid view"
+                >
+                  <Grid className="h-4 w-4" />
+                </button>
+                <button
+                  className={`p-2 ${viewMode === 'list' ? 'bg-primary text-white' : 'bg-white text-gray-600 hover:bg-gray-100'}`}
+                  onClick={() => setViewMode('list')}
+                  aria-label="List view"
+                >
+                  <List className="h-4 w-4" />
+                </button>
+              </div>
+            </div>
           </div>
+          
+          {/* Resources display */}
+          {filteredResources.length > 0 ? (
+            viewMode === 'grid' ? (
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                {filteredResources.map(resource => renderGridItem(resource))}
+              </div>
+            ) : (
+              <div className="flex flex-col gap-6">
+                {filteredResources.map(resource => renderListItem(resource))}
+              </div>
+            )
+          ) : (
+            <div className="text-center py-12 bg-white rounded-lg shadow-sm p-8">
+              <p className="text-gray-500 mb-2">No resources found with the selected filters.</p>
+              <p className="text-sm text-gray-400 mb-4">Try adjusting your filters or search term.</p>
+              <Button 
+                variant="outline" 
+                onClick={clearAllFilters}
+              >
+                Clear All Filters
+              </Button>
+            </div>
+          )}
         </div>
       </div>
-      
-      {/* Resources display */}
-      {filteredResources.length > 0 ? (
-        viewMode === 'grid' ? (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-            {filteredResources.map(resource => renderGridItem(resource))}
-          </div>
-        ) : (
-          <div className="flex flex-col gap-6">
-            {filteredResources.map(resource => renderListItem(resource))}
-          </div>
-        )
-      ) : (
-        <div className="text-center py-12 bg-white rounded-lg shadow-sm p-8">
-          <p className="text-gray-500 mb-2">No resources found with the selected filters.</p>
-          <p className="text-sm text-gray-400 mb-4">Try adjusting your filters or search term.</p>
-          <Button 
-            variant="outline" 
-            onClick={clearAllFilters}
-          >
-            Clear All Filters
-          </Button>
-        </div>
-      )}
     </div>
   );
 } 
