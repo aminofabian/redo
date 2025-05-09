@@ -27,12 +27,11 @@ const nextConfig = {
     remotePatterns: [
       {
         protocol: 'https',
-        hostname: 'alexawriters.s3.eu-north-1.amazonaws.com',
-        port: '',
-        pathname: '/**',
+        hostname: '**.your-domain.com',
+        pathname: '/images/**',
       },
     ],
-    domains: ['images.unsplash.com'],
+    domains: ['your-storage-domain.com'],
   }
 }
 

@@ -50,6 +50,9 @@ type FilterGroup = {
   options: string[];
 };
 
+// Define valid filter keys
+type FilterKey = 'type' | 'university' | 'level';
+
 export default function ResourcesClient({ initialResources }: { initialResources: Resource[] }) {
   const [products, setProducts] = useState<Resource[]>(initialResources);
   const [searchTerm, setSearchTerm] = useState("");
@@ -338,7 +341,7 @@ export default function ResourcesClient({ initialResources }: { initialResources
   ];
 
   // Add this function after the handleFilterChange function
-  const debugFilter = (filterId: string, value: string) => {
+  const debugFilter = (filterId: FilterKey, value: string) => {
     console.log(`Debugging filter: ${filterId} = ${value}`);
     
     // Find how many resources would match this filter
@@ -386,7 +389,7 @@ export default function ResourcesClient({ initialResources }: { initialResources
   };
 
   // Update handleFilterChange to call the debug function
-  const handleFilterChange = (filterId: string, value: string) => {
+  const handleFilterChange = (filterId: FilterKey, value: string) => {
     // Debug the filter before applying it
     debugFilter(filterId, value);
     
@@ -619,7 +622,7 @@ export default function ResourcesClient({ initialResources }: { initialResources
               {label}
               <X 
                 className="w-3 h-3 cursor-pointer" 
-                onClick={() => handleFilterChange(key, value)}
+                onClick={() => handleFilterChange(key as FilterKey, value)}
               />
             </Badge>
           );
@@ -725,10 +728,10 @@ export default function ResourcesClient({ initialResources }: { initialResources
                     {group.options.map(option => (
                       <button
                         key={option}
-                        onClick={() => handleFilterChange(group.id, option)}
+                        onClick={() => handleFilterChange(option as FilterKey, option)}
                         className={cn(
                           "px-3 py-1 text-xs rounded-full border transition-colors",
-                          selectedFilters[group.id as keyof typeof selectedFilters] === option
+                          selectedFilters[option as FilterKey] === option
                             ? "bg-primary text-white border-primary"
                             : "bg-white hover:bg-gray-50 border-gray-200"
                         )}

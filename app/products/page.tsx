@@ -114,7 +114,9 @@ export default async function ResourcesPage() {
   // Map database products to the format expected by the UI
   const resources = products.map(product => {
     // Find primary image or use the first one
-    const primaryImage = product.images.find(img => img.isPrimary) || product.images[0];
+    const primaryImage = product.images && product.images.length > 0 
+      ? product.images.find(img => img.isPrimary) || product.images[0]
+      : null;
     
     // Calculate average rating
     const totalRating = product.reviews.reduce((sum, review) => sum + review.rating, 0);
