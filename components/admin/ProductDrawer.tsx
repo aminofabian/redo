@@ -637,7 +637,11 @@ export function ProductDrawer({
         throw new Error(`Failed to create product: ${response.status}`);
       }
       
-      toast.success("Product created successfully");
+      // Enhanced creative success notification
+      toast.success(`🎉 Product Magic Complete! "${formData.title}" is now live and ready to shine in your store.`, {
+        duration: 5000,
+      });
+
       router.refresh();
       onClose();
     } catch (error) {

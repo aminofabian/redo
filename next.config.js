@@ -36,6 +36,11 @@ const nextConfig = {
         pathname: '/**',
       }
     ],
+  },
+
+  ContentSecurityPolicy: {
+    'img-src': ["'self'", "https://*.stripe.com", "data:", "https://alexawriters.s3.eu-north-1.amazonaws.com"],
+    // other CSP directives...
   }
 }
 
