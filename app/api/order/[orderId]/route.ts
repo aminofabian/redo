@@ -1,8 +1,9 @@
 // api/order/[orderId]/route.ts
 
 import { NextRequest, NextResponse } from 'next/server';
-import prisma from '@/lib/db';
-import { auth } from '@/lib/auth';
+import { PrismaClient } from '@/src/generated/client';
+
+const prisma = new PrismaClient();
 
 // Modified version of the JSON.stringify function that can handle BigInt
 function safeJSONStringify(obj: any): string {
@@ -28,49 +29,57 @@ function safeNextResponse(data: any, options: any = {}) {
   });
 }
 
-export async function GET(request: NextRequest, { params }: { params: { orderId: string } }) {
+export async function GET(
+  req: Request,
+  { params }: { params: { orderId: string } }
+) {
   try {
-    const session = await auth();
-
-    if (!session?.user) {
-      return safeNextResponse({ error: 'Unauthorized' }, { status: 401 });
-    }
-
-    const { orderId } = params;
-
+    const orderId = params.orderId;
+    
     const order = await prisma.order.findUnique({
-      where: {
-        id: orderId,
-        userId: session.user.id, // important for security (only owner sees)
-      },
+      where: { id: orderId },
       include: {
-        orderItems: true,
-      },
+        orderItems: {
+          include: {
+            product: {
+              select: {
+                id: true,
+                title: true,
+              }
+            }
+          }
+        }
+      }
     });
-
+    
     if (!order) {
-      return safeNextResponse({ error: 'Order not found' }, { status: 404 });
+      return new Response(
+        JSON.stringify({ error: 'Order not found' }), 
+        { status: 404, headers: { 'Content-Type': 'application/json' } }
+      );
     }
-
-    const finalPrice = order.orderItems.reduce((sum, item) => sum + Number(item.price) * Number(item.quantity), 0);
-    console.log(finalPrice, 'final priceeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee');
     
-    // Safe mapping of product IDs
-    const productIds = order.orderItems.map(item => {
-      // Convert any type of productId to string safely
-      return String(item.productId || '');
-    });
+    return new Response(
+      JSON.stringify({
+        id: order.id,
+        finalPrice: order.totalAmount.toString(),
+        productIds: order.orderItems.map(item => item.productId.toString()),
+        items: order.orderItems.map(item => ({
+          id: item.id,
+          productId: item.productId,
+          title: item.product.title,
+          quantity: item.quantity,
+          price: item.price
+        }))
+      }),
+      { headers: { 'Content-Type': 'application/json' } }
+    );
     
-    // Return BigInt-safe response using our helper function
-    return safeNextResponse({ finalPrice, productIds });
   } catch (error) {
     console.error('Error fetching order:', error);
-    return safeNextResponse(
-      { 
-        error: 'Failed to fetch order',
-        details: error instanceof Error ? error.message : 'Unknown error'
-      },
-      { status: 500 }
+    return new Response(
+      JSON.stringify({ error: 'Failed to fetch order' }), 
+      { status: 500, headers: { 'Content-Type': 'application/json' } }
     );
   }
 }
