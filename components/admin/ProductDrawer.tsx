@@ -599,23 +599,23 @@ export function ProductDrawer({
         isPrimary: index === 0
       }));
       
-      // Prepare the product data
+      // Prepare the product data - ensuring all numeric values are regular numbers, not BigInt
       const productData = {
         title: formData.title,
         description: formData.description || "",
         path: productSlug,
         slug: productSlug,
-        price: parseFloat(formData.regularPrice || formData.finalPrice || "0"),
-        finalPrice: parseFloat(formData.finalPrice || "0"),
+        price: Number(formData.regularPrice || formData.finalPrice || "0"),
+        finalPrice: Number(formData.finalPrice || "0"),
         inStock,
         featured: isFeatured,
         images: imageData,
         // Use the selectedCategoryPaths directly, which now preserves the selection order
         categories: selectedCategoryPaths,
-        discountPercent: formData.discountPercent ? parseFloat(formData.discountPercent) : null,
+        discountPercent: formData.discountPercent ? Number(formData.discountPercent) : null,
         discountType: formData.discountType || "percent",
-        accessDuration: formData.accessDuration ? parseInt(formData.accessDuration) : (isUnlimitedAccess ? -1 : null),
-        downloadLimit: formData.downloadLimit ? parseInt(formData.downloadLimit) : (isUnlimitedDownloads ? -1 : null),
+        accessDuration: formData.accessDuration ? Number(formData.accessDuration) : (isUnlimitedAccess ? -1 : null),
+        downloadLimit: formData.downloadLimit ? Number(formData.downloadLimit) : (isUnlimitedDownloads ? -1 : null),
         downloadUrl: formData.downloadLink || null,
         isPublished: true
       };
@@ -632,8 +632,8 @@ export function ProductDrawer({
       });
       
       if (!response.ok) {
-        const errorText = await response.text();
-        console.error("API error:", response.status, errorText);
+        const errorData = await response.text();
+        console.error("API error:", response.status, errorData);
         throw new Error(`Failed to create product: ${response.status}`);
       }
       
@@ -733,6 +733,7 @@ export function ProductDrawer({
                         placeholder="e.g., NCLEX-RN Complete Study Guide" 
                         className="rounded-xl bg-gradient-to-r from-white to-gray-50 border-indigo-100 focus:border-blue-300 focus:ring focus:ring-blue-200 focus:ring-opacity-50 transition-all"
                       />
+                    </div>
                     </div>
                     
                     
@@ -1162,100 +1163,99 @@ export function ProductDrawer({
               </div>
             </div>
           </div>
-                  </div>
         </SheetContent>
-        
-        {/* Add Category Dialog */}
-        <Dialog open={isAddingCategory} onOpenChange={setIsAddingCategory}>
-          <DialogContent className="sm:max-w-[425px]">
-            <DialogHeader>
-              <DialogTitle>
-                {currentParentPath 
-                  ? `Add Subcategory to ${getPathReadableName(currentParentPath)}` 
-                  : "Add New Category"}
-              </DialogTitle>
-            </DialogHeader>
-            <div className="py-4 space-y-4">
-              <div>
-                <Label htmlFor="categoryName">Category Name</Label>
-                <Input
-                  id="categoryName"
-                  value={newCategoryName}
-                  onChange={(e) => setNewCategoryName(e.target.value)}
-                  className="mt-2"
-                  placeholder={currentParentPath === 'university' 
-                    ? "e.g., Chamberlain University" 
-                    : currentParentPath.startsWith('university/') && currentParentPath.split('/').length === 2 
-                      ? "e.g., NR 322, NURS 6501" 
-                      : "e.g., New Category"}
-                  autoFocus
-                />
-              </div>
-              
-              {!currentParentPath ? (
-                <div>
-                  <Label htmlFor="categoryType">Category Type</Label>
-                  <Select 
-                    value={categoryType} 
-                    onValueChange={setCategoryType}
-                  >
-                    <SelectTrigger className="mt-2">
-                      <SelectValue placeholder="Select category type" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="university">University</SelectItem>
-                      <SelectItem value="product-type">Product Type</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-              ) : (
-                <div>
-                  <Label>Category Type</Label>
-                  <div className="mt-2 p-2 bg-gray-50 rounded text-sm text-gray-600">
-                    {currentParentPath === 'university'
-                      ? 'University Name (e.g., Chamberlain, Walden)'
-                      : currentParentPath.startsWith('university/') && currentParentPath.split('/').length === 2
-                        ? 'Course Level (e.g., NR 322, NURS 6501)'
-                        : currentParentPath.startsWith('product-type')
-                          ? 'Product Type'
-                          : 'Subcategory'}
-                  </div>
-                  
-                  {/* Add helper text for course levels */}
-                  {currentParentPath.startsWith('university/') && currentParentPath.split('/').length === 2 && (
-                    <div className="mt-1 text-xs text-indigo-600">
-                      Format as "NR 322" or "NURS 6501" (course code with space)
-                    </div>
-                  )}
-                </div>
-              )}
-            </div>
-            <DialogFooter>
-              <Button 
-                variant="outline" 
-                onClick={() => {
-                  setIsAddingCategory(false);
-                  setNewCategoryName('');
-                }}
-              >
-                Cancel
-              </Button>
-              <Button 
-                onClick={() => {
-                  // If we're adding a root category, use the selected type
-                  // If we're adding a subcategory, the type is inferred from the parent
-                  addCategory(currentParentPath, newCategoryName, categoryType);
-                  setIsAddingCategory(false);
-                  setNewCategoryName('');
-                }}
-                disabled={!newCategoryName.trim() || (!currentParentPath && !categoryType)}
-              >
-                Add Category
-              </Button>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
       </Sheet>
+      
+      {/* Add Category Dialog */}
+      <Dialog open={isAddingCategory} onOpenChange={setIsAddingCategory}>
+        <DialogContent className="sm:max-w-[425px]">
+          <DialogHeader>
+            <DialogTitle>
+              {currentParentPath 
+                ? `Add Subcategory to ${getPathReadableName(currentParentPath)}` 
+                : "Add New Category"}
+            </DialogTitle>
+          </DialogHeader>
+          <div className="py-4 space-y-4">
+            <div>
+              <Label htmlFor="categoryName">Category Name</Label>
+              <Input
+                id="categoryName"
+                value={newCategoryName}
+                onChange={(e) => setNewCategoryName(e.target.value)}
+                className="mt-2"
+                placeholder={currentParentPath === 'university' 
+                  ? "e.g., Chamberlain University" 
+                  : currentParentPath.startsWith('university/') && currentParentPath.split('/').length === 2 
+                    ? "e.g., NR 322, NURS 6501" 
+                    : "e.g., New Category"}
+                autoFocus
+              />
+            </div>
+            
+            {!currentParentPath ? (
+              <div>
+                <Label htmlFor="categoryType">Category Type</Label>
+                <Select 
+                  value={categoryType} 
+                  onValueChange={setCategoryType}
+                >
+                  <SelectTrigger className="mt-2">
+                    <SelectValue placeholder="Select category type" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="university">University</SelectItem>
+                    <SelectItem value="product-type">Product Type</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            ) : (
+              <div>
+                <Label>Category Type</Label>
+                <div className="mt-2 p-2 bg-gray-50 rounded text-sm text-gray-600">
+                  {currentParentPath === 'university'
+                    ? 'University Name (e.g., Chamberlain, Walden)'
+                    : currentParentPath.startsWith('university/') && currentParentPath.split('/').length === 2
+                      ? 'Course Level (e.g., NR 322, NURS 6501)'
+                      : currentParentPath.startsWith('product-type')
+                        ? 'Product Type'
+                        : 'Subcategory'}
+                </div>
+                
+                {/* Add helper text for course levels */}
+                {currentParentPath.startsWith('university/') && currentParentPath.split('/').length === 2 && (
+                  <div className="mt-1 text-xs text-indigo-600">
+                    Format as "NR 322" or "NURS 6501" (course code with space)
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+          <DialogFooter>
+            <Button 
+              variant="outline" 
+              onClick={() => {
+                setIsAddingCategory(false);
+                setNewCategoryName('');
+              }}
+            >
+              Cancel
+            </Button>
+            <Button 
+              onClick={() => {
+                // If we're adding a root category, use the selected type
+                // If we're adding a subcategory, the type is inferred from the parent
+                addCategory(currentParentPath, newCategoryName, categoryType);
+                setIsAddingCategory(false);
+                setNewCategoryName('');
+              }}
+              disabled={!newCategoryName.trim() || (!currentParentPath && !categoryType)}
+            >
+              Add Category
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </>
   );
 } 

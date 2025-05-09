@@ -181,6 +181,43 @@ export default function ResourcesClient({ initialResources }: { initialResources
     return Array.from(values).sort();
   };
 
+  // Add this function to extract level2 categories by their level1 type
+  const getLevel2CategoriesByType = (level1Type: string): string[] => {
+    const values = new Set<string>();
+    
+    initialResources.forEach(resource => {
+      if (resource.CategoryPath && resource.CategoryPath.length > 0) {
+        resource.CategoryPath.forEach(catPath => {
+          if (catPath.level1 === level1Type && catPath.level2) {
+            const formatted = catPath.level2
+              .replace(/-/g, ' ')
+              .replace(/\b\w/g, l => l.toUpperCase());
+            values.add(formatted);
+          }
+        });
+      }
+    });
+    
+    return Array.from(values).sort();
+  };
+
+  // Get all available level1 categories (excluding university which we already handle)
+  const getLevel1Categories = (): string[] => {
+    const values = new Set<string>();
+    
+    initialResources.forEach(resource => {
+      if (resource.CategoryPath && resource.CategoryPath.length > 0) {
+        resource.CategoryPath.forEach(catPath => {
+          if (catPath.level1 && catPath.level1 !== 'university') {
+            values.add(catPath.level1);
+          }
+        });
+      }
+    });
+    
+    return Array.from(values).sort();
+  };
+
   // Now update the filter groups to use these functions
   const filterGroups: FilterGroup[] = [
     {
@@ -663,62 +700,97 @@ export default function ResourcesClient({ initialResources }: { initialResources
     <div className="w-full">
       {/* Main grid layout with side menu on larger screens */}
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
-        {/* Side menu with university filters - minimalist professional design */}
-        <div className="hidden lg:block bg-white p-6 rounded-lg shadow-sm h-fit sticky top-4">
-          <h3 className="font-medium text-base text-gray-900 mb-6">Universities</h3>
-          
-          <div className="space-y-1">
-            {/* All Universities option */}
-            <button 
-              onClick={() => handleFilterChange('university', "")}
-              className={cn(
-                "w-full text-left px-3 py-2 rounded-md text-sm transition-colors flex items-center justify-between",
-                selectedFilters.university === "" 
-                  ? "bg-gray-100 font-medium text-gray-900" 
-                  : "text-gray-600 hover:bg-gray-50"
-              )}
-            >
-              <span>All Resources</span>
-              <span className="text-xs text-gray-500">{initialResources.length}</span>
-            </button>
+        {/* Side menu with filters - only showing product types */}
+        <div className="hidden lg:block">
+          {/* Universities Filter Section */}
+          <div className="bg-white p-6 rounded-lg shadow-sm h-fit sticky top-4 mb-4">
+            <h3 className="font-medium text-base text-gray-900 mb-6">Universities</h3>
             
-            {/* List each university as a filter option */}
-            {getUniversities().map(university => {
-              // Count resources for this university
-              const count = initialResources.filter(resource => {
-                // Same filtering logic as before
-                if (resource.CategoryPath?.some(catPath => 
-                  catPath.level1 === 'university' &&
-                  catPath.level2?.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase()) === university
-                )) return true;
-                
-                if (resource.categories?.some(cat => cat.category.name === university)) return true;
-                
-                return resource.tags.includes(university);
-              }).length;
+            <div className="space-y-1">
+              <button 
+                onClick={() => handleFilterChange('university', "")}
+                className={cn(
+                  "w-full text-left px-3 py-2 rounded-md text-sm transition-colors flex items-center justify-between",
+                  selectedFilters.university === "" 
+                    ? "bg-gray-100 font-medium text-gray-900" 
+                    : "text-gray-600 hover:bg-gray-50"
+                )}
+              >
+                <span>All Universities</span>
+                <span className="text-xs text-gray-500">{initialResources.length}</span>
+              </button>
               
-              return (
+              {/* University list */}
+              {getUniversities().map(university => {
+                // Count resources for this university
+                const count = initialResources.filter(resource => {
+                  // Same filtering logic as before
+                  if (resource.CategoryPath?.some(catPath => 
+                    catPath.level1 === 'university' &&
+                    catPath.level2?.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase()) === university
+                  )) return true;
+                  
+                  if (resource.categories?.some(cat => cat.category.name === university)) return true;
+                  
+                  return resource.tags.includes(university);
+                }).length;
+                
+                return (
+                  <button
+                    key={university}
+                    onClick={() => handleFilterChange('university', university)}
+                    className={cn(
+                      "w-full text-left px-3 py-2 rounded-md text-sm transition-colors flex items-center justify-between",
+                      selectedFilters.university === university 
+                        ? "bg-gray-100 font-medium text-gray-900" 
+                        : "text-gray-600 hover:bg-gray-50"
+                    )}
+                  >
+                    <span className="truncate pr-2">{university}</span>
+                    <span className="text-xs text-gray-500">{count}</span>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+          
+          {/* Product Type Section - Only showing if level1 contains "product type" */}
+          <div className="bg-white p-6 rounded-lg shadow-sm h-fit mb-4">
+            <h3 className="font-medium text-base text-gray-900 mb-4">Product Type</h3>
+            <div className="space-y-1">
+              <button 
+                onClick={() => handleFilterChange('type', "")}
+                className={cn(
+                  "w-full text-left px-3 py-2 rounded-md text-sm transition-colors",
+                  selectedFilters.type === "" 
+                    ? "bg-gray-100 font-medium text-gray-900" 
+                    : "text-gray-600 hover:bg-gray-50"
+                )}
+              >
+                All Types
+              </button>
+              
+              {/* Show product types */}
+              {Array.from(new Set(initialResources.map(r => r.type))).filter(Boolean).map(type => (
                 <button
-                  key={university}
-                  onClick={() => handleFilterChange('university', university)}
+                  key={type}
+                  onClick={() => handleFilterChange('type', type)}
                   className={cn(
-                    "w-full text-left px-3 py-2 rounded-md text-sm transition-colors flex items-center justify-between",
-                    selectedFilters.university === university 
+                    "w-full text-left px-3 py-2 rounded-md text-sm transition-colors",
+                    selectedFilters.type === type 
                       ? "bg-gray-100 font-medium text-gray-900" 
                       : "text-gray-600 hover:bg-gray-50"
                   )}
                 >
-                  <span className="truncate pr-2">{university}</span>
-                  <span className="text-xs text-gray-500">{count}</span>
+                  {type}
                 </button>
-              );
-            })}
-          </div>
-          
-          {/* Minimal level filter section */}
-          <div className="mt-6 pt-6 border-t border-gray-100">
-            <h3 className="font-medium text-base text-gray-900 mb-3">Academic Level</h3>
-            <div className="space-y-1">
+              ))}
+              
+              {/* Add subheading for levels */}
+              <div className="pt-4 pb-2 mt-2 border-t border-gray-100">
+                <h4 className="text-sm font-medium text-gray-600">Academic Levels</h4>
+              </div>
+              
               <button 
                 onClick={() => handleFilterChange('level', "")}
                 className={cn(
@@ -730,7 +802,8 @@ export default function ResourcesClient({ initialResources }: { initialResources
               >
                 All Levels
               </button>
-              {getLevels().slice(0, 5).map(level => (
+              
+              {getLevels().map(level => (
                 <button
                   key={level}
                   onClick={() => handleFilterChange('level', level)}

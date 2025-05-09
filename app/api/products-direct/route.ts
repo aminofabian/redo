@@ -112,7 +112,15 @@ export async function POST(request: Request) {
       await Promise.all(categoryPromises);
     }
     
-    return NextResponse.json(updatedProduct);
+    const serializedProduct = JSON.parse(JSON.stringify(updatedProduct, (key, value) => {
+      // Convert BigInt to Number or String depending on size
+      if (typeof value === 'bigint') {
+        return value.toString();
+      }
+      return value;
+    }));
+
+    return NextResponse.json(serializedProduct);
   } catch (error) {
     console.error('Error creating product:', error);
     return NextResponse.json(
