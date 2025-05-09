@@ -663,39 +663,88 @@ export default function ResourcesClient({ initialResources }: { initialResources
     <div className="w-full">
       {/* Main grid layout with side menu on larger screens */}
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
-        {/* Side menu with university filters (hidden on mobile) */}
-        <div className="hidden lg:block bg-white p-4 rounded-lg shadow-sm">
-          <h3 className="font-semibold mb-3 text-lg">Universities</h3>
+        {/* Side menu with university filters - minimalist professional design */}
+        <div className="hidden lg:block bg-white p-6 rounded-lg shadow-sm h-fit sticky top-4">
+          <h3 className="font-medium text-base text-gray-900 mb-6">Universities</h3>
           
           <div className="space-y-1">
             {/* All Universities option */}
             <button 
               onClick={() => handleFilterChange('university', "")}
               className={cn(
-                "w-full text-left px-3 py-2 rounded text-sm font-medium transition-colors",
+                "w-full text-left px-3 py-2 rounded-md text-sm transition-colors flex items-center justify-between",
                 selectedFilters.university === "" 
-                  ? "bg-primary text-white" 
-                  : "hover:bg-gray-100"
+                  ? "bg-gray-100 font-medium text-gray-900" 
+                  : "text-gray-600 hover:bg-gray-50"
               )}
             >
-              All Universities
+              <span>All Resources</span>
+              <span className="text-xs text-gray-500">{initialResources.length}</span>
             </button>
             
             {/* List each university as a filter option */}
-            {getUniversities().map(university => (
-              <button
-                key={university}
-                onClick={() => handleFilterChange('university', university)}
+            {getUniversities().map(university => {
+              // Count resources for this university
+              const count = initialResources.filter(resource => {
+                // Same filtering logic as before
+                if (resource.CategoryPath?.some(catPath => 
+                  catPath.level1 === 'university' &&
+                  catPath.level2?.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase()) === university
+                )) return true;
+                
+                if (resource.categories?.some(cat => cat.category.name === university)) return true;
+                
+                return resource.tags.includes(university);
+              }).length;
+              
+              return (
+                <button
+                  key={university}
+                  onClick={() => handleFilterChange('university', university)}
+                  className={cn(
+                    "w-full text-left px-3 py-2 rounded-md text-sm transition-colors flex items-center justify-between",
+                    selectedFilters.university === university 
+                      ? "bg-gray-100 font-medium text-gray-900" 
+                      : "text-gray-600 hover:bg-gray-50"
+                  )}
+                >
+                  <span className="truncate pr-2">{university}</span>
+                  <span className="text-xs text-gray-500">{count}</span>
+                </button>
+              );
+            })}
+          </div>
+          
+          {/* Minimal level filter section */}
+          <div className="mt-6 pt-6 border-t border-gray-100">
+            <h3 className="font-medium text-base text-gray-900 mb-3">Academic Level</h3>
+            <div className="space-y-1">
+              <button 
+                onClick={() => handleFilterChange('level', "")}
                 className={cn(
-                  "w-full text-left px-3 py-2 rounded text-sm font-medium transition-colors",
-                  selectedFilters.university === university 
-                    ? "bg-primary text-white" 
-                    : "hover:bg-gray-100"
+                  "w-full text-left px-3 py-2 rounded-md text-sm transition-colors",
+                  selectedFilters.level === "" 
+                    ? "bg-gray-100 font-medium text-gray-900" 
+                    : "text-gray-600 hover:bg-gray-50"
                 )}
               >
-                {university}
+                All Levels
               </button>
-            ))}
+              {getLevels().slice(0, 5).map(level => (
+                <button
+                  key={level}
+                  onClick={() => handleFilterChange('level', level)}
+                  className={cn(
+                    "w-full text-left px-3 py-2 rounded-md text-sm transition-colors",
+                    selectedFilters.level === level 
+                      ? "bg-gray-100 font-medium text-gray-900" 
+                      : "text-gray-600 hover:bg-gray-50"
+                  )}
+                >
+                  {level}
+                </button>
+              ))}
+            </div>
           </div>
         </div>
         
