@@ -22,7 +22,8 @@ const nextConfig = {
   images: {
     domains: [
       'alexawriters.s3.eu-north-1.amazonaws.com',  // Your S3 bucket
-      'images.unsplash.com'  // For placeholder images
+      'images.unsplash.com',  // For placeholder images
+      'placehold.co'
     ],
     remotePatterns: [
       {

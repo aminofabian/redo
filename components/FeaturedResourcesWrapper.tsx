@@ -6,7 +6,7 @@ import { getFeaturedProducts } from "@/app/actions/productActions";
 
 // Define the type for product items
 interface ProductItem {
-  id: number;
+  id: bigint;
   title: string;
   slug: string;
   price: number;
@@ -17,8 +17,9 @@ interface ProductItem {
     id: string;
     name: string;
     slug: string;
+    path: string;
   } | null;
-  categoryPaths: { path: string; level1: string | null; level2: string | null; level3: string | null; }[];
+  categoryPaths: any[];
 }
 
 export default function FeaturedResourcesWrapper() {
@@ -37,5 +38,11 @@ export default function FeaturedResourcesWrapper() {
 
   if (loading) return <div>Loading featured resources...</div>;
   
-  return <FeaturedResources products={products} />;
+  // Convert bigint ids to numbers before passing to FeaturedResources
+  const productsWithNumberIds = products.map(product => ({
+    ...product,
+    id: Number(product.id)
+  }));
+  
+  return <FeaturedResources products={productsWithNumberIds} />;
 } 

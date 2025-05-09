@@ -34,7 +34,25 @@ export default function CategoryShowcase() {
       try {
         const res = await fetch('/api/categories/stats');
         if (!res.ok) throw new Error('Failed to fetch');
-        const data = await res.json();
+        let data = await res.json();
+        
+        // For development only - add sample data if stats are empty
+        if (process.env.NODE_ENV === 'development') {
+          data = data.map((cat: CategoryStat) => ({
+            ...cat,
+            productCount: cat.productCount || 12,
+            percentage: cat.percentage || Math.floor(Math.random() * 25) + 5,
+            avgPrice: cat.avgPrice || Math.floor(Math.random() * 50) + 10,
+            topSeller: cat.topSeller || {
+              id: 'sample-id',
+              title: `Sample ${cat.name} Resource`,
+              image: '/images/placeholder.jpg',
+              price: 24.99,
+              viewCount: 150
+            }
+          }));
+        }
+        
         setCategories(data);
         if (data.length > 0) {
           setActiveTab(data[0].id);
@@ -121,6 +139,7 @@ export default function CategoryShowcase() {
         {/* Active Category Details */}
         {activeTab && (
           <motion.div
+            key={activeTab}
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5 }}

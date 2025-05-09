@@ -25,7 +25,8 @@ import {
   Package,
   Plus,
   ChevronRight,
-  FolderTree
+  FolderTree,
+  Star
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAdmin } from "@/contexts/AdminContext";
@@ -95,6 +96,7 @@ interface ProductType {
   downloadUrl?: string;
   accessDuration?: number;
   downloadLimit?: number;
+  featured?: boolean;
   createdBy?: {
     firstName: string;
     lastName: string;
@@ -119,6 +121,7 @@ export function ProductDashboard({ product, isDetailedView = false }: {
   const [isEditing, setIsEditing] = useState(false);
   const [publishStatus, setPublishStatus] = useState(product.status === 'Published');
   const [isLoading, setIsLoading] = useState(false);
+  const [isFeaturing, setIsFeaturing] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [displayProduct, setDisplayProduct] = useState({
     ...product,
@@ -134,7 +137,8 @@ export function ProductDashboard({ product, isDetailedView = false }: {
     categoryPaths: product.categoryPaths || [],
     viewCount: product.viewCount || 0,
     conversionRate: product.conversionRate || "0%",
-    lastPurchase: product.lastPurchase || "Never"
+    lastPurchase: product.lastPurchase || "Never",
+    featured: product.featured || false
   });
   
   // If we have a product ID but missing details, try to fetch them
@@ -211,6 +215,49 @@ export function ProductDashboard({ product, isDetailedView = false }: {
     }
   };
   
+  const toggleFeatured = async () => {
+    if (!displayProduct.id) return;
+    
+    setIsFeaturing(true);
+    try {
+      const newFeaturedStatus = !displayProduct.featured;
+      
+      const response = await fetch(`/api/products/${displayProduct.id}/featured`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ featured: newFeaturedStatus }),
+      });
+      
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.message || "Failed to update featured status");
+      }
+      
+      // Update local state
+      setDisplayProduct({
+        ...displayProduct,
+        featured: newFeaturedStatus
+      });
+      
+      toast.success(newFeaturedStatus 
+        ? "Product added to featured" 
+        : "Product removed from featured"
+      );
+      
+    } catch (error) {
+      console.error("Error updating featured status:", error);
+      if (error instanceof Error) {
+        toast.error(error.message);
+      } else {
+        toast.error("An unknown error occurred");
+      }
+    } finally {
+      setIsFeaturing(false);
+    }
+  };
+  
   const mainImage = product.images?.find(img => img.isPrimary)?.url || 
                     product.images?.[0]?.url || 
                     '/placeholder-image.jpg';
@@ -238,6 +285,21 @@ export function ProductDashboard({ product, isDetailedView = false }: {
           <Button variant="outline" size="sm" onClick={() => setIsEditing(true)}>
             <Edit className="mr-2 h-4 w-4" />
             Edit
+          </Button>
+          <Button 
+            variant={displayProduct.featured ? "default" : "outline"} 
+            size="sm"
+            onClick={toggleFeatured}
+            disabled={isFeaturing}
+          >
+            {isFeaturing ? (
+              <>Loading...</>
+            ) : (
+              <>
+                <Star className={`mr-2 h-4 w-4 ${displayProduct.featured ? "fill-current" : ""}`} />
+                {displayProduct.featured ? "Featured" : "Feature"}
+              </>
+            )}
           </Button>
           <Button variant={publishStatus ? "default" : "outline"} size="sm" onClick={handlePublishToggle}>
             {publishStatus ? 
@@ -824,6 +886,15 @@ export function ProductDashboard({ product, isDetailedView = false }: {
                     Publish
                   </>
                 )}
+              </Button>
+              <Button 
+                variant={displayProduct.featured ? "default" : "outline"} 
+                className="w-full"
+                onClick={toggleFeatured}
+                disabled={isFeaturing}
+              >
+                <Star className={`mr-2 h-4 w-4 ${displayProduct.featured ? "fill-current" : ""}`} />
+                {displayProduct.featured ? "Remove from Featured" : "Add to Featured"}
               </Button>
               <Button variant="outline" className="w-full" onClick={handleShareProduct}>
                 <Share2 className="mr-2 h-4 w-4" />
