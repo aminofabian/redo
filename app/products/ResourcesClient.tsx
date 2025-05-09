@@ -240,30 +240,26 @@ export default function ResourcesClient({ initialResources }: { initialResources
     // Filter by university
     if (selectedFilters.university) {
       filtered = filtered.filter(resource => {
-        const university = selectedFilters.university;
-        
-        // Check in CategoryPath - most reliable source
+        // Check in CategoryPath
         if (resource.CategoryPath && resource.CategoryPath.length > 0) {
-          for (const catPath of resource.CategoryPath) {
-            if (catPath.level1 === 'university' && 
-                catPath.level2 && 
-                catPath.level2.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase()) === university) {
-              return true;
-            }
+          if (resource.CategoryPath.some(catPath => 
+            catPath.level1 === 'university' &&
+            catPath.level2 && 
+            catPath.level2.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase()) === selectedFilters.university
+          )) {
+            return true;
           }
         }
         
-        // Check in categories
+        // Check in regular categories
         if (resource.categories && resource.categories.length > 0) {
-          for (const cat of resource.categories) {
-            if (cat.category.name === university) {
-              return true;
-            }
+          if (resource.categories.some(cat => cat.category.name === selectedFilters.university)) {
+            return true;
           }
         }
         
-        // Finally check in tags as a fallback
-        return resource.tags.some(tag => tag === university);
+        // Check in tags
+        return resource.tags.includes(selectedFilters.university);
       });
     }
     
@@ -728,10 +724,10 @@ export default function ResourcesClient({ initialResources }: { initialResources
                     {group.options.map(option => (
                       <button
                         key={option}
-                        onClick={() => handleFilterChange(option as FilterKey, option)}
+                        onClick={() => handleFilterChange(group.id as FilterKey, option)}
                         className={cn(
                           "px-3 py-1 text-xs rounded-full border transition-colors",
-                          selectedFilters[option as FilterKey] === option
+                          selectedFilters[group.id as FilterKey] === option
                             ? "bg-primary text-white border-primary"
                             : "bg-white hover:bg-gray-50 border-gray-200"
                         )}
