@@ -13,6 +13,7 @@ import {
   Sparkles,
   ChevronLeft,
   ChevronRight,
+  Package,
 } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -45,6 +46,12 @@ const menuItems = [
     icon: ShoppingCart,
     href: "/dashboard/purchases",
     color: "from-orange-600 to-yellow-600"
+  },
+  {
+    title: "My Orders",
+    icon: Package,
+    href: "/dashboard/orders",
+    color: "from-amber-600 to-orange-600"
   },
   {
     title: "Practice Tests",
