@@ -21,6 +21,7 @@ import { toast } from "react-hot-toast";
 import { useRouter } from "next/navigation";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
+import { useSession } from "next-auth/react";
 
 const LoadPayPal = () => {
   const [{ isPending, isRejected }] = usePayPalScriptReducer();
@@ -60,7 +61,11 @@ type props = {
   description:string;
 };
 
-
+// Add a type definition at the top of your file
+type CartItem = {
+  id: string;
+  quantity: number;
+};
 
 export function CartSidebar({ priceId, price, description }: props) {
   // const { items, removeItem, totalItems, totalPrice } = useCart();
@@ -78,8 +83,15 @@ export function CartSidebar({ priceId, price, description }: props) {
   const [showEmailForm, setShowEmailForm] = useState(false);
   const [guestEmail, setGuestEmail] = useState('');
   const [emailError, setEmailError] = useState('');
+  const { data: session, status: sessionStatus } = useSession();
 
+  const isLoggedIn = sessionStatus === 'authenticated' && !!session?.user;
 
+  useEffect(() => {
+    if (sessionStatus === 'loading') return;
+    
+    console.log("Session status:", sessionStatus, "User:", session?.user);
+  }, [session, sessionStatus]);
 
   // Fetch PayPal client ID
   const fetchPaypalClientId = async () => {
@@ -161,7 +173,6 @@ export function CartSidebar({ priceId, price, description }: props) {
 
 
 
-
   // Fetch active payment gateways
   const fetchPaymentGateways = async () => {
     setIsLoading(true);
@@ -189,42 +200,77 @@ export function CartSidebar({ priceId, price, description }: props) {
 
   const handleProceedToPayment = async () => {
     try {
-      // Check if user is logged in (you'll need to implement this check)
-      // For example, you might have a session state or context
-      const isLoggedIn = false; // Replace with actual auth check
+      // Clear any previous state
+      setShowEmailForm(false);
+      
+      console.log("Proceeding to payment with session:", {
+        status: sessionStatus,
+        isAuthenticated: sessionStatus === 'authenticated',
+        user: session?.user
+      });
 
-      if (!isLoggedIn && !guestEmail) {
-        // Show email form if user is not logged in and hasn't provided email
+      // First, check if we need to ask for an email
+      if (sessionStatus !== 'authenticated' && !guestEmail) {
+        console.log("User is not authenticated and no guest email provided");
         setShowEmailForm(true);
         return;
       }
       
       setIsLoading(true);
-
-      // Read from localStorage - this works for both guest and logged-in users
-      const localCart: { id: string; quantity: number }[] = JSON.parse(localStorage.getItem('cart') || '[]');
-
-      // Step 1: Create the order (modify the API to support guest checkout)
-      const createOrderRes = await fetch('/api/order', {
+      
+      // Read cart from localStorage
+      const localCart = JSON.parse(localStorage.getItem('cart') || '[]');
+      
+      if (localCart.length === 0) {
+        toast.error('Your cart is empty');
+        setIsLoading(false);
+        return;
+      }
+      
+      // Prepare the request payload
+      // Always include user ID if available, fall back to email for guests
+      const payload = {
+        items: localCart.map((item: CartItem) => ({
+          productId: item.id,
+          quantity: item.quantity
+        })),
+        // Only do guest checkout if not authenticated
+        isGuestCheckout: sessionStatus !== 'authenticated', 
+        // Include email for all users to help with fallback identification
+        userEmail: session?.user?.email || guestEmail || null
+      };
+      
+      console.log("Sending order payload:", payload);
+      
+      const response = await fetch('/api/order', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          items: localCart.map((item) => ({
-            productId: item.id,
-            quantity: item.quantity,
-          })),
-          isGuestCheckout: !isLoggedIn,
-          guestEmail: guestEmail || null, // Include guest email if provided
-        }),
+        body: JSON.stringify(payload)
       });
-
-      if (!createOrderRes.ok) {
-        throw new Error('Failed to create order');
+      
+      // Read the response as text first to help with debugging
+      const responseText = await response.text();
+      let responseData;
+      
+      try {
+        // Try to parse as JSON
+        responseData = JSON.parse(responseText);
+      } catch (e) {
+        console.error('Failed to parse response as JSON:', responseText);
+        toast.error('Server returned an invalid response');
+        return;
       }
 
-      const { orderId } = await createOrderRes.json();
+      if (!response.ok) {
+        const errorMessage = responseData.error || responseData.details || 'Failed to create order';
+        console.error('Order creation failed:', errorMessage);
+        toast.error(errorMessage);
+        return;
+      }
+
+      const { orderId } = responseData;
       setOrderId(orderId);
-      console.log(orderId, 'orderId,;,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,');
+      console.log('Order created successfully:', orderId);
 
       // Step 2: Fetch payment gateways
       await fetchPaymentGateways();
@@ -234,7 +280,9 @@ export function CartSidebar({ priceId, price, description }: props) {
 
     } catch (error) {
       console.error('Checkout error:', error);
-      toast.error('Failed to proceed to checkout');
+      // Show a more specific error message if possible
+      const errorMessage = error instanceof Error ? error.message : 'Failed to proceed to checkout';
+      toast.error(errorMessage);
     } finally {
       setIsLoading(false);
     }
@@ -280,14 +328,22 @@ export function CartSidebar({ priceId, price, description }: props) {
 
   // Add a function to validate email
   const validateEmail = (email: string) => {
+    // Basic email regex pattern
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!email) {
+    
+    if (!email || email.trim() === '') {
       setEmailError('Email is required');
+      toast.error('Please enter your email address');
       return false;
-    } else if (!emailRegex.test(email)) {
-      setEmailError('Please enter a valid email');
+    } 
+    
+    if (!emailRegex.test(email)) {
+      setEmailError('Please enter a valid email address');
+      toast.error('Please enter a valid email address');
       return false;
     }
+    
+    // Clear any previous error
     setEmailError('');
     return true;
   };
@@ -295,8 +351,11 @@ export function CartSidebar({ priceId, price, description }: props) {
   // Add a function to handle the email submission
   const handleEmailSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    console.log('Email submit form triggered with:', guestEmail);
+    
     if (validateEmail(guestEmail)) {
       setShowEmailForm(false);
+      // Call handleProceedToPayment directly
       handleProceedToPayment();
     }
   };
@@ -380,12 +439,12 @@ export function CartSidebar({ priceId, price, description }: props) {
           <SheetContent side="right" className="w-full sm:max-w-md">
             <SheetHeader>
               <SheetTitle>
-                {showEmailForm ? 'Enter Your Email' : 'Select Payment Method'}
+                {!session?.user && showEmailForm ? 'Enter Your Email' : 'Select Payment Method'}
               </SheetTitle>
             </SheetHeader>
             
             <div className="mt-6">
-              {showEmailForm ? (
+              {!session?.user && showEmailForm ? (
                 <form onSubmit={handleEmailSubmit} className="space-y-4">
                   <div className="space-y-2">
                     <Label htmlFor="email">Email Address</Label>
