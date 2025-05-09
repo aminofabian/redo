@@ -13,6 +13,7 @@ import WhatsAppButton from "@/components/ui/WhatsAppButton";
 import FloatingButtons from "@/components/ui/FloatingButtons";
 import HeroWrapper from "@/components/HeroWrapper";
 import { type ProductWithImages } from "@/types/db";
+import Hero from "./ui/Hero";
 
 // Dynamic imports for components that need client-only rendering
 const FeaturedResourcesWrapper = dynamic(() => import('@/components/FeaturedResourcesWrapper'), {
@@ -72,7 +73,7 @@ export default function HomeClient({ initialProducts }: HomeClientProps) {
           <Suspense fallback={<div className="min-h-[600px] flex items-center justify-center">
             <div className="w-16 h-16 border-4 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
           </div>}>
-            <HeroWrapper />
+            <Hero />
           </Suspense>
           <Features />
           <DiscoverNursing products={initialProducts.filter(p => p.featured)} />

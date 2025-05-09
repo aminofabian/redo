@@ -9,15 +9,24 @@ const HeroSkeleton = () => (
   </div>
 );
 
-export default async function HeroWrapper() {
+export default function HeroWrapper() {
   return (
-    <Suspense fallback={<HeroSkeleton />}>
-      <HeroContent />
-    </Suspense>
+    <div className="hero-container">
+      {/* Static content that loads immediately */}
+      <div className="hero-static">
+        {/* Your static hero content (images, titles, etc.) */}
+      </div>
+      
+      {/* Dynamic content that loads after data fetching */}
+      <Suspense fallback={<HeroSkeleton />}>
+        <HeroContent />
+      </Suspense>
+    </div>
   );
 }
 
 async function HeroContent() {
-  const categoryPaths = await getCategoryPaths();
-  return <Hero categoryPaths={categoryPaths} />;
+  // We no longer need to fetch or pass category paths
+  // as the Hero component now uses hardcoded data
+  return <Hero />;
 } 
