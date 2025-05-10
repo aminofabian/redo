@@ -219,7 +219,19 @@ export function CartSidebar({ priceId, price, description }: props) {
   const [paypalClientId, setPaypalClientId] = useState<string | null>(null);
   const [isProcessingPayment, setIsProcessingPayment] = useState(false);
   const [orderId, setOrderId] = useState<string | null>(null);
-  localStorage.setItem('orderId', orderId || '');
+  const getLocalStorage = (key: string, defaultValue: any = null) => {
+    if (typeof window !== 'undefined') {
+      const stored = localStorage.getItem(key);
+      return stored ? JSON.parse(stored) : defaultValue;
+    }
+    return defaultValue;
+  };
+
+  const setLocalStorage = (key: string, value: any) => {
+    if (typeof window !== 'undefined') {
+      localStorage.setItem(key, JSON.stringify(value));
+    }
+  };
 
   const [paypalOrderId, setPaypalOrderId] = useState<string | null>(null);
   const [totalPayout, setTotalPayout] = useState<string>('0.00');
@@ -395,7 +407,7 @@ export function CartSidebar({ priceId, price, description }: props) {
       setIsLoading(true);
       
       // Read cart from localStorage
-      const localCart = JSON.parse(localStorage.getItem('cart') || '[]');
+      const localCart = getLocalStorage('cart') || [];
       
       if (localCart.length === 0) {
         toast.error('Your cart is empty');
