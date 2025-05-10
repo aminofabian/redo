@@ -90,11 +90,42 @@ const PayPalButtonWrapper = ({ clientId, onLoad }: { clientId: string, onLoad: (
   );
 };
 
-// Update PayPalCheckoutButton to accept amount as a prop
+// Update PayPalCheckoutButton to include database update and redirect
 const PayPalCheckoutButton = ({ onReadyCallback, amount }: { onReadyCallback: () => void, amount: string }) => {
-  // Make sure amount is greater than zero
-  const safeAmount = Number(amount) <= 0 ? "1.00" : amount;
+  const router = useRouter();
   const { clearCart } = useCart();
+  const safeAmount = Number(amount) <= 0 ? "1.00" : amount;
+  
+  // Add the handlePaymentSuccess function back
+  const handlePaymentSuccess = async (paypalOrderId: string, paymentDetails: any) => {
+    try {
+      // Call your API to update the database
+      const response = await fetch('/api/orders/complete', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          paymentProvider: 'PAYPAL',
+          paymentId: paypalOrderId,
+          paymentDetails: paymentDetails,
+        }),
+      });
+      
+      if (!response.ok) {
+        throw new Error('Failed to record payment');
+      }
+      
+      // Clear the cart
+      clearCart();
+      
+      // Redirect to success page
+      router.push('/checkout/success?provider=paypal&order_id=' + paypalOrderId);
+    } catch (error) {
+      console.error('Error processing payment success:', error);
+      toast.error('Payment recorded but there was an issue. Please contact support.');
+    }
+  };
   
   return (
     <PayPalButtons
@@ -125,36 +156,11 @@ const PayPalCheckoutButton = ({ onReadyCallback, amount }: { onReadyCallback: ()
       
         return actions.order.capture().then(async (details) => {
           console.log("Payment successful", details);
-      
-          // Ensure orderId is initialized (from state or localStorage)
-          const currentOrderId = localStorage.getItem('orderId');
-          if (!currentOrderId) {
-            console.error("Order ID is not available");
-            toast.error("Order ID not found. Please try again.");
-            return;
-          }
-      
-          // Send details to your backend
-          try {
-            const res = await fetch("/api/paypal/capture-order", {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({
-                orderId: currentOrderId,
-                paypalOrderDetails: details
-              }),
-            });
-      
-            if (!res.ok) throw new Error("Failed to store transaction");
-            const responseData = await res.json();
-            console.log("Server response:", responseData);
-          } catch (err) {
-            console.error("Error sending PayPal capture to backend", err);
-            toast.error("Failed to store transaction. Please contact support.");
-          }
-          clearCart();
-          localStorage.removeItem('orderId');          
+          // handlePaymentSuccess();
           toast.success(`Payment completed! Thank you ${details.payer?.name?.given_name || ''}!`);
+          
+          // Handle successful payment with database update and redirect
+          handlePaymentSuccess(data.orderID, details);
         });
       }}
       
