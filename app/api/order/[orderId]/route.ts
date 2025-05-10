@@ -36,14 +36,11 @@ export async function GET(
   try {
     const orderId = params.orderId;
     
+    // Try to fetch the order items first, separately from products
     const order = await prisma.order.findUnique({
       where: { id: orderId },
       include: {
-        orderItems: {
-          include: {
-            product: true,
-          },
-        },
+        orderItems: true, // Get order items without products first
       },
     });
 
@@ -54,8 +51,49 @@ export async function GET(
       );
     }
 
+    // Now fetch products individually and handle missing ones
+    const orderItemsWithProducts = await Promise.all(
+      order.orderItems.map(async (item) => {
+        try {
+          const product = await prisma.product.findUnique({
+            where: { id: item.productId },
+          });
+          
+          return {
+            ...item,
+            product: product || {
+              id: item.productId,
+              title: "Product no longer available",
+              description: "",
+              price: item.price,
+              finalPrice: item.price,
+              // Add other required fields with default values
+            }
+          };
+        } catch (error) {
+          console.error(`Error fetching product for order item ${item.id}:`, error);
+          return {
+            ...item,
+            product: {
+              id: item.productId,
+              title: "Product no longer available",
+              description: "",
+              price: item.price,
+              finalPrice: item.price,
+              // Add other required fields with default values
+            }
+          };
+        }
+      })
+    );
+
+    const orderWithProducts = {
+      ...order,
+      orderItems: orderItemsWithProducts,
+    };
+
     // Convert BigInt values to strings to prevent serialization issues
-    const serializedOrder = JSON.parse(JSON.stringify(order, (key, value) => 
+    const serializedOrder = JSON.parse(JSON.stringify(orderWithProducts, (key, value) => 
       typeof value === 'bigint' ? value.toString() : value
     ));
 
