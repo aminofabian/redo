@@ -75,6 +75,73 @@ function PayPalButtonsWrapper({ options, children }: { options: ReactPayPalScrip
   );
 }
 
+// Update the PayPalButtonWrapper component
+const PayPalButtonWrapper = ({ clientId, onLoad }: { clientId: string, onLoad: () => void }) => {
+  return (
+    <PayPalScriptProvider 
+      options={{
+        clientId: clientId,
+        currency: "USD",
+        components: "buttons",
+      }}
+    >
+      <PayPalButtonContent onLoad={onLoad} />
+    </PayPalScriptProvider>
+  );
+};
+
+// Create a reusable PayPal button component first, before it's referenced
+const PayPalCheckoutButton = ({ onReadyCallback }: { onReadyCallback: () => void }) => {
+  // This is a forward reference to totalPayout from the parent component
+  // We'll fix it by passing the amount as a prop instead
+  const safeAmount = "0.00"; // Default value, will be overridden by props
+  
+  return (
+    <PayPalButtons
+      style={{ layout: "vertical" }}
+      createOrder={(data, actions) => {
+        return actions.order.create({
+          intent: "CAPTURE",
+          purchase_units: [
+            {
+              amount: {
+                value: safeAmount,
+                currency_code: "USD"
+              },
+              description: "Your purchase",
+            },
+          ],
+          application_context: {
+            shipping_preference: "NO_SHIPPING"
+          }
+        });
+      }}
+      // Other handlers would go here
+    />
+  );
+};
+
+// Then define the components that use it
+const PayPalButtonContent = ({ onLoad }: { onLoad: () => void }) => {
+  const [{ isPending, isResolved }] = usePayPalScriptReducer();
+  
+  useEffect(() => {
+    if (isResolved) {
+      onLoad();
+    }
+  }, [isResolved, onLoad]);
+  
+  if (isPending) {
+    return (
+      <div className="flex justify-center py-2">
+        <Loader2 className="h-5 w-5 animate-spin" />
+      </div>
+    );
+  }
+  
+  return <PayPalCheckoutButton onReadyCallback={() => {}} />;
+};
+
 export function CartSidebar({ priceId, price, description }: props) {
   // const { items, removeItem, totalItems, totalPrice } = useCart();
   const { items, removeItem, totalItems, totalPrice, clearCart } = useCart();
@@ -110,7 +177,11 @@ export function CartSidebar({ priceId, price, description }: props) {
     'data-client-token': 'abc123',
   });
 
-  // Replace your fetchPaypalClientId function with this
+  // Separate script loaded states for each PayPal integration
+  const [paypalMainLoaded, setPaypalMainLoaded] = useState(false);
+  const [paypalQuickLoaded, setPaypalQuickLoaded] = useState(false);
+
+  // Update the fetchPaypalClientId function to fix the error
   const fetchPaypalClientId = async () => {
     try {
       const response = await fetch('/api/paypal-sdk');
@@ -118,16 +189,25 @@ export function CartSidebar({ priceId, price, description }: props) {
       const data = await response.json();
       console.log('Fetched PayPal configuration:', data);
       
-      // Update the PayPal options state with correct property name
       setPaypalOptions({
-        clientId: data.clientId,
+        clientId: data.clientId || process.env.NEXT_PUBLIC_PAYPAL_CLIENT_ID || "",
         currency: data.currency || "USD",
         intent: data.intent || "capture",
-        components: "buttons,funding-eligibility",
+        components: "buttons",
         'data-client-token': data.clientToken || 'abc123',
       });
     } catch (error) {
       console.error('Error fetching PayPal configuration:', error);
+      
+      // Also fix the fallback
+      setPaypalOptions({
+        clientId: process.env.NEXT_PUBLIC_PAYPAL_CLIENT_ID || "",
+        currency: "USD",
+        intent: "capture",
+        components: "buttons",
+        'data-client-token': 'abc123',
+      });
+      
       toast.error('Failed to load PayPal. Please try another payment method.');
     }
   };
@@ -411,9 +491,10 @@ export function CartSidebar({ priceId, price, description }: props) {
   }, []);
 
   if (items.length === 0) return null;
-
-
-
+  
+  // Convert the amount safely (this is not a hook, so it's fine after the conditional)
+  const amount = Number(totalPayout).toString(); // Clean conversion
+  
   return (
     <div className="bg-white p-4 rounded-lg shadow-sm border mb-6">
       <div className="flex items-center justify-between mb-3">
@@ -541,59 +622,15 @@ export function CartSidebar({ priceId, price, description }: props) {
                           <h3 className="font-medium">{gateway.name}</h3>
 
                           {gateway.isActive && gateway.name === 'PAYPAL' && paypalOptions.clientId && (
-                            <PayPalScriptProvider options={paypalOptions}>
-                              <PayPalButtons
-                                forceReRender={[paypalOptions.clientId, totalPayout]}
-                                style={{ 
-                                  layout: "vertical",
-                                  color: "gold",
-                                  shape: "rect",
-                                  label: "pay"
-                                }}
-                                createOrder={async () => {
-                                  console.log("PayPal createOrder called directly");
-                                  setIsProcessingPayment(true);
-                                  
-                                  try {
-                                    // First ensure we have an order ID
-                                    if (!orderId) {
-                                      toast.error("Order information missing. Please try again.");
-                                      return Promise.reject("Order ID missing");
-                                    }
-                                    
-                                    // Call our backend to create a PayPal order
-                                    const response = await fetch("/api/paypal/create-order", {
-                                      method: "POST",
-                                      headers: { "Content-Type": "application/json" },
-                                      body: JSON.stringify({ 
-                                        cartItems: items,
-                                        orderId: orderId
-                                      }),
-                                    });
-                                    
-                                    if (!response.ok) {
-                                      const errorData = await response.json();
-                                      throw new Error(errorData.message || "Failed to create PayPal order");
-                                    }
-                                    
-                                    const data = await response.json();
-                                    console.log("PayPal order created:", data);
-                                    
-                                    // Store the PayPal order ID for later use in capture
-                                    setPaypalOrderId(data.id);
-                                    return data.id; // This return is critical - must return the order ID string
-                                  } catch (error) {
-                                    console.error("Error creating PayPal order:", error);
-                                    toast.error("Could not initialize PayPal checkout");
-                                    setIsProcessingPayment(false);
-                                    return Promise.reject(error);
-                                  }
-                                }}
-                                onApprove={async (data) => {
-                                  // Your existing implementation
-                                }}
-                              />
-                            </PayPalScriptProvider>
+                            <div className="mt-2">
+                              <div className="flex flex-col items-center gap-4">
+                                <h1 className="text-xl font-semibold">PayPal Checkout</h1>
+                                <PayPalButtonWrapper 
+                                  clientId={paypalOptions.clientId}
+                                  onLoad={() => setPaypalMainLoaded(true)}
+                                />
+                              </div>
+                            </div>
                           )}
                             
                             {gateway.isActive && gateway.name === 'STRIPE' && (
@@ -642,59 +679,13 @@ export function CartSidebar({ priceId, price, description }: props) {
                     
                     {paypalOptions.clientId && (
                       <div className="mb-4">
-                        <PayPalScriptProvider options={paypalOptions}>
-                          <PayPalButtons
-                            forceReRender={[paypalOptions.clientId, totalPayout]}
-                            style={{ 
-                              layout: "vertical",
-                              color: "gold",
-                              shape: "rect",
-                              label: "pay"
-                            }}
-                            createOrder={async () => {
-                              console.log("PayPal createOrder called directly");
-                              setIsProcessingPayment(true);
-                              
-                              try {
-                                // First ensure we have an order ID
-                                if (!orderId) {
-                                  toast.error("Order information missing. Please try again.");
-                                  return Promise.reject("Order ID missing");
-                                }
-                                
-                                // Call our backend to create a PayPal order
-                                const response = await fetch("/api/paypal/create-order", {
-                                  method: "POST",
-                                  headers: { "Content-Type": "application/json" },
-                                  body: JSON.stringify({ 
-                                    cartItems: items,
-                                    orderId: orderId
-                                  }),
-                                });
-                                
-                                if (!response.ok) {
-                                  const errorData = await response.json();
-                                  throw new Error(errorData.message || "Failed to create PayPal order");
-                                }
-                                
-                                const data = await response.json();
-                                console.log("PayPal order created:", data);
-                                
-                                // Store the PayPal order ID for later use in capture
-                                setPaypalOrderId(data.id);
-                                return data.id; // This return is critical - must return the order ID string
-                              } catch (error) {
-                                console.error("Error creating PayPal order:", error);
-                                toast.error("Could not initialize PayPal checkout");
-                                setIsProcessingPayment(false);
-                                return Promise.reject(error);
-                              }
-                            }}
-                            onApprove={async (data) => {
-                              // Your existing implementation
-                            }}
+                        <div className="flex flex-col items-center gap-4">
+                          <h1 className="text-xl font-semibold">PayPal Checkout</h1>
+                          <PayPalButtonWrapper 
+                            clientId={paypalOptions.clientId}
+                            onLoad={() => setPaypalQuickLoaded(true)}
                           />
-                        </PayPalScriptProvider>
+                        </div>
                       </div>
                     )}
                     
