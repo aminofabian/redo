@@ -1,6 +1,28 @@
 import Stripe from "stripe";
 import { NextResponse } from 'next/server';
 
+// Helper function to handle BigInt serialization
+function safeJSONStringify(obj: any): string {
+  return JSON.stringify(obj, (_, value) => {
+    if (typeof value === 'bigint') {
+      return value.toString();
+    }
+    return value;
+  });
+}
+
+// Helper for safe response with BigInt support
+function safeNextResponse(data: any, options: any = {}) {
+  const body = safeJSONStringify(data);
+  return new NextResponse(body, {
+    ...options,
+    headers: {
+      ...options.headers,
+      'content-type': 'application/json',
+    },
+  });
+}
+
 if (!process.env.STRIPE_SECRET_KEY) {
   throw new Error("STRIPE_SECRET_KEY is not defined in environment variables");
 }
@@ -12,7 +34,7 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
 export async function POST(request: Request) {
   try {
     const { cartItems,orderId } = await request.json();
-    const returnUrl = "https://b73a-41-90-172-244.ngrok-free.app"
+    const returnUrl = "https://rnstudentresources.vercel.app"
 
     if (!cartItems || !Array.isArray(cartItems)) {
       return NextResponse.json(
@@ -67,25 +89,33 @@ export async function POST(request: Request) {
       return lineItem;
     });
 
+    // Always ensure orderId is safely converted to string if it's a BigInt
+    // This prevents "Do not know how to serialize a BigInt" errors
+    const safeOrderId = typeof orderId === 'bigint' ? orderId.toString() : String(orderId || 'unknown');
+    
+    console.log(`Creating Stripe session with orderId: ${safeOrderId} (type: ${typeof orderId})`);
+
     const session = await stripe.checkout.sessions.create({
       payment_method_types: ["card"],
       line_items,
       mode: "payment",
-    //   success_url: `${request.headers.get('origin')}/success?session_id={CHECKOUT_SESSION_ID}`,
-    //   success_url: `${returnUrl || request.headers.get('origin') || ''}/success?session_id={CHECKOUT_SESSION_ID}`,
-      success_url: `https://b73a-41-90-172-244.ngrok-free.app/success?session_id={CHECKOUT_SESSION_ID}`,
-       cancel_url: `https://b73a-41-90-172-244.ngrok-free.app/cancel`,
-       metadata: {
-        orderId, 
+      success_url: `https://rnstudentresources.vercel.app/success?session_id={CHECKOUT_SESSION_ID}`,
+      cancel_url: `https://rnstudentresources.vercel.app/cancel`,
+      metadata: {
+        orderId: safeOrderId, // Always use the safe string version
       },
     });
 
-    return NextResponse.json({ sessionId: session.id, headers });
+    // Use our BigInt-safe response helper
+    return safeNextResponse({ sessionId: session.id, headers });
 
   } catch (error) {
     console.error("Error creating Stripe session:", error);
-    return NextResponse.json(
-      { error: "Failed to create Stripe session" },
+    return safeNextResponse(
+      { 
+        error: "Failed to create Stripe session",
+        details: error instanceof Error ? error.message : "Unknown error" 
+      },
       { status: 500 }
     );
   }

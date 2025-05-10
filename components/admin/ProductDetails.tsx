@@ -11,7 +11,8 @@ import {
   Clock,
   DollarSign,
   ShoppingCart,
-  Image as ImageIcon
+  Image as ImageIcon,
+  Star
 } from "lucide-react";
 import { useAdmin } from "@/contexts/AdminContext";
 import Image from "next/image";
@@ -21,7 +22,7 @@ import { Input } from "@/components/ui/input";
 import { toast } from "react-hot-toast";
 import { generateProductSlug } from "@/lib/products";
 
-// Add this type definition at the top of the file
+// Updated Product type at the top of the file
 type Product = {
   id: string | number;
   slug: string;
@@ -37,6 +38,7 @@ type Product = {
   discountPercent?: any;
   finalPrice?: any;
   viewCount?: number;
+  featured?: boolean;
 };
 
 function isProduct(item: any): item is Product {
@@ -50,6 +52,7 @@ export function ProductDetails() {
   const [slugValue, setSlugValue] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [productDetails, setProductDetails] = useState<Product | null>(null);
+  const [isFeaturing, setIsFeaturing] = useState(false);
   
   // Update slug value when product changes
   useEffect(() => {
@@ -136,6 +139,45 @@ export function ProductDetails() {
 
   const hasDiscount = displayProduct.discountAmount || displayProduct.discountPercent || displayProduct.finalPrice;
 
+  // Add this new function to toggle featured status
+  const toggleFeatured = async () => {
+    if (!displayProduct) return;
+    
+    setIsFeaturing(true);
+    try {
+      const newFeaturedStatus = !(displayProduct.featured || false);
+      
+      const response = await fetch(`/api/products/${displayProduct.id}/featured`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ featured: newFeaturedStatus }),
+      });
+      
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.message || "Failed to update featured status");
+      }
+      
+      toast.success(newFeaturedStatus 
+        ? "Product added to featured" 
+        : "Product removed from featured"
+      );
+      
+      // Refresh product details after update
+      fetchFullProductDetails(displayProduct.id);
+    } catch (error) {
+      if (error instanceof Error) {
+        toast.error(error.message);
+      } else {
+        toast.error("An unknown error occurred");
+      }
+    } finally {
+      setIsFeaturing(false);
+    }
+  };
+
   return (
     <div className="p-6 max-w-5xl mx-auto">
       <div className="flex items-center justify-between mb-6">
@@ -148,6 +190,21 @@ export function ProductDetails() {
           <Button variant="outline" size="sm">
             <Edit className="mr-2 h-4 w-4" />
             Edit
+          </Button>
+          <Button 
+            variant={displayProduct.featured ? "default" : "outline"} 
+            size="sm"
+            onClick={toggleFeatured}
+            disabled={isFeaturing}
+          >
+            {isFeaturing ? (
+              <>Loading...</>
+            ) : (
+              <>
+                <Star className={`mr-2 h-4 w-4 ${displayProduct.featured ? "fill-current" : ""}`} />
+                {displayProduct.featured ? "Featured" : "Feature"}
+              </>
+            )}
           </Button>
           <Button variant="destructive" size="sm">
             <Trash2 className="mr-2 h-4 w-4" />

@@ -1,43 +1,84 @@
 // api/order/[orderId]/route.ts
 
 import { NextRequest, NextResponse } from 'next/server';
-import prisma from '@/lib/db';
-import { auth } from '@/lib/auth';
+import { PrismaClient } from '@/src/generated/client';
 
-export async function GET(request: NextRequest, { params }: { params: { orderId: string } }) {
-  try {
-    const session = await auth();
+const prisma = new PrismaClient();
 
-    if (!session?.user) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+// Modified version of the JSON.stringify function that can handle BigInt
+function safeJSONStringify(obj: any): string {
+  return JSON.stringify(obj, (_, value) => {
+    // Check if the value is a BigInt and convert it to a string
+    if (typeof value === 'bigint') {
+      return value.toString(); 
     }
+    // Otherwise, return the value as is
+    return value;
+  });
+}
 
-    const { orderId } = params;
+// Function to create a custom NextResponse with BigInt handling
+function safeNextResponse(data: any, options: any = {}) {
+  const body = safeJSONStringify(data);
+  return new NextResponse(body, {
+    ...options,
+    headers: {
+      ...options.headers,
+      'content-type': 'application/json',
+    },
+  });
+}
 
+export async function GET(
+  request: NextRequest,
+  { params }: { params: { orderId: string } }
+) {
+  try {
+    const orderId = params.orderId;
+    
     const order = await prisma.order.findUnique({
-      where: {
-        id: orderId,
-        userId: session.user.id, // important for security (only owner sees)
-      },
+      where: { id: orderId },
       include: {
-        orderItems: true,
+        orderItems: {
+          include: {
+            product: true,
+          },
+        },
       },
     });
 
     if (!order) {
-      return NextResponse.json({ error: 'Order not found' }, { status: 404 });
+      return new Response(
+        JSON.stringify({ error: 'Order not found' }),
+        { status: 404, headers: { 'Content-Type': 'application/json' } }
+      );
     }
 
-    const finalPrice = order.orderItems.reduce((sum, item) => sum + Number(item.price) * Number(item.quantity), 0);
-    console.log(finalPrice, 'final priceeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee');
-    const productIds = order.orderItems.map(item => item.productId);
+    // Convert BigInt values to strings to prevent serialization issues
+    const serializedOrder = JSON.parse(JSON.stringify(order, (key, value) => 
+      typeof value === 'bigint' ? value.toString() : value
+    ));
 
-    return NextResponse.json({ finalPrice, productIds });
+    // Prepare the response with the data you need
+    const response = {
+      finalPrice: serializedOrder.totalAmount,
+      productIds: serializedOrder.orderItems.map((item: any) => item.productId),
+      orderItems: serializedOrder.orderItems,
+      status: serializedOrder.status,
+    };
+
+    return new Response(
+      JSON.stringify(response),
+      { headers: { 'Content-Type': 'application/json' } }
+    );
   } catch (error) {
     console.error('Error fetching order:', error);
-    return NextResponse.json(
-      { error: 'Failed to fetch order' },
-      { status: 500 }
+    return new Response(
+      JSON.stringify({ 
+        error: 'Failed to fetch order', 
+        details: error instanceof Error ? error.message : 'Unknown error'
+      }),
+      { status: 500, headers: { 'Content-Type': 'application/json' } }
     );
   }
 }

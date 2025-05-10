@@ -1,6 +1,8 @@
 // app/api/stripe/verify-payment/route.ts
 import Stripe from "stripe";
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
+import { prisma } from "@/lib/prisma";
+import { getAuthSession } from "@/lib/getAuthSession";
 
 if (!process.env.STRIPE_SECRET_KEY) {
   throw new Error("STRIPE_SECRET_KEY is not defined in environment variables");
@@ -10,49 +12,274 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
   apiVersion: "2025-03-31.basil",
 });
 
-export async function GET(request: Request) {
+// POST is more appropriate for actions that change state
+export async function POST(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
     const sessionId = searchParams.get('session_id');
-    console.log(sessionId, 'this is the session id, you get it')
-
+    
     if (!sessionId) {
       return NextResponse.json(
-        { error: "Session ID is required" },
+        { success: false, message: "Session ID is required" },
         { status: 400 }
       );
     }
-
-    const session = await stripe.checkout.sessions.retrieve(sessionId, {
-      expand: ['line_items', 'customer_details', 'payment_intent'],
+    
+    // Get the authenticated user (if available)
+    const authSession = await getAuthSession();
+    let userId = authSession?.user?.id;
+    
+    // If we don't have a userId from the session, we'll try to find the order by sessionId only
+    // This allows the verification to work even if the user is not authenticated during the redirect
+    
+    // Retrieve the Stripe session
+    const stripeSession = await stripe.checkout.sessions.retrieve(sessionId, {
+      expand: ['line_items', 'line_items.data.price.product', 'customer_details', 'payment_intent'],
     });
 
-    if (session.payment_status !== 'paid') {
+    if (stripeSession.payment_status !== 'paid') {
       return NextResponse.json(
-        { error: "Payment not completed" },
+        { success: false, message: "Payment not completed" },
         { status: 400 }
       );
     }
 
-    const orderData = {
-      id: session.id,
-      payment_intent: session.payment_intent,
-      amount_total: session.amount_total,
-      currency: session.currency,
-      customer_details: session.customer_details,
-      items: session.line_items?.data,
-      payment_status: session.payment_status,
-      created: session.created,
-    };
-
+    // Get order ID from the Stripe session metadata
+    // Stripe puts the metadata we set during checkout session creation here
+    const orderId = stripeSession.metadata?.orderId;
     
+    if (!orderId) {
+      return NextResponse.json(
+        { success: false, message: "No order ID found in session metadata" },
+        { status: 400 }
+      );
+    }
+    
+    console.log("Looking for order with ID:", orderId);
+    
+    // Find the order in our database using the orderId from session metadata
+    let order;
+    try {
+      order = await prisma.order.findUnique({
+        where: {
+          id: orderId
+        },
+        include: {
+          orderItems: {
+            include: {
+              product: true
+            }
+          },
+          // Don't require user to avoid the "Field user is required to return data" error
+          user: false 
+        }
+      });
+    } catch (findError) {
+      console.error('Error finding order:', findError);
+      return NextResponse.json(
+        { success: false, message: "Error finding order", details: findError instanceof Error ? findError.message : "Unknown error" },
+        { status: 500 }
+      );
+    }
+    
+    console.log("Order found:", order ? "Yes" : "No");
 
-    return NextResponse.json(orderData);
+    if (!order) {
+      return NextResponse.json(
+        { success: false, message: "Order not found" },
+        { status: 404 }
+      );
+    }
+    
+    // Since we excluded the user relation in our query to avoid the error,
+    // we'll just use the userId from session or a default guest user ID
+    // This prevents accessing order.user which would cause a TypeScript error
+    if (!userId) {
+      // If no userId from session, look it up separately to avoid the original error
+      try {
+        const orderUser = await prisma.order.findUnique({
+          where: { id: orderId },
+          select: { userId: true }
+        });
+        userId = orderUser?.userId || 'guest-user';
+      } catch (userLookupError) {
+        console.warn('Could not retrieve user ID for order, using guest user:', userLookupError);
+        userId = 'guest-user';
+      }
+    }
+
+    // Extract the payment intent ID properly from the Stripe session
+    // First check what type of data we're getting
+    console.log("Payment intent type:", typeof stripeSession.payment_intent);
+    
+    // The payment_intent could be an object (when expanded) or just an ID string
+    let paymentIntentId: string;
+    if (typeof stripeSession.payment_intent === 'string') {
+      paymentIntentId = stripeSession.payment_intent;
+    } else if (stripeSession.payment_intent && typeof stripeSession.payment_intent === 'object') {
+      // It's the expanded object, so extract the id property
+      paymentIntentId = (stripeSession.payment_intent as any).id || '';
+    } else {
+      // Fallback
+      paymentIntentId = String(stripeSession.id); // Use session ID as fallback
+    }
+    
+    console.log("Extracted Payment Intent ID:", paymentIntentId);
+    
+    // Prepare transaction data without trying to connect to a payment gateway
+    // This will avoid the 500 error if the payment gateway doesn't exist
+    const transactionData = {
+      amount: order.totalAmount,
+      currency: order.currency,
+      status: 'completed',
+      // Remove the payment gateway relation that's causing errors
+      // We'll just store the gateway ID as a transaction ID instead
+      gatewayTransactionId: paymentIntentId,
+      completedAt: new Date(),
+      metadata: {
+        stripeSessionId: sessionId,
+        paymentMethod: 'card', // Assuming card payment through Stripe
+        gatewayName: 'stripe' // Store the gateway name in metadata instead
+      }
+    };
+    
+    // Log transaction data for debugging
+    console.log("Transaction data prepared:", JSON.stringify(transactionData, null, 2));
+
+    // Wrap the entire process in a try-catch block for better error reporting
+    try {
+      // Begin a transaction to ensure all updates happen together
+      const result = await prisma.$transaction(async (tx) => {
+        // 1. Create the transaction record
+        let transaction;
+        try {
+          console.log("Creating transaction record...");
+          transaction = await tx.transaction.create({
+            data: transactionData
+          });
+          console.log("Transaction created with ID:", transaction.id);
+        } catch (err) {
+          console.error("Error creating transaction:", err);
+          // Send detailed error info to console
+          if (err instanceof Error) {
+            console.error('Transaction create error details:', {
+              message: err.message,
+              name: err.name,
+              stack: err.stack,
+            });
+          }
+          throw err; // Re-throw to abort the transaction
+        }
+
+      // 2. Update the order status with transaction ID and payment intent ID
+      const updatedOrder = await tx.order.update({
+        where: { id: order.id },
+        data: {
+          status: 'paid',
+          paymentStatus: 'paid',
+          transactionId: transaction.id,
+          paymentIntentId: paymentIntentId // Store the payment intent ID in the order
+        },
+        include: {
+          orderItems: {
+            include: {
+              product: true
+            }
+          }
+        }
+      });
+
+      // 3. Create purchase records for each product
+      const purchases = [];
+      for (const item of order.orderItems) {
+        // Calculate access expiry if the product has an access duration
+        let accessExpires = null;
+        if (item.product.accessDuration) {
+          const expiryDate = new Date();
+          expiryDate.setDate(expiryDate.getDate() + item.product.accessDuration);
+          accessExpires = expiryDate;
+        }
+
+        // At this point, userId should be defined from order.user?.id or as 'guest-user' if the user is null
+        // But we'll add a safety check to satisfy TypeScript
+        if (!userId) {
+          throw new Error("User ID is required for purchase creation");
+        }
+        
+        const purchase = await tx.purchase.create({
+          data: {
+            productId: item.productId,
+            userId: userId, // Now userId is guaranteed to be defined
+            amount: item.price,
+            accessExpires,
+            downloadsLeft: item.product.downloadLimit,
+            status: 'completed',
+          }
+        });
+        purchases.push(purchase);
+      }
+
+      // 4. Update transaction with the first purchase ID (if any)
+      if (purchases.length > 0) {
+        await tx.transaction.update({
+          where: { id: transaction.id },
+          data: { purchaseId: purchases[0].id }
+        });
+      }
+
+      return { updatedOrder, purchases };
+    });
+
+      // Format the response for the success page
+      const orderDetails = {
+        id: result.updatedOrder.id,
+        totalAmount: Number(result.updatedOrder.totalAmount),
+        items: result.updatedOrder.orderItems.map(item => ({
+          id: item.id,
+          title: item.product.title,
+          price: Number(item.price),
+          quantity: item.quantity,
+          downloadAvailable: Boolean(item.product.downloadUrl)
+        }))
+      };
+
+      return NextResponse.json({
+        success: true,
+        message: "Payment verified and order processed successfully",
+        orderId: result.updatedOrder.id,
+        orderDetails
+      });
+    } catch (txError) {
+      console.error("Error during transaction processing:", txError);
+      return NextResponse.json(
+        { success: false, message: "Transaction processing failed", details: txError instanceof Error ? txError.message : "Unknown error" },
+        { status: 500 }
+      );
+    }
   } catch (error) {
     console.error("Error verifying payment:", error);
+    
+    // We need to get the session ID from the URL again since searchParams isn't in this scope
+    const { searchParams: errorParams } = new URL(request.url);
+    const sessionIdForError = errorParams.get('session_id');
+    
+    // Send detailed error info to the frontend
     return NextResponse.json(
-      { error: "Failed to verify payment" },
+      { 
+        success: false, 
+        message: "Failed to verify payment", 
+        details: error instanceof Error ? error.message : "Unknown error",
+        session_id: sessionIdForError
+      },
       { status: 500 }
     );
   }
+}
+
+// Keep GET endpoint for backward compatibility
+export async function GET(request: Request) {
+  return NextResponse.json(
+    { success: false, message: "Please use POST method for payment verification" },
+    { status: 405 }
+  );
 }

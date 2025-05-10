@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/db';
 import { withAuth } from "@/auth";
+import { safeJSONStringify } from '@/lib/json-utils';
+import { Prisma } from '@prisma/client';
 
 type Image = {
   id: string;
@@ -15,12 +17,12 @@ type Category = {
 }
 
 type ProductWithRelations = {
-  id: number;
+  id: bigint;
   title: string;
   description: string | null;
   isPublished: boolean;
   updatedAt: Date;
-  price: number;
+  price: Prisma.Decimal | number;
   purchaseCount: number;
   images: Image[];
   categories: Category[];
@@ -119,7 +121,9 @@ export async function POST(request: NextRequest) {
       
       console.log("Created product with images:", product.images);
       
-      return NextResponse.json(product);
+      // Use safeJSONStringify to handle BigInt values
+      const serializedProduct = JSON.parse(safeJSONStringify(product));
+      return NextResponse.json(serializedProduct);
     });
   } catch (error) {
     console.error('Error creating product:', error);
@@ -174,7 +178,9 @@ export async function GET(request: NextRequest) {
         categories: product.categories.map((c) => c.category.name)
       }));
       
-      return NextResponse.json(formattedProducts);
+      // Use safeJSONStringify to handle BigInt values
+      const serializedProducts = JSON.parse(safeJSONStringify(formattedProducts));
+      return NextResponse.json(serializedProducts);
     } catch (error) {
       console.error('Error fetching products:', error);
       return NextResponse.json(

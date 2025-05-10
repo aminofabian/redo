@@ -3,6 +3,27 @@ import { NextResponse } from 'next/server';
 import { auth } from '@/lib/auth';
 import { PrismaClient } from '@/src/generated/client';
 
+// Add BigInt serialization support
+function safeJSONStringify(obj: any): string {
+  return JSON.stringify(obj, (_, value) => {
+    if (typeof value === 'bigint') {
+      return value.toString();
+    }
+    return value;
+  });
+}
+
+function safeNextResponse(data: any, options: any = {}) {
+  const body = safeJSONStringify(data);
+  return new NextResponse(body, {
+    ...options,
+    headers: {
+      ...options.headers,
+      'content-type': 'application/json',
+    },
+  });
+}
+
 const prisma = new PrismaClient();
 
 export async function GET() {
@@ -11,7 +32,7 @@ export async function GET() {
 
     // Check if user is logged in
     if (!session?.user) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+      return safeNextResponse({ error: 'Unauthorized' }, { status: 401 });
     }
 
     const userId = session.user.id;
@@ -82,11 +103,15 @@ export async function GET() {
       };
     });
 
-    return NextResponse.json(recommendations);
+    // Use our safe response helper to handle BigInt values
+    return safeNextResponse(recommendations);
   } catch (error) {
     console.error('Error fetching recommended resources:', error);
-    return NextResponse.json(
-      { error: 'Failed to fetch recommendations' },
+    return safeNextResponse(
+      { 
+        error: 'Failed to fetch recommendations',
+        details: error instanceof Error ? error.message : 'Unknown error'
+      },
       { status: 500 }
     );
   }

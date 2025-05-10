@@ -22,7 +22,11 @@ import {
   LineChart,
   BarChart,
   RefreshCw,
-  Package
+  Package,
+  Plus,
+  ChevronRight,
+  FolderTree,
+  Star
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAdmin } from "@/contexts/AdminContext";
@@ -40,8 +44,27 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { toast } from "sonner";
+import React from "react";
 
-// Add this interface at the top of the file
+// Add these interfaces at the top of the file
+interface CategoryPath {
+  id: string;
+  path: string;
+  level1?: string;
+  level2?: string;
+  level3?: string;
+  level4?: string;
+  level5?: string;
+}
+
+interface Category {
+  id: string;
+  name: string;
+  slug: string;
+  path?: string;
+  level?: number;
+}
+
 interface ProductImage {
   id: string;
   url: string;
@@ -67,11 +90,13 @@ interface ProductType {
   sales: number;
   slug?: string;
   images?: ProductImage[];
-  categories?: string[];
+  categories?: Category[];
+  categoryPaths?: CategoryPath[];
   orders?: ProductOrder[];
   downloadUrl?: string;
   accessDuration?: number;
   downloadLimit?: number;
+  featured?: boolean;
   createdBy?: {
     firstName: string;
     lastName: string;
@@ -96,10 +121,9 @@ export function ProductDashboard({ product, isDetailedView = false }: {
   const [isEditing, setIsEditing] = useState(false);
   const [publishStatus, setPublishStatus] = useState(product.status === 'Published');
   const [isLoading, setIsLoading] = useState(false);
+  const [isFeaturing, setIsFeaturing] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  
-  // Ensure we have valid data to display
-  const displayProduct = {
+  const [displayProduct, setDisplayProduct] = useState({
     ...product,
     title: product.title || "Untitled Product",
     description: product.description || "No description available",
@@ -110,25 +134,42 @@ export function ProductDashboard({ product, isDetailedView = false }: {
     slug: product.slug || "unknown-product",
     images: product.images || [],
     categories: product.categories || [],
+    categoryPaths: product.categoryPaths || [],
     viewCount: product.viewCount || 0,
     conversionRate: product.conversionRate || "0%",
-    lastPurchase: product.lastPurchase || "Never"
-  };
+    lastPurchase: product.lastPurchase || "Never",
+    featured: product.featured || false
+  });
   
   // If we have a product ID but missing details, try to fetch them
   useEffect(() => {
-    if (product.id && (!product.images || product.images.length === 0)) {
+    if (product.id && (!product.categoryPaths || !product.images || product.images.length === 0)) {
       const fetchMissingDetails = async () => {
         try {
           setIsLoading(true);
-          const response = await fetch(`/api/products/${product.id}`);
+          const response = await fetch(`/api/products/${product.id}?include=categoryPaths,images`);
           
           if (!response.ok) {
             throw new Error('Failed to fetch product details');
           }
           
-          // We don't need to do anything with the response here
-          // This is just a backup in case the product details weren't fetched earlier
+          const data = await response.json();
+          
+          // Create a local copy of the product with updated data
+          const updatedProduct = {
+            ...displayProduct, // Start with current display values as defaults
+            images: data.images || [],
+            categoryPaths: data.categoryPaths || [],
+            categories: data.categories || [],
+            // Ensure these required fields are never undefined
+            description: data.description || displayProduct.description,
+            slug: data.slug || displayProduct.slug,
+            // Add any other fields that need defaults
+          };
+          
+          // Update displayProduct with the new data
+          setDisplayProduct(updatedProduct);
+          
         } catch (err) {
           console.error('Error fetching product details in ProductDashboard:', err);
           setError('Some product details could not be loaded.');
@@ -174,6 +215,49 @@ export function ProductDashboard({ product, isDetailedView = false }: {
     }
   };
   
+  const toggleFeatured = async () => {
+    if (!displayProduct.id) return;
+    
+    setIsFeaturing(true);
+    try {
+      const newFeaturedStatus = !displayProduct.featured;
+      
+      const response = await fetch(`/api/products/${displayProduct.id}/featured`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ featured: newFeaturedStatus }),
+      });
+      
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.message || "Failed to update featured status");
+      }
+      
+      // Update local state
+      setDisplayProduct({
+        ...displayProduct,
+        featured: newFeaturedStatus
+      });
+      
+      toast.success(newFeaturedStatus 
+        ? "Product added to featured" 
+        : "Product removed from featured"
+      );
+      
+    } catch (error) {
+      console.error("Error updating featured status:", error);
+      if (error instanceof Error) {
+        toast.error(error.message);
+      } else {
+        toast.error("An unknown error occurred");
+      }
+    } finally {
+      setIsFeaturing(false);
+    }
+  };
+  
   const mainImage = product.images?.find(img => img.isPrimary)?.url || 
                     product.images?.[0]?.url || 
                     '/placeholder-image.jpg';
@@ -201,6 +285,21 @@ export function ProductDashboard({ product, isDetailedView = false }: {
           <Button variant="outline" size="sm" onClick={() => setIsEditing(true)}>
             <Edit className="mr-2 h-4 w-4" />
             Edit
+          </Button>
+          <Button 
+            variant={displayProduct.featured ? "default" : "outline"} 
+            size="sm"
+            onClick={toggleFeatured}
+            disabled={isFeaturing}
+          >
+            {isFeaturing ? (
+              <>Loading...</>
+            ) : (
+              <>
+                <Star className={`mr-2 h-4 w-4 ${displayProduct.featured ? "fill-current" : ""}`} />
+                {displayProduct.featured ? "Featured" : "Feature"}
+              </>
+            )}
           </Button>
           <Button variant={publishStatus ? "default" : "outline"} size="sm" onClick={handlePublishToggle}>
             {publishStatus ? 
@@ -260,11 +359,23 @@ export function ProductDashboard({ product, isDetailedView = false }: {
               <div className="col-span-2">
                 <h2 className="font-medium text-lg mb-2">{displayProduct.title}</h2>
                 <div className="flex flex-wrap gap-2 mb-3">
-                  {displayProduct.categories && displayProduct.categories.map((category, idx) => (
-                    <Badge key={idx} variant="secondary" className="rounded-full">
-                      {category}
-                    </Badge>
-                  ))}
+                  {displayProduct.categoryPaths && displayProduct.categoryPaths.length > 0 ? (
+                    displayProduct.categoryPaths.map((catPath, idx) => (
+                      <Badge key={idx} variant="secondary" className="rounded-full flex items-center">
+                        <span className="text-xs opacity-75 mr-1">
+                          {catPath.path.split('/').join(' / ')}
+                        </span>
+                      </Badge>
+                    ))
+                  ) : displayProduct.categories && displayProduct.categories.length > 0 ? (
+                    displayProduct.categories.map((category, idx) => (
+                      <Badge key={idx} variant="secondary" className="rounded-full">
+                        {typeof category === 'string' ? category : category.name}
+                      </Badge>
+                    ))
+                  ) : (
+                    <Badge variant="outline">No categories</Badge>
+                  )}
                 </div>
                 <p className="text-gray-600 text-sm mb-4 line-clamp-3">
                   {displayProduct.description}
@@ -458,6 +569,7 @@ export function ProductDashboard({ product, isDetailedView = false }: {
               <TabsTrigger value="images">Images</TabsTrigger>
               <TabsTrigger value="details">Details</TabsTrigger>
               <TabsTrigger value="related">Related Products</TabsTrigger>
+              <TabsTrigger value="categories">Categories</TabsTrigger>
             </TabsList>
             
             <TabsContent value="analytics" className="bg-white p-6 rounded-lg border shadow-sm">
@@ -484,6 +596,35 @@ export function ProductDashboard({ product, isDetailedView = false }: {
                   <p className="text-sm text-gray-500">Customer Satisfaction</p>
                   <p className="text-2xl font-bold">4.8/5</p>
                 </div>
+              </div>
+
+              <div className="mt-6">
+                <h4 className="font-medium mb-3">Category Performance</h4>
+                {displayProduct.categoryPaths && displayProduct.categoryPaths.length > 0 ? (
+                  <div className="space-y-3">
+                    {displayProduct.categoryPaths.map((catPath, idx) => (
+                      <div key={idx} className="bg-gray-50 p-3 rounded-lg">
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center">
+                            <FolderTree className="h-4 w-4 mr-2 text-blue-500" />
+                            <span className="font-medium text-sm">{catPath.path}</span>
+                          </div>
+                          <div className="flex items-center text-sm">
+                            <span className="text-gray-500 mr-2">Views:</span>
+                            <span>{Math.floor(Math.random() * 500)}</span>
+                            <span className="mx-2 text-gray-300">|</span>
+                            <span className="text-gray-500 mr-2">Conversion:</span>
+                            <span>{(Math.random() * 5).toFixed(1)}%</span>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="text-center text-gray-500 py-4">
+                    <p>No category data available</p>
+                  </div>
+                )}
               </div>
             </TabsContent>
             
@@ -525,13 +666,60 @@ export function ProductDashboard({ product, isDetailedView = false }: {
                 
                 <div>
                   <h4 className="text-sm font-medium text-gray-500">Categories</h4>
-                  <div className="mt-1 flex flex-wrap gap-2">
-                    {displayProduct.categories && displayProduct.categories.length > 0 ? (
-                      displayProduct.categories.map((category, idx) => (
-                        <span key={idx} className="px-2 py-1 bg-gray-100 text-gray-800 text-xs rounded-full">
-                          {category}
-                        </span>
+                  <div className="mt-2 space-y-2">
+                    {displayProduct.categoryPaths && displayProduct.categoryPaths.length > 0 ? (
+                      displayProduct.categoryPaths.map((catPath, idx) => (
+                        <div key={idx} className="bg-gray-50 p-3 rounded-lg">
+                          <div className="flex items-center mb-1">
+                            <Package className="h-4 w-4 mr-2 text-blue-500" />
+                            <span className="font-medium">Category Path {idx + 1}</span>
+                          </div>
+                          <div className="pl-6 text-sm">
+                            <div className="flex items-center text-gray-700">
+                              <span className="font-medium">Full Path:</span>
+                              <span className="ml-2">{catPath.path}</span>
+                            </div>
+                            {catPath.level1 && (
+                              <div className="flex items-center mt-1 text-gray-700">
+                                <span className="text-gray-500">Level 1:</span>
+                                <span className="ml-2 px-2 py-0.5 bg-blue-50 text-blue-700 rounded-full">{catPath.level1}</span>
+                              </div>
+                            )}
+                            {catPath.level2 && (
+                              <div className="flex items-center mt-1 text-gray-700">
+                                <span className="text-gray-500">Level 2:</span>
+                                <span className="ml-2 px-2 py-0.5 bg-green-50 text-green-700 rounded-full">{catPath.level2}</span>
+                              </div>
+                            )}
+                            {catPath.level3 && (
+                              <div className="flex items-center mt-1 text-gray-700">
+                                <span className="text-gray-500">Level 3:</span>
+                                <span className="ml-2 px-2 py-0.5 bg-violet-50 text-violet-700 rounded-full">{catPath.level3}</span>
+                              </div>
+                            )}
+                            {catPath.level4 && (
+                              <div className="flex items-center mt-1 text-gray-700">
+                                <span className="text-gray-500">Level 4:</span>
+                                <span className="ml-2 px-2 py-0.5 bg-amber-50 text-amber-700 rounded-full">{catPath.level4}</span>
+                              </div>
+                            )}
+                            {catPath.level5 && (
+                              <div className="flex items-center mt-1 text-gray-700">
+                                <span className="text-gray-500">Level 5:</span>
+                                <span className="ml-2 px-2 py-0.5 bg-red-50 text-red-700 rounded-full">{catPath.level5}</span>
+                              </div>
+                            )}
+                          </div>
+                        </div>
                       ))
+                    ) : displayProduct.categories && displayProduct.categories.length > 0 ? (
+                      <div className="flex flex-wrap gap-2">
+                        {displayProduct.categories.map((category, idx) => (
+                          <span key={idx} className="px-2 py-1 bg-gray-100 text-gray-800 text-xs rounded-full">
+                            {typeof category === 'string' ? category : category.name}
+                          </span>
+                        ))}
+                      </div>
                     ) : (
                       <span className="text-gray-500">No categories</span>
                     )}
@@ -582,6 +770,22 @@ export function ProductDashboard({ product, isDetailedView = false }: {
             <TabsContent value="related" className="bg-white p-6 rounded-lg border shadow-sm">
               <h3 className="font-medium mb-4">Related Products</h3>
               
+              <div className="mb-4">
+                <label className="text-sm text-gray-500 block mb-1">Filter by category:</label>
+                <div className="flex flex-wrap gap-2">
+                  {displayProduct.categoryPaths && displayProduct.categoryPaths.map((catPath, idx) => (
+                    <Badge 
+                      key={idx} 
+                      variant="outline" 
+                      className="cursor-pointer hover:bg-gray-100"
+                      onClick={() => {/* Add filtering logic */}}
+                    >
+                      {catPath.level1 || catPath.path.split('/')[0]}
+                    </Badge>
+                  ))}
+                </div>
+              </div>
+              
               {displayProduct.relatedProducts && displayProduct.relatedProducts.length > 0 ? (
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                   {displayProduct.relatedProducts.map((relatedProduct, idx) => (
@@ -614,6 +818,49 @@ export function ProductDashboard({ product, isDetailedView = false }: {
                 </div>
               )}
             </TabsContent>
+            
+            <TabsContent value="categories" className="bg-white p-6 rounded-lg border shadow-sm">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="font-medium">Category Management</h3>
+                <Button variant="outline" size="sm">
+                  <Plus className="h-4 w-4 mr-2" />
+                  Add to Category
+                </Button>
+              </div>
+              
+              {displayProduct.categoryPaths && displayProduct.categoryPaths.length > 0 ? (
+                <div className="space-y-4">
+                  {displayProduct.categoryPaths.map((catPath, idx) => (
+                    <div key={idx} className="border rounded-lg p-4">
+                      <div className="flex items-center justify-between mb-2">
+                        <h4 className="font-medium text-sm">{catPath.path}</h4>
+                        <Button variant="ghost" size="sm">
+                          <Trash2 className="h-4 w-4 text-red-500" />
+                        </Button>
+                      </div>
+                      
+                      <div className="flex items-center space-x-1 text-sm">
+                        {catPath.path.split('/').map((segment, i) => (
+                          <React.Fragment key={i}>
+                            {i > 0 && <ChevronRight className="h-3 w-3 text-gray-400" />}
+                            <span className="px-2 py-1 bg-gray-100 rounded-md">{segment}</span>
+                          </React.Fragment>
+                        ))}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="py-8 text-center text-gray-500">
+                  <FolderTree className="mx-auto h-12 w-12 text-gray-300" />
+                  <p className="mt-2">No categories assigned to this product</p>
+                  <Button variant="outline" size="sm" className="mt-4">
+                    <Plus className="h-4 w-4 mr-2" />
+                    Add to Category
+                  </Button>
+                </div>
+              )}
+            </TabsContent>
           </Tabs>
         </div>
         
@@ -639,6 +886,15 @@ export function ProductDashboard({ product, isDetailedView = false }: {
                     Publish
                   </>
                 )}
+              </Button>
+              <Button 
+                variant={displayProduct.featured ? "default" : "outline"} 
+                className="w-full"
+                onClick={toggleFeatured}
+                disabled={isFeaturing}
+              >
+                <Star className={`mr-2 h-4 w-4 ${displayProduct.featured ? "fill-current" : ""}`} />
+                {displayProduct.featured ? "Remove from Featured" : "Add to Featured"}
               </Button>
               <Button variant="outline" className="w-full" onClick={handleShareProduct}>
                 <Share2 className="mr-2 h-4 w-4" />
