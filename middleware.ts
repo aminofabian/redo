@@ -50,7 +50,21 @@ export async function middleware(request: NextRequest) {
     }
     
     // User is authenticated and has proper access
-    return NextResponse.next();
+    const response = NextResponse.next();
+    
+    // Get existing CSP header
+    const cspHeader = response.headers.get('content-security-policy') || '';
+    
+    // Add S3 bucket to img-src directive
+    const updatedCspHeader = cspHeader.replace(
+      /img-src 'self' data: https:\/\/\*\.paypal\.com/,
+      "img-src 'self' data: https://*.paypal.com https://alexawriters.s3.eu-north-1.amazonaws.com"
+    );
+    
+    // Set the updated header
+    response.headers.set('content-security-policy', updatedCspHeader);
+    
+    return response;
   } catch (error) {
     console.error("MIDDLEWARE - Error:", error);
     return NextResponse.redirect(new URL('/auth/login', request.url));

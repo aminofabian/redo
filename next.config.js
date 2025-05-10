@@ -12,7 +12,7 @@ const nextConfig = {
   typescript: {
     ignoreBuildErrors: true,
   },
-  reactStrictMode: false,
+  reactStrictMode: true,
   swcMinify: false,
   productionBrowserSourceMaps: false,
   output: 'standalone',
@@ -51,7 +51,7 @@ const nextConfig = {
         headers: [
           {
             key: 'Content-Security-Policy',
-            value: "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://js.stripe.com https://checkout.stripe.com https://*.paypal.com; style-src 'self' 'unsafe-inline'; frame-src 'self' https://*.stripe.com https://*.paypal.com; img-src 'self' data: https://*.paypal.com; connect-src 'self' https://*.stripe.com https://*.paypal.com;"
+            value: "default-src 'self'; img-src 'self' data: https://*.paypal.com https://alexawriters.s3.eu-north-1.amazonaws.com; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://*.paypal.com; style-src 'self' 'unsafe-inline'; font-src 'self'; frame-src 'self' https://*.paypal.com; connect-src 'self' https://*.paypal.com; object-src 'none';"
           }
         ],
       },
