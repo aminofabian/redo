@@ -90,16 +90,16 @@ const PayPalButtonWrapper = ({ clientId, onLoad }: { clientId: string, onLoad: (
   );
 };
 
-// Create a reusable PayPal button component first, before it's referenced
-const PayPalCheckoutButton = ({ onReadyCallback }: { onReadyCallback: () => void }) => {
-  // This is a forward reference to totalPayout from the parent component
-  // We'll fix it by passing the amount as a prop instead
-  const safeAmount = "0.00"; // Default value, will be overridden by props
+// Update PayPalCheckoutButton to accept amount as a prop
+const PayPalCheckoutButton = ({ onReadyCallback, amount }: { onReadyCallback: () => void, amount: string }) => {
+  // Make sure amount is greater than zero
+  const safeAmount = Number(amount) <= 0 ? "1.00" : amount;
   
   return (
     <PayPalButtons
       style={{ layout: "vertical" }}
       createOrder={(data, actions) => {
+        console.log("Creating PayPal order with amount:", safeAmount);
         return actions.order.create({
           intent: "CAPTURE",
           purchase_units: [
@@ -116,14 +116,30 @@ const PayPalCheckoutButton = ({ onReadyCallback }: { onReadyCallback: () => void
           }
         });
       }}
-      // Other handlers would go here
+      onApprove={(data, actions) => {
+        if (!actions.order) {
+          console.error("Order actions not available");
+          return Promise.reject("Order actions not available");
+        }
+        
+        return actions.order.capture().then((details) => {
+          console.log("Payment successful", details);
+          // handlePaymentSuccess();
+          toast.success(`Payment completed! Thank you ${details.payer?.name?.given_name || ''}!`);
+        });
+      }}
+      onError={(err) => {
+        console.error("PayPal error:", err);
+        toast.error("Payment failed. Please try again.");
+      }}
     />
   );
 };
 
-// Then define the components that use it
+// Then update the PayPalButtonContent to pass the amount
 const PayPalButtonContent = ({ onLoad }: { onLoad: () => void }) => {
   const [{ isPending, isResolved }] = usePayPalScriptReducer();
+  const { totalPrice } = useCart(); // Access cart total directly
   
   useEffect(() => {
     if (isResolved) {
@@ -139,7 +155,9 @@ const PayPalButtonContent = ({ onLoad }: { onLoad: () => void }) => {
     );
   }
   
-  return <PayPalCheckoutButton onReadyCallback={() => {}} />;
+  // Format total as string with two decimal places
+  const formattedTotal = Number(totalPrice).toFixed(2);
+  return <PayPalCheckoutButton onReadyCallback={() => {}} amount={formattedTotal} />;
 };
 
 export function CartSidebar({ priceId, price, description }: props) {
