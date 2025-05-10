@@ -94,6 +94,7 @@ const PayPalButtonWrapper = ({ clientId, onLoad }: { clientId: string, onLoad: (
 const PayPalCheckoutButton = ({ onReadyCallback, amount }: { onReadyCallback: () => void, amount: string }) => {
   // Make sure amount is greater than zero
   const safeAmount = Number(amount) <= 0 ? "1.00" : amount;
+  const { clearCart } = useCart();
   
   return (
     <PayPalButtons
@@ -121,13 +122,54 @@ const PayPalCheckoutButton = ({ onReadyCallback, amount }: { onReadyCallback: ()
           console.error("Order actions not available");
           return Promise.reject("Order actions not available");
         }
-        
-        return actions.order.capture().then((details) => {
+      
+        return actions.order.capture().then(async (details) => {
           console.log("Payment successful", details);
-          // handlePaymentSuccess();
+      
+          // Ensure orderId is initialized (from state or localStorage)
+          const currentOrderId = localStorage.getItem('orderId');
+          if (!currentOrderId) {
+            console.error("Order ID is not available");
+            toast.error("Order ID not found. Please try again.");
+            return;
+          }
+      
+          // Send details to your backend
+          try {
+            const res = await fetch("/api/paypal/capture-order", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                orderId: currentOrderId,
+                paypalOrderDetails: details
+              }),
+            });
+      
+            if (!res.ok) throw new Error("Failed to store transaction");
+            const responseData = await res.json();
+            console.log("Server response:", responseData);
+          } catch (err) {
+            console.error("Error sending PayPal capture to backend", err);
+            toast.error("Failed to store transaction. Please contact support.");
+          }
+          clearCart();
+          localStorage.removeItem('orderId');          
           toast.success(`Payment completed! Thank you ${details.payer?.name?.given_name || ''}!`);
         });
       }}
+      
+      // onApprove={(data, actions) => {
+      //   if (!actions.order) {
+      //     console.error("Order actions not available");
+      //     return Promise.reject("Order actions not available");
+      //   }
+        
+      //   return actions.order.capture().then((details) => {
+      //     console.log("Payment successful", details);
+      //     // handlePaymentSuccess();
+      //     toast.success(`Payment completed! Thank you ${details.payer?.name?.given_name || ''}!`);
+      //   });
+      // }}
       onError={(err) => {
         console.error("PayPal error:", err);
         toast.error("Payment failed. Please try again.");
@@ -171,6 +213,8 @@ export function CartSidebar({ priceId, price, description }: props) {
   const [paypalClientId, setPaypalClientId] = useState<string | null>(null);
   const [isProcessingPayment, setIsProcessingPayment] = useState(false);
   const [orderId, setOrderId] = useState<string | null>(null);
+  localStorage.setItem('orderId', orderId || '');
+
   const [paypalOrderId, setPaypalOrderId] = useState<string | null>(null);
   const [totalPayout, setTotalPayout] = useState<string>('0.00');
   const [showEmailForm, setShowEmailForm] = useState(false);
@@ -692,10 +736,10 @@ export function CartSidebar({ priceId, price, description }: props) {
                     </div>
                   ))}
                   
-                  <div className="mt-6 border-t pt-4">
-                    <h3 className="font-medium mb-3">Quick Checkout Options</h3>
+                  {/* <div className="mt-6 border-t pt-4">
+                    <h3 className="font-medium mb-3">Quick Checkout Options</h3> */}
                     
-                    {paypalOptions.clientId && (
+                    {/* {paypalOptions.clientId && (
                       <div className="mb-4">
                         <div className="flex flex-col items-center gap-4">
                           <h1 className="text-xl font-semibold">PayPal Checkout</h1>
@@ -705,10 +749,10 @@ export function CartSidebar({ priceId, price, description }: props) {
                           />
                         </div>
                       </div>
-                    )}
+                    )} */}
                     
                     {/* You can add other quick checkout options here */}
-                  </div>
+                  {/* </div> */}
                 </div>
               )}
             </div>
