@@ -41,7 +41,22 @@ const nextConfig = {
 
   ContentSecurityPolicy: {
     'img-src': ["'self'", "https://*.stripe.com", "data:", "https://alexawriters.s3.eu-north-1.amazonaws.com"],
+    'style-src': ["'self'", "'unsafe-inline'"],
     // other CSP directives...
+  },
+
+  async headers() {
+    return [
+      {
+        source: '/(.*)',
+        headers: [
+          {
+            key: 'Content-Security-Policy',
+            value: "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://*.paypal.com https://js.stripe.com https://*.stripe.com; connect-src 'self' https://*.paypal.com https://*.paypalobjects.com https://*.stripe.com; frame-src 'self' https://*.paypal.com https://*.paypalobjects.com https://*.stripe.com; img-src 'self' data: https://*.paypal.com https://*.stripe.com https://alexawriters.s3.eu-north-1.amazonaws.com; style-src 'self' 'unsafe-inline';"
+          }
+        ]
+      }
+    ]
   }
 }
 

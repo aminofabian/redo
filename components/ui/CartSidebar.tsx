@@ -7,8 +7,6 @@ import { useState, useEffect } from "react";
 import axios from "axios";
 import { PayPalScriptProvider, PayPalButtons, usePayPalScriptReducer, type ReactPayPalScriptOptions } from "@paypal/react-paypal-js";
 import { loadStripe } from '@stripe/stripe-js';
-const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLIC_KEY as string);
-
 
 import {
   Sheet,
@@ -22,6 +20,16 @@ import { useRouter } from "next/navigation";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { useSession } from "next-auth/react";
+import { safeJsonStringify } from '@/lib/json';
+
+const stripePromise = (() => {
+  const key = process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY;
+  if (!key) {
+    console.error('Missing Stripe publishable key in environment variables');
+    return null;
+  }
+  return loadStripe(key);
+})();
 
 const LoadPayPal = () => {
   const [{ isPending, isRejected }] = usePayPalScriptReducer();
@@ -202,6 +210,15 @@ const PayPalButtonContent = ({ onLoad }: { onLoad: () => void }) => {
   return <PayPalCheckoutButton onReadyCallback={() => {}} amount={formattedTotal} />;
 };
 
+// Add this helper function at the top of your file
+function replaceBigInt(key: string, value: any) {
+  // Convert BigInt to String when encountered
+  if (typeof value === 'bigint') {
+    return value.toString();
+  }
+  return value;
+}
+
 export function CartSidebar({ priceId, price, description }: props) {
   // const { items, removeItem, totalItems, totalPrice } = useCart();
   const { items, removeItem, totalItems, totalPrice, clearCart } = useCart();
@@ -283,65 +300,58 @@ export function CartSidebar({ priceId, price, description }: props) {
     setIsLoading(true);
 
     try {
-      // Create checkout session
+      console.log("Initializing checkout with Stripe");
+      
+      // Create checkout session - use replaceBigInt for serialization
       const response = await fetch('/api/stripe/checkout-sessions/create', {
-        
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
+        headers: { 'Content-Type': 'application/json' },
+        body: safeJsonStringify({
           cartItems: items,
           orderId
-          // returnUrl: window.location.href,
         }),
       });
 
-      const { sessionId, error } = await response.json();
-      console.log(sessionId, 'sessionId,..................................................');
-
-      if (error) {
-        console.error('Error creating checkout session:', error);
+      if (!response.ok) {
+        const errorData = await response.json();
+        console.error('API error:', errorData);
+        toast.error(errorData.error || 'Failed to create checkout session');
         setIsLoading(false);
         return;
       }
 
-      // Redirect to Stripe Checkout
+      const { sessionId } = await response.json();
+      console.log('Created session ID:', sessionId);
+      
+      // Use the pre-initialized stripePromise
+      if (!stripePromise) {
+        console.error('Stripe failed to initialize. Check your key.');
+        toast.error('Payment system unavailable. Please try again later.');
+        setIsLoading(false);
+        return;
+      }
+      
       const stripe = await stripePromise;
-      const { error: stripeError } = await stripe!.redirectToCheckout({
-        sessionId,
-      });
+      if (!stripe) {
+        console.error('Could not load Stripe');
+        toast.error('Payment system unavailable');
+        setIsLoading(false);
+        return;
+      }
+      
+      const { error: stripeError } = await stripe.redirectToCheckout({ sessionId });
 
       if (stripeError) {
         console.error('Stripe checkout error:', stripeError);
+        toast.error(`Payment error: ${stripeError.message || 'Unknown error'}`);
       }
     } catch (err) {
       console.error('Checkout error:', err);
+      toast.error('Payment processing failed. Please try again.');
     }
 
     setIsLoading(false);
   };
-  // const handleCheckout = async () => {
-  //   const stripe = await stripePromise;
-  //   // const response = await fetch('/api/stripe/checkout-sessions/create', {
-  //   //   method: 'POST',
-  //   // });
-
-  //   const res = await fetch('/api/stripe/checkout-sessions/create', {
-  //     method: "POST",
-  //     headers: { "Content-Type": "application/json" },
-  //     body: JSON.stringify({ cartItems: items, returnUrl: window.location.origin, }),
-  //   });
-  //   const session = await res.json();
-  //   if (stripe) {
-  //     await stripe.redirectToCheckout({ sessionId: session.id });
-  //   } else {
-  //     console.error('Stripe initialization failed.');
-  //   }
-  // };
-
-
-
 
   // Fetch active payment gateways
   const fetchPaymentGateways = async () => {
@@ -552,6 +562,17 @@ export function CartSidebar({ priceId, price, description }: props) {
     return () => clearInterval(checkPayPalSDK);
   }, []);
 
+  useEffect(() => {
+    // Log whether the Stripe key is available
+    console.log('Stripe key available on client:', !!process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY);
+    
+    // Log if the key is properly formatted (should start with pk_)
+    const key = process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY;
+    if (key) {
+      console.log('Stripe key format valid:', key.startsWith('pk_'));
+    }
+  }, []);
+
   if (items.length === 0) return null;
   
   // Convert the amount safely (this is not a hook, so it's fine after the conditional)
@@ -697,12 +718,16 @@ export function CartSidebar({ priceId, price, description }: props) {
                             
                             {gateway.isActive && gateway.name === 'STRIPE' && (
                              <div className="flex flex-col items-center gap-4">
-                             <h1 className="text-xl font-semibold">Stripe Checkout Example</h1>
+                             <h1 className="text-xl font-semibold">Stripe Checkout</h1>
                              <button
-                               onClick={handleCheckout}
-                               className="bg-indigo-600 hover:bg-indigo-700 text-white font-medium py-2 px-6 rounded-md shadow-lg transition duration-300 ease-in-out"
+                               onClick={() => {
+                                 console.log('Stripe publishable key available:', !!process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY);
+                                 handleCheckout();
+                               }}
+                               disabled={isLoading}
+                               className="bg-indigo-600 hover:bg-indigo-700 text-white font-medium py-2 px-6 rounded-md shadow-lg transition duration-300 ease-in-out disabled:opacity-50"
                              >
-                               Pay with Stripe
+                               {isLoading ? 'Processing...' : 'Pay with Stripe'}
                              </button>
                            </div>
                             )}
