@@ -14,7 +14,7 @@ type Purchase = {
   createdAt: Date;
   status?: string;
   updatedAt?: Date;
-  productId?: number;
+  productId?: bigint;
   accessExpires?: Date | null;
   downloadsLeft?: number | null;
 }

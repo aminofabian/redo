@@ -61,7 +61,14 @@ type ProductImage = {
   isPrimary: boolean;  // Make isPrimary required, not optional
 };
 
-// Define ProductType locally instead of importing it
+// Define Category type
+type Category = {
+  id: string;
+  name: string;
+  slug: string;
+};
+
+// Updated ProductType definition
 type ProductType = {
   id: string;
   title: string;
@@ -71,8 +78,8 @@ type ProductType = {
   lastUpdated: string;
   sales: number;
   slug: string;
-  images: ProductImage[];  // Use the ProductImage type
-  categories: string[];
+  images: ProductImage[];
+  categories: Category[]; // Changed from string[] to Category[]
   viewCount: number;
   conversionRate: string;
   lastPurchase: string;
@@ -92,7 +99,7 @@ function isUser(item: any): item is User {
   return item && 'email' in item && 'role' in item;
 }
 
-// Function to map Product to ProductType
+// Updated mapping function
 function mapProductToProductType(product: Product): ProductType {
   return {
     id: String(product.id),
@@ -108,7 +115,18 @@ function mapProductToProductType(product: Product): ProductType {
       url: img.url,
       isPrimary: img.isPrimary === true  // Ensure it's a boolean (true/false)
     })) || [],
-    categories: product.categories || [],
+    categories: product.categories?.map(category => {
+      // If category is already a Category object, return it
+      if (typeof category === 'object' && category !== null) {
+        return category;
+      }
+      // Otherwise convert string to Category object
+      return {
+        id: category,
+        name: category,
+        slug: category.toLowerCase().replace(/ /g, '-')
+      };
+    }) || [],
     viewCount: product.viewCount || 0,
     conversionRate: "0%",
     lastPurchase: "Never",
