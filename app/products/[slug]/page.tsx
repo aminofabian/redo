@@ -1,14 +1,3 @@
-'use client';
-
-// Add this at the top level to make the route dynamic 
-// (this is a special export recognized by Next.js)
-import { useParams } from 'next/navigation';
-import { useState, useEffect } from 'react';
-export const dynamic = 'force-dynamic';
-
-import { Metadata } from "next";
-import prisma from "../../../lib/db";
-import { getProductBySlug, getAllProducts, generateProductSlug } from "../../../lib/products";
 import Image from "next/image";
 import { formatDistanceToNow } from 'date-fns';
 import ProductImageGallery from './ProductImageGallery';
@@ -26,119 +15,15 @@ type BaseProduct = {
   categories?: { category: { id: string; name: string } }[];
 };
 
-export async function generateMetadata({ params }: { params: { slug: string } }): Promise<Metadata> {
-  console.log('Fetching metadata for slug:', params.slug);
-  
-  const product = await prisma.product.findUnique({
-    where: { slug: params.slug },
-    include: {
-      images: true,
-      categories: {
-        include: {
-          category: true
-        }
-      }
-    }
-  });
-  
-  console.log('Product found:', product ? 'yes' : 'no', product?.id);
-  
-  if (!product) {
-    console.log('Product not found for slug:', params.slug);
-    return {
-      title: "Resource Not Found | RN Student Resources",
-      description: "The requested resource could not be found.",
-      robots: "noindex"
-    };
-  }
-
-  const price = product.finalPrice.toNumber();
-  const categories = product.categories.map((c: { category: { name: string } }) => c.category.name).join(", ");
-  
-  return {
-    title: `${product.title} | RN Student Resources`,
-    description: product.description || `Get ${product.title} for ${formatPrice(price)}. Access study materials and resources for nursing students.`,
-    keywords: [`nursing resources`, `study materials`, categories, product.title].filter(Boolean).join(", "),
-    openGraph: {
-      title: product.title,
-      description: product.description || `Get ${product.title} for ${formatPrice(price)}`,
-      type: "website",
-      images: product.images?.length ? [
-        {
-          url: product.images[0].url,
-          width: 1200,
-          height: 630,
-          alt: product.title
-        }
-      ] : [],
-    },
-    twitter: {
-      card: "summary_large_image",
-      title: product.title,
-      description: product.description || `Get ${product.title} for ${formatPrice(price)}`,
-      images: product.images?.length ? [product.images[0].url] : undefined,
-    },
-    alternates: {
-      canonical: `/products/${product.slug}`
-    }
-  };
-}
-
-export async function generateStaticParams() {
-  const products = await getAllProducts();
-  return products.map((product) => ({
-    slug: generateProductSlug(product),
-  }));
-}
-
-async function getRelatedProducts(productId: number, categoryIds: string[], limit = 4): Promise<SerializableProduct[]> {
-  const products = await prisma.product.findMany({
-    where: {
-      AND: [
-        { isPublished: true },
-        { id: { not: productId } },
-        {
-          categories: {
-            some: {
-              categoryId: {
-                in: categoryIds
-              }
-            }
-          }
-        }
-      ]
-    },
-    include: {
-      images: true,
-      categories: {
-        include: {
-          category: true
-        }
-      },
-      reviews: {
-        include: {
-          user: true
-        }
-      }
-    },
-    take: limit,
-    orderBy: {
-      viewCount: 'desc'
-    }
-  });
-
-  return products.map((product) => serializeProduct(product as unknown as Product));
-}
-
 function serializeProduct(product: any): SerializableProduct {
   return {
     ...product,
-    price: product.price?.toNumber() ?? 0,
-    finalPrice: product.finalPrice?.toNumber() ?? 0,
-    discountAmount: product.discountAmount?.toNumber() ?? null,
-    createdAt: product.createdAt?.toISOString() ?? new Date().toISOString(),
-    updatedAt: product.updatedAt?.toISOString() ?? new Date().toISOString(),
-    images: product.images?.map((img: any) => ({
+    price: typeof product.price === 'number' ? product.price : product.price?.toNumber() ?? 0,
+    finalPrice: typeof product.finalPrice === 'number' ? product.finalPrice : product.finalPrice?.toNumber() ?? 0,
+    discountAmount: typeof product.discountAmount === 'number' ? product.discountAmount : product.discountAmount?.toNumber() ?? null,
+    createdAt: product.createdAt?.toISOString ? product.createdAt.toISOString() : product.createdAt ?? new Date().toISOString(),
+    updatedAt: product.updatedAt?.toISOString ? product.updatedAt.toISOString() : product.updatedAt ?? new Date().toISOString(),
+    images: product.images.map((img: any) => ({
       id: img.id,
       url: img.url,
       isPrimary: img.isPrimary
@@ -150,45 +35,71 @@ function serializeProduct(product: any): SerializableProduct {
         parentId: cat.category.parentId
       }
     })) ?? [],
-    reviews: [] // Default to empty array when reviews don't exist
+    reviews: product.reviews ?? [] // Default to empty array when reviews don't exist
   };
 }
 
-export default function ProductPage() {
-  const { slug } = useParams();
-  const [product, setProduct] = useState(null);
-  const [relatedProducts, setRelatedProducts] = useState<SerializableProduct[]>([]);
-  const [loading, setLoading] = useState(true);
+// Add this helper function that handles BigInt serialization
+function customFetch(url: string, options = {}) {
+  return fetch(url, options).then(async (res) => {
+    if (!res.ok) return null;
+    
+    // Get the text response and parse it manually
+    const text = await res.text();
+    try {
+      // Parse JSON with our custom reviver
+      return JSON.parse(text, (key, value) => {
+        // Handle any special cases here
+        return value;
+      });
+    } catch (error) {
+      console.error("Error parsing JSON response:", error);
+      return null;
+    }
+  });
+}
 
-  useEffect(() => {
-    async function loadData() {
-      try {
-        // Load main product
-        const response = await fetch(`/api/products/${slug}`);
-        const data = await response.json();
-        setProduct(data);
-        
-        // Load related products
-        if (data) {
-          const categoryIds = data.categories?.map((c: { category: { id: string } }) => c.category.id) || [];
-          const relatedResponse = await fetch(`/api/products/related?id=${data.id}&categories=${categoryIds.join(',')}`);
-          const relatedData = await relatedResponse.json();
-          setRelatedProducts(relatedData);
-        }
-      } catch (error) {
-        console.error(error);
-      } finally {
-        setLoading(false);
-      }
+async function getProduct(slug: string) {
+  try {
+    // Use our custom fetch function
+    return await customFetch(`http://localhost:3000/api/products/slug/${slug}`);
+  } catch (error) {
+    console.error("Error fetching product:", error);
+    return null;
+  }
+}
+
+async function getRelatedProducts(productId: number, categoryIds: string[]) {
+  try {
+    const response = await fetch(
+      `http://localhost:3000/api/products/related?id=${productId}&categories=${categoryIds.join(',')}`, 
+      { cache: 'no-store' }
+    );
+    
+    if (!response.ok) {
+      return [];
     }
     
-    loadData();
-  }, [slug]);
+    return await response.json();
+  } catch (error) {
+    console.error("Error fetching related products:", error);
+    return [];
+  }
+}
+
+export default async function ProductPage({ params }: { params: { slug: string } }) {
+  // Server-side data fetching
+  const product = await getProduct(params.slug);
   
-  if (loading) return <div>Loading...</div>;
-  if (!product) return <div>Product not found</div>;
+  if (!product) {
+    return <div>Product not found</div>;
+  }
   
   const serializedProduct = serializeProduct(product);
+  
+  // Get category IDs for related products
+  const categoryIds = serializedProduct.categories.map(c => c.category.id);
+  const relatedProducts = await getRelatedProducts(serializedProduct.id, categoryIds);
   
   // Calculate various display values
   const hasDiscount = (serializedProduct.discountAmount ?? 0) > 0 || (serializedProduct.discountPercent ?? 0) > 0;
@@ -211,8 +122,6 @@ export default function ProductPage() {
     discountAmount: serializedProduct.discountAmount,
     discountPercent: serializedProduct.discountPercent
   });
-  
-  const categoryIds = categories.map(cat => cat.id);
   
   return (
     <div className="max-w-7xl mx-auto p-6">
@@ -320,7 +229,7 @@ export default function ProductPage() {
         {/* Right column - Product details */}
         <div>
           <CartSidebar 
-            priceId={serializedProduct.id.toString()}
+            priceId={(serializedProduct.id || '').toString()}
             price={formattedFinalPrice}
             description={serializedProduct.title}
           />
@@ -372,7 +281,7 @@ export default function ProductPage() {
         <div className="mt-12 bg-white p-6 rounded-lg shadow-sm border">
           <h2 className="text-2xl font-bold mb-6">Related Products</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            {relatedProducts.map((relatedProduct) => {
+            {relatedProducts.map((relatedProduct: SerializableProduct) => {
               const primaryImage = relatedProduct.images.find((img: { isPrimary: boolean; url: string }) => img.isPrimary) || relatedProduct.images[0];
               const avgRating = relatedProduct.reviews.length > 0
                 ? (relatedProduct.reviews.reduce((sum: number, review: { rating: number }) => sum + review.rating, 0) / relatedProduct.reviews.length).toFixed(1)

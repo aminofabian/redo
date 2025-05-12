@@ -31,7 +31,7 @@ export async function PATCH(
       where: { slug },
     });
     
-    if (existingProduct && existingProduct.id !== numericId) {
+    if (existingProduct && existingProduct.id !== BigInt(numericId)) {
       return NextResponse.json(
         { error: "This URL slug is already in use by another product." },
         { status: 409 }
