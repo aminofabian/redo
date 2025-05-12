@@ -1,5 +1,7 @@
 'use client';
 
+import { useEffect } from 'react';
+
 // Add this to help locate the component causing issues
 export function debugComponents() {
   if (typeof window !== 'undefined') {

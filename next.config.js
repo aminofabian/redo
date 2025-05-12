@@ -56,20 +56,6 @@ const nextConfig = {
       }
     ]
   },
-
-  exportPathMap: async function (
-    defaultPathMap,
-    { dev, dir, outDir, distDir, buildId }
-  ) {
-    // Return only paths that don't include product pages
-    const paths = {};
-    Object.keys(defaultPathMap).forEach(path => {
-      if (!path.startsWith('/products/')) {
-        paths[path] = defaultPathMap[path];
-      }
-    });
-    return paths;
-  },
 }
 
 module.exports = nextConfig; 
