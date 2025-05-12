@@ -623,7 +623,7 @@ export function ProductDrawer({
       console.log("Sending product data to API:", productData);
       
       // Call the API endpoint
-      const response = await fetch("/api/products-direct", {
+      const response = await fetch("/api/products", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

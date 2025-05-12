@@ -88,7 +88,7 @@ export async function POST(request: NextRequest) {
         isPrimary: image.isPrimary
       })));
 
-      // Create product with related images
+      // Create product with related images (without categories first)
       const product = await prisma.product.create({
         data: {
           ...productData,
@@ -96,28 +96,39 @@ export async function POST(request: NextRequest) {
           finalPrice: finalPrice,
           createdById: session.user.id,
           images: {
-            create: images.map((image: { url: string; alt: string; isPrimary: boolean }) => ({
+            create: images?.map((image: { url: string; alt: string; isPrimary: boolean }) => ({
               url: image.url,
               alt: image.alt,
               isPrimary: image.isPrimary
-            }))
-          },
-          categories: categories?.length > 0 ? {
-            create: categories.map((categoryName: string) => ({
-              category: {
-                connectOrCreate: {
-                  where: { name: categoryName },
-                  create: { 
-                    name: categoryName,
-                    slug: categoryName.toLowerCase().replace(/\s+/g, '-')
-                  }
-                }
-              }
-            }))
-          } : undefined
+            })) || []
+          }
         },
         include: { images: true },
       });
+      
+      // Handle category paths separately
+      if (categories?.length > 0) {
+        // Create category path entries for each category path
+        const categoryPromises = categories.map(async (categoryPath: string) => {
+          try {
+            await prisma.categoryPath.create({
+              data: {
+                product: { connect: { id: product.id } },
+                path: categoryPath,
+                level1: categoryPath.split('/')[0] || null,
+                level2: categoryPath.split('/')[1] || null,
+                level3: categoryPath.split('/')[2] || null,
+                level4: categoryPath.split('/')[3] || null,
+                level5: categoryPath.split('/')[4] || null
+              }
+            });
+          } catch (error) {
+            console.error(`Error connecting category path ${categoryPath}:`, error);
+          }
+        });
+        
+        await Promise.all(categoryPromises);
+      }
       
       console.log("Created product with images:", product.images);
       
