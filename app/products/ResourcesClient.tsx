@@ -11,6 +11,7 @@ import { Badge } from "@/components/ui/badge";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { cn } from "@/lib/utils";
 import { Input } from "@/components/ui/input";
+import ProductCardGallery from "./ProductCardGallery";
 
 // Type definition to match your data structure
 type Resource = {
@@ -18,7 +19,8 @@ type Resource = {
   slug: string;
   title: string;
   description: string;
-  image: string;
+  image: string; // For backward compatibility
+  images?: Array<{ id: string; url: string; alt?: string | null; isPrimary?: boolean }>; // New field for multiple images
   price: number;
   finalPrice: number;
   discountPercent?: number;
@@ -453,12 +455,20 @@ export default function ResourcesClient({ initialResources }: { initialResources
       transition={{ duration: 0.3 }}
     >
       <Card className="h-full flex flex-col overflow-hidden hover:shadow-lg transition-shadow">
-        <div className="relative pb-[60%] overflow-hidden">
-          <img
-            src={resource.image}
-            alt={resource.title}
-            className="absolute inset-0 h-full w-full object-cover transition-transform duration-300 hover:scale-105"
-          />
+        <div className="relative overflow-hidden">
+          {resource.images && resource.images.length > 0 ? (
+            <ProductCardGallery 
+              images={resource.images} 
+              title={resource.title} 
+              aspectRatio="video"
+            />
+          ) : (
+            <img
+              src={resource.image || "/placeholder-image.jpg"}
+              alt={resource.title}
+              className="aspect-video w-full object-cover transition-transform duration-300 hover:scale-105"
+            />
+          )}
           {resource.hasDiscount && (
             <Badge className="absolute top-2 right-2 bg-red-500 text-white">
               {resource.discountPercent}% OFF
@@ -532,11 +542,19 @@ export default function ResourcesClient({ initialResources }: { initialResources
       <Card className="overflow-hidden hover:shadow-lg transition-shadow">
         <div className="flex flex-col md:flex-row">
           <div className="relative md:w-1/4 h-48 md:h-auto">
-            <img
-              src={resource.image}
-              alt={resource.title}
-              className="h-full w-full object-cover"
-            />
+            {resource.images && resource.images.length > 0 ? (
+              <ProductCardGallery 
+                images={resource.images} 
+                title={resource.title}
+                className="h-full"
+              />
+            ) : (
+              <img
+                src={resource.image || "/placeholder-image.jpg"}
+                alt={resource.title}
+                className="h-full w-full object-cover"
+              />
+            )}
             {resource.hasDiscount && (
               <Badge className="absolute top-2 right-2 bg-red-500 text-white">
                 {resource.discountPercent}% OFF

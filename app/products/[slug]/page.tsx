@@ -1,10 +1,7 @@
 import Image from "next/image";
 import { formatDistanceToNow } from 'date-fns';
 import ProductImageGallery from './ProductImageGallery';
-import PackageSelector from './PackageSelector';
-import { CartSidebar } from "@/components/ui/CartSidebar";
-import { Toaster } from "sonner";
-import { AddToPackageButton } from './AddToPackageButton';
+import { CartSidebarWithToaster, ProductInteractions } from './ClientComponents';
 import type { Product, SerializableProduct } from "@/types/products";
 
 type RelatedProduct = Product;
@@ -192,22 +189,7 @@ export default async function ProductPage({ params }: { params: { slug: string }
                 </div>
                 
                 <div className="space-y-3">
-                  <PackageSelector 
-                    product={{
-                      id: serializedProduct.id,
-                      title: serializedProduct.title,
-                      price: serializedProduct.price,
-                      finalPrice: serializedProduct.finalPrice
-                    }}
-                  />
-                  <AddToPackageButton 
-                    product={{
-                      id: serializedProduct.id,
-                      title: serializedProduct.title,
-                      price: serializedProduct.price,
-                      finalPrice: serializedProduct.finalPrice
-                    }}
-                  />
+                  <ProductInteractions product={serializedProduct} />
                 </div>
               </div>
             </div>
@@ -228,7 +210,7 @@ export default async function ProductPage({ params }: { params: { slug: string }
         
         {/* Right column - Product details */}
         <div>
-          <CartSidebar 
+          <CartSidebarWithToaster 
             priceId={(serializedProduct.id || '').toString()}
             price={formattedFinalPrice}
             description={serializedProduct.title}
@@ -298,6 +280,7 @@ export default async function ProductPage({ params }: { params: { slug: string }
                       src={primaryImage?.url || "/placeholder-image.jpg"}
                       alt={relatedProduct.title}
                       fill
+                      sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 25vw"
                       className="object-cover rounded-t-lg"
                     />
                   </div>
@@ -322,7 +305,7 @@ export default async function ProductPage({ params }: { params: { slug: string }
           </div>
         </div>
       )}
-      <Toaster position="bottom-right" />
+      {/* Toaster moved to CartSidebarWithToaster client component */}
     </div>
   );
 }
