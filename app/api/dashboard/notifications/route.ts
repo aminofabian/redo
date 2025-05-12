@@ -3,9 +3,12 @@ import { NextResponse } from 'next/server';
 import { auth } from '@/lib/auth';
 import { PrismaClient } from '@/src/generated/client';
 
-const prisma = new PrismaClient();
+// Use PrismaClient as a singleton to prevent connection pool exhaustion
+const globalForPrisma = global as unknown as { prisma: PrismaClient };
+const prisma = globalForPrisma.prisma || new PrismaClient();
+if (process.env.NODE_ENV !== 'production') globalForPrisma.prisma = prisma;
 
-export async function GET() {
+export const GET = async () => {
   try {
     const session = await auth();
 

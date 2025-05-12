@@ -1,11 +1,16 @@
-// app/api/user/order-stats/route.ts
+// app/api/order/count/route.ts
 import { NextResponse } from 'next/server';
 import { auth } from '@/lib/auth';
 import { PrismaClient } from '@/src/generated/client';
 
-const prisma = new PrismaClient();
+// Use PrismaClient as a singleton to prevent connection pool exhaustion
+const globalForPrisma = global as unknown as { prisma: PrismaClient };
 
-export async function GET() {
+const prisma = globalForPrisma.prisma || new PrismaClient();
+
+if (process.env.NODE_ENV !== 'production') globalForPrisma.prisma = prisma;
+
+export const GET = async () => {
   try {
     const session = await auth();
 

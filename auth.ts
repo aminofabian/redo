@@ -91,13 +91,27 @@ export const authOptions = {
 } as any;
 
 declare module "next-auth" {
+  interface User {
+    id: string;
+    name?: string | null;
+    email?: string | null;
+    image?: string | null;
+    role?: UserRole;
+  }
+  
   interface Session {
-    user: User
+    user: User;
   }
 }
 
 declare module "next-auth/jwt" {
-  interface JWT extends User {}
+  interface JWT {
+    id: string;
+    name?: string | null;
+    email?: string | null;
+    image?: string | null;
+    role?: UserRole;
+  }
 }
 
 // Export a utility function for API routes

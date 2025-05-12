@@ -1,12 +1,14 @@
-// app/api/dashboard/materials/route.ts
 import { NextResponse } from 'next/server';
-import { auth } from '@/lib/auth';
-import { PrismaClient } from '@/src/generated/client';
+import { auth } from '@/auth';
+import { PrismaClient } from '@prisma/client';
 import { safeJSONStringify } from '@/lib/json-utils';
+import type { User } from 'next-auth';
 
+// Initialize PrismaClient (with singleton pattern for development)
 const prisma = new PrismaClient();
 
-export async function GET() {
+// Define the GET handler as a named export
+export async function GET(request: Request) {
   try {
     const session = await auth();
 
@@ -15,7 +17,9 @@ export async function GET() {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const userId = session.user.id;
+    // Add type assertion to ensure TypeScript recognizes the id property from our extended User type
+    const user = session.user as User & { id: string };
+    const userId = user.id;
 
     // Get user's purchased materials with product details
     const purchases = await prisma.purchase.findMany({

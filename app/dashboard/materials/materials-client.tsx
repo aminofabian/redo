@@ -75,6 +75,7 @@ export default function MaterialsClient({ session }: { session: Session }) {
   const [filterCategory, setFilterCategory] = useState('all');
   const [sortBy, setSortBy] = useState('recent');
 
+
   useEffect(() => {
     fetchMaterials();
   }, []);
