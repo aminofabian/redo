@@ -1,3 +1,9 @@
+'use client';
+
+// Add this at the top level to make the route dynamic 
+// (this is a special export recognized by Next.js)
+export const dynamic = 'force-dynamic';
+
 import { Metadata } from "next";
 import prisma from "../../../lib/db";
 import { getProductBySlug, getAllProducts, generateProductSlug } from "../../../lib/products";
@@ -146,8 +152,8 @@ function serializeProduct(product: any): SerializableProduct {
   };
 }
 
-export default async function ProductPage({ params }: { params: { slug: string } }) {
-  const { slug } = params;
+export default function ProductPage() {
+  const { slug } = useParams();
   console.log('Page received slug:', slug);
   
   const product = await getProductBySlug(slug);
