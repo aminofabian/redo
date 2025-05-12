@@ -8,6 +8,8 @@ const nextConfig = {
   },
   experimental: {
     serverComponentsExternalPackages: ['@prisma/client', 'bcryptjs'],
+    workerThreads: false,
+    cpus: 1,
   },
   typescript: {
     ignoreBuildErrors: true,
@@ -39,11 +41,7 @@ const nextConfig = {
     ],
   },
 
-  ContentSecurityPolicy: {
-    'img-src': ["'self'", "https://*.stripe.com", "data:", "https://alexawriters.s3.eu-north-1.amazonaws.com"],
-    'style-src': ["'self'", "'unsafe-inline'"],
-    // other CSP directives...
-  },
+  excludeDefaultMomentLocales: true,
 
   async headers() {
     return [
@@ -57,7 +55,21 @@ const nextConfig = {
         ]
       }
     ]
-  }
+  },
+
+  exportPathMap: async function (
+    defaultPathMap,
+    { dev, dir, outDir, distDir, buildId }
+  ) {
+    // Return only paths that don't include product pages
+    const paths = {};
+    Object.keys(defaultPathMap).forEach(path => {
+      if (!path.startsWith('/products/')) {
+        paths[path] = defaultPathMap[path];
+      }
+    });
+    return paths;
+  },
 }
 
 module.exports = nextConfig; 

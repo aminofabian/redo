@@ -1,16 +1,13 @@
-// Server Component
-export default function ProductPage({ params }) {
-  return (
-    <ClientProductPage slug={params.slug} />
-  );
-}
-
-// Client Component
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useParams } from 'next/navigation';
 
-function ClientProductPage({ slug }) {
+// Completely client-side component
+export default function ProductPage() {
+  const params = useParams();
+  const slug = params.slug;
+  
   const [product, setProduct] = useState(null);
   const [loading, setLoading] = useState(true);
   
@@ -36,7 +33,8 @@ function ClientProductPage({ slug }) {
   
   return (
     <div>
-      {/* Your product display code */}
+      <h1>{product.title}</h1>
+      {/* Rest of your product display code */}
     </div>
   );
 } 
