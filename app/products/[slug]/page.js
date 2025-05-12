@@ -1,31 +1,42 @@
+// Server Component
+export default function ProductPage({ params }) {
+  return (
+    <ClientProductPage slug={params.slug} />
+  );
+}
+
+// Client Component
+'use client';
+
 import { useState, useEffect } from 'react';
 
-const ye = () => {
-  // Check if the code is running in a browser environment
-  const isClient = typeof window !== 'undefined'
+function ClientProductPage({ slug }) {
+  const [product, setProduct] = useState(null);
+  const [loading, setLoading] = useState(true);
   
-  // Only access localStorage when in a client environment
-  if (isClient) {
-    // Your original localStorage code here
-    return localStorage.getItem('whatever'); // or whatever operation you were doing
-  }
-  
-  // Return a default value when running on the server
-  return null; // or other appropriate default
-} 
-
-function YourComponent() {
-  // Initialize state with a default value
-  const [localStorageValue, setLocalStorageValue] = useState(null);
-  
-  // Only run localStorage code after component mounts (client-side only)
   useEffect(() => {
-    // Safe to access localStorage here
-    const storedValue = localStorage.getItem('your-key');
-    setLocalStorageValue(storedValue);
-  }, []);
+    // Now it's safe to use localStorage
+    const savedData = localStorage.getItem('whatever');
+    
+    // Fetch product data
+    fetch(`/api/products/${slug}`)
+      .then(res => res.json())
+      .then(data => {
+        setProduct(data);
+        setLoading(false);
+      })
+      .catch(err => {
+        console.error(err);
+        setLoading(false);
+      });
+  }, [slug]);
   
-  // Use localStorageValue in your component
+  if (loading) return <div>Loading...</div>;
+  if (!product) return <div>Product not found</div>;
   
-  // ... rest of component
+  return (
+    <div>
+      {/* Your product display code */}
+    </div>
+  );
 } 
