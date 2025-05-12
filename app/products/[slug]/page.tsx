@@ -2,6 +2,8 @@
 
 // Add this at the top level to make the route dynamic 
 // (this is a special export recognized by Next.js)
+import { useParams } from 'next/navigation';
+import { useState, useEffect } from 'react';
 export const dynamic = 'force-dynamic';
 
 import { Metadata } from "next";
@@ -154,24 +156,37 @@ function serializeProduct(product: any): SerializableProduct {
 
 export default function ProductPage() {
   const { slug } = useParams();
-  console.log('Page received slug:', slug);
+  const [product, setProduct] = useState(null);
+  const [relatedProducts, setRelatedProducts] = useState<SerializableProduct[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    async function loadData() {
+      try {
+        // Load main product
+        const response = await fetch(`/api/products/${slug}`);
+        const data = await response.json();
+        setProduct(data);
+        
+        // Load related products
+        if (data) {
+          const categoryIds = data.categories?.map((c: { category: { id: string } }) => c.category.id) || [];
+          const relatedResponse = await fetch(`/api/products/related?id=${data.id}&categories=${categoryIds.join(',')}`);
+          const relatedData = await relatedResponse.json();
+          setRelatedProducts(relatedData);
+        }
+      } catch (error) {
+        console.error(error);
+      } finally {
+        setLoading(false);
+      }
+    }
+    
+    loadData();
+  }, [slug]);
   
-  const product = await getProductBySlug(slug);
-  
-  if (!product) {
-    return (
-      <div className="max-w-4xl mx-auto p-6">
-        <h1 className="text-2xl font-bold text-red-600">Product Not Found</h1>
-        <p className="mt-4">We couldn&apos;t find a product with the slug: &quot;{slug}&quot;</p>
-        <p className="mt-2">This might be because:</p>
-        <ul className="list-disc ml-6 mt-2">
-          <li>The product doesn&apos;t exist in the database</li>
-          <li>The URL might contain special characters that need encoding</li>
-          <li>The product ID type change might have affected slug formats</li>
-        </ul>
-      </div>
-    );
-  }
+  if (loading) return <div>Loading...</div>;
+  if (!product) return <div>Product not found</div>;
   
   const serializedProduct = serializeProduct(product);
   
@@ -198,7 +213,6 @@ export default function ProductPage() {
   });
   
   const categoryIds = categories.map(cat => cat.id);
-  const relatedProducts = await getRelatedProducts(serializedProduct.id, categoryIds);
   
   return (
     <div className="max-w-7xl mx-auto p-6">
