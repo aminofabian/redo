@@ -7,11 +7,11 @@ const ye = () => {
   // Only access localStorage when in a client environment
   if (isClient) {
     // Your original localStorage code here
-    return localStorage.getItem('whatever') // or whatever operation you were doing
+    return localStorage.getItem('whatever'); // or whatever operation you were doing
   }
   
   // Return a default value when running on the server
-  return null // or other appropriate default
+  return null; // or other appropriate default
 } 
 
 function YourComponent() {
