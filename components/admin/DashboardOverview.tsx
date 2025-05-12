@@ -50,7 +50,7 @@ export function DashboardOverview() {
     async function fetchDashboardData() {
       try {
         setIsLoading(true);
-        const response = await fetch('/api/admin/dashboard');
+        const response = await fetch('/api/admin/stats');
         
         if (!response.ok) {
           throw new Error('Failed to fetch dashboard data');
@@ -154,7 +154,11 @@ export function DashboardOverview() {
           <CardContent>
             <div className="flex items-center">
               <DollarSign className="w-5 h-5 mr-2 text-green-500" />
-              <div className="text-2xl font-bold">${data.totalSales.toFixed(2)}</div>
+              <div className="text-2xl font-bold">
+                ${typeof data.totalSales === 'number' 
+                  ? data.totalSales.toFixed(2) 
+                  : Number(data.totalSales).toFixed(2)}
+              </div>
             </div>
             <p className="text-xs text-gray-500 mt-2">
               <span className={`flex items-center ${data.salesPercentChange >= 0 ? "text-green-500" : "text-red-500"} font-medium`}>

@@ -109,17 +109,22 @@ export default function AdminSidebar() {
     async function fetchProductCounts() {
       try {
         const response = await fetch('/api/products/counts');
-        if (response.ok) {
-          const data = await response.json();
-          setProductCounts({
-            total: data.total,
-            studyGuides: data.studyGuides,
-            practiceTests: data.practiceTests,
-            videoCourses: data.videoCourses
-          });
+        
+        if (!response.ok) {
+          throw new Error('Failed to fetch product counts');
         }
+        
+        const data = await response.json();
+        setProductCounts(data);
       } catch (error) {
         console.error('Error fetching product counts:', error);
+        // Set a default state
+        setProductCounts({
+          total: 0,
+          studyGuides: 0,
+          practiceTests: 0,
+          videoCourses: 0
+        });
       }
     }
     
@@ -130,19 +135,25 @@ export default function AdminSidebar() {
   useEffect(() => {
     async function fetchUserCounts() {
       try {
-        const response = await fetch('/api/users/counts');
-        if (response.ok) {
-          const data = await response.json();
-          setUserCounts({
-            total: data.total,
-            verified: data.verified,
-            regular: data.regular,
-            admin: data.admin,
-            pending: data.pending
-          });
+        // Use the working API endpoint we created earlier
+        const response = await fetch('/api/admin/user-stats');
+        
+        if (!response.ok) {
+          throw new Error('Failed to fetch user counts');
         }
+        
+        const data = await response.json();
+        setUserCounts(data);
       } catch (error) {
         console.error('Error fetching user counts:', error);
+        // Set a default state or show error notification
+        setUserCounts({
+          total: 0,
+          verified: 0,
+          regular: 0,
+          admin: 0,
+          pending: 0
+        });
       }
     }
     
