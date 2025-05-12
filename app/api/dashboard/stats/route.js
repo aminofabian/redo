@@ -63,14 +63,18 @@ export async function GET(request) {
     // In a real application, you might have a UserActivity table to track this
     const studyHours = coursesEnrolled * 5; // Rough estimate based on courses
 
-    // Format dashboard stats into the expected array format
+    // Get actual trend data by comparing with previous month's data
+    // For a real implementation, you would store historical stats and calculate real trends
+    // Here we'll use actual data but with empty trends since we don't have historical data
+    
+    // Format dashboard stats into the expected array format from actual database counts
     const stats = [
       {
         id: 1,
         title: 'Courses Enrolled',
         value: coursesEnrolled,
         iconName: 'BookOpen',
-        trend: '+12%',
+        trend: '',
         color: 'bg-blue-500'
       },
       {
@@ -78,7 +82,7 @@ export async function GET(request) {
         title: 'Materials Downloaded',
         value: materialsDownloaded,
         iconName: 'Download',
-        trend: '+5%',
+        trend: '',
         color: 'bg-emerald-500'
       },
       {
@@ -86,15 +90,15 @@ export async function GET(request) {
         title: 'Tests Completed',
         value: testsCompleted,
         iconName: 'CheckCircle',
-        trend: '0%',
+        trend: '',
         color: 'bg-purple-500'
       },
       {
         id: 4,
-        title: 'Study Hours',
-        value: studyHours,
+        title: 'Study Hours', 
+        value: Math.round(coursesEnrolled * 2.5), // Calculate based on actual course count
         iconName: 'Clock',
-        trend: '+8%',
+        trend: '',
         color: 'bg-amber-500'
       }
     ];

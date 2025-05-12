@@ -35,6 +35,7 @@ interface CartItem {
   isPackage?: boolean;
   packageSize?: number;
   packageItems?: CartItem[];
+  type?: string; // Added for displaying the product type in the UI
 }
 
 interface CartContextType {
