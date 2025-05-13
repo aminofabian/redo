@@ -37,6 +37,7 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { slugify } from "@/lib/utils";
+import { safeJSONStringify } from '@/lib/json-utils';
 
 interface ProductDrawerProps {
   open: boolean;
@@ -521,13 +522,18 @@ export function ProductDrawer({
 
   // Function to upload files to S3
   const uploadToS3 = async (): Promise<string[]> => {
-    if (selectedFiles.length === 0) return [];
+    if (selectedFiles.length === 0) {
+      console.log('No files selected for upload');
+      return [];
+    }
     
+    console.log(`Attempting to upload ${selectedFiles.length} files to S3`);
     setUploadingImages(true);
     const uploadedUrls: string[] = [];
     
     try {
       for (const file of selectedFiles) {
+        console.log(`Processing file: ${file.name}, type: ${file.type}, size: ${file.size} bytes`);
         const filename = `${Date.now()}-${file.name.replace(/\s+/g, '-')}`;
         
         // Create a presigned URL for upload
@@ -543,13 +549,16 @@ export function ProductDrawer({
         });
         
         if (!response.ok) {
-          throw new Error('Failed to get upload URL');
+          const errorText = await response.text();
+          console.error('Upload URL API error:', errorText);
+          throw new Error(`Failed to get upload URL: ${response.status} ${errorText}`);
         }
         
         const { url, fileUrl } = await response.json();
+        console.log(`Received presigned URL for ${filename}`);
         
         // Upload the file to the presigned URL
-        await fetch(url, {
+        const uploadResponse = await fetch(url, {
           method: 'PUT',
           body: file,
           headers: {
@@ -557,13 +566,20 @@ export function ProductDrawer({
           },
         });
         
+        if (!uploadResponse.ok) {
+          console.error(`S3 upload failed with status: ${uploadResponse.status}`);
+          throw new Error(`S3 upload failed: ${uploadResponse.status}`);
+        }
+        
+        console.log(`Successfully uploaded to: ${fileUrl}`);
         uploadedUrls.push(fileUrl);
       }
       
+      console.log(`Total uploaded files: ${uploadedUrls.length}`);
       return uploadedUrls;
     } catch (error) {
       console.error('Error uploading images:', error);
-      toast.error('Failed to upload images');
+      toast.error('Failed to upload images: ' + (error instanceof Error ? error.message : 'Unknown error'));
       return [];
     } finally {
       setUploadingImages(false);
@@ -585,26 +601,34 @@ export function ProductDrawer({
       // Generate a slug based on the title
       const baseSlug = slugify(formData.title);
       
-      // We'll let the backend append the ID to the slug
-      // The final URL will be like: title-id
-      const productSlug = baseSlug;
-      
-      // Upload images to S3 and get URLs
+      // Upload images BEFORE any console logging to prevent log output from affecting the slug
       const uploadedImageUrls = await uploadToS3();
       
-      // Format the image data for the database
-      const imageData = uploadedImageUrls.map((url, index) => ({
-        url,
-        alt: formData.title ? `${formData.title} image ${index + 1}` : `Product image ${index + 1}`,
-        isPrimary: index === 0
-      }));
+      // Now safe to log after critical operations
+      console.log(`Successfully uploaded ${uploadedImageUrls.length} images`);
+      if (uploadedImageUrls.length > 0) {
+        console.log('First image URL:', uploadedImageUrls[0]);
+      }
+      
+      // Create image data array
+      const imageData = [];
+      for (let i = 0; i < uploadedImageUrls.length; i++) {
+        imageData.push({
+          url: uploadedImageUrls[i],
+          alt: `${formData.title || 'Product'} image ${i + 1}`,
+          isPrimary: i === 0
+        });
+      }
+      
+      // Explicitly create a clean slug with just the title
+      const cleanSlug = slugify(formData.title.trim());
       
       // Prepare the product data - ensuring all numeric values are regular numbers, not BigInt
       const productData = {
         title: formData.title,
         description: formData.description || "",
-        path: productSlug,
-        slug: productSlug,
+        path: cleanSlug,
+        slug: cleanSlug, // Use our clean slug value
         price: Number(formData.regularPrice || formData.finalPrice || "0"),
         finalPrice: Number(formData.finalPrice || "0"),
         inStock,
@@ -622,14 +646,16 @@ export function ProductDrawer({
       
       console.log("Sending product data to API:", productData);
       
-      // Call the API endpoint
-      const response = await fetch("/api/products", {
+      // Use the products-direct endpoint that we know is working
+      const response = await fetch("/api/products-direct", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify(productData),
+        body: safeJSONStringify(productData),
       });
+      
+      console.log("Used products-direct API instead of /api/products");
       
       if (!response.ok) {
         const errorData = await response.text();

@@ -1,8 +1,24 @@
 import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/db';
 import { withAuth } from "@/auth";
+import { auth } from "@/auth";
 import { safeJSONStringify } from '@/lib/json-utils';
-import { Prisma } from '@prisma/client';
+import { Prisma, Product, ProductImage } from '@prisma/client';
+
+interface CategoryInput {
+  id?: string;
+  path: string;
+}
+
+interface ImageInput {
+  url: string;
+  alt?: string;
+  isPrimary?: boolean;
+}
+
+interface ProductWithImages extends Product {
+  images: ProductImage[];
+}
 
 type Image = {
   id: string;
@@ -28,10 +44,21 @@ type ProductWithRelations = {
   categories: Category[];
 }
 
-export async function POST(request: NextRequest) {
+// Using Next.js 14's preferred export syntax as noted in memory fix for 405 errors
+export const POST = async (request: NextRequest) => {
   try {
-    return withAuth(request, async (req, session) => {
-      const data = await request.json();
+    // Parse request data once
+    const data = await request.json();
+    const session = await auth();
+    
+    // Check if user is logged in and has proper session
+    const userId = session?.user?.email ? 
+      (await prisma.user.findUnique({ where: { email: session.user.email } }))?.id : 
+      null;
+      
+    if (!userId) {
+      return NextResponse.json({ error: 'Unauthorized user' }, { status: 401 });
+    }
       
       // Add null checks for required fields
       if (!data.title) {
@@ -78,33 +105,86 @@ export async function POST(request: NextRequest) {
       // Add timestamp to ensure uniqueness
       const finalSlug = `${slug}-${Date.now()}`;
       
-      // Add this near the beginning of the POST function
-      console.log("Received images data:", images);
+      console.log('=== PRODUCT CREATION DEBUG ===');
+      console.log('Raw request data:', JSON.stringify(data));
+      console.log('Images from request:', data.images ? 'Present' : 'Missing');
+      
+      if (data.images) {
+        console.log('Images array length:', data.images.length);
+        console.log('First image sample:', data.images && data.images.length > 0 ? JSON.stringify(data.images[0]) : 'None');
+      } else {
+        console.log('CRITICAL: No images in request data!');
+      }
+      
+      // Check if images is actually an array
+      if (!Array.isArray(data.images)) {
+        console.error('Images is not an array:', typeof data.images);
+        data.images = []; // Initialize as empty array if not an array
+      }
+      
+      // This variable will be defined outside the try/catch so we can use it in both scopes
+      let product;
 
-      // And add this right before creating the product
-      console.log("Formatted image data for DB:", images.map((image: { url: string; alt: string; isPrimary: boolean }) => ({
-        url: image.url,
-        alt: image.alt,
-        isPrimary: image.isPrimary
-      })));
-
-      // Create product with related images (without categories first)
-      const product = await prisma.product.create({
-        data: {
-          ...productData,
-          slug: finalSlug,
-          finalPrice: finalPrice,
-          createdById: session.user.id,
-          images: {
-            create: images?.map((image: { url: string; alt: string; isPrimary: boolean }) => ({
-              url: image.url,
-              alt: image.alt,
-              isPrimary: image.isPrimary
-            })) || []
+      try {
+        console.log('Creating product with these images:', JSON.stringify(data.images));
+        
+        // First create product without any relationships
+        product = await prisma.product.create({
+          data: {
+            ...productData,
+            slug: finalSlug,
+            finalPrice: finalPrice,
+            createdById: userId, // Use the verified userId we retrieved
+          },
+        });
+        
+        console.log('Product created with ID:', product.id);
+        console.log('Now adding images...');
+        
+        // Add images separately if they exist
+        if (data.images && data.images.length > 0) {
+          // Create images one by one to better track any issues
+          for (const img of data.images) {
+            try {
+              console.log('Creating image with URL:', img.url);
+              await prisma.productImage.create({
+                data: {
+                  url: img.url,
+                  alt: img.alt || '',
+                  isPrimary: img.isPrimary || false,
+                  product: { connect: { id: product.id } }
+                }
+              });
+              console.log('Image created successfully');
+            } catch (imgError) {
+              console.error('Failed to create image:', imgError);
+            }
           }
-        },
-        include: { images: true },
-      });
+        } else {
+          console.log('No images to add to product');
+        }
+        
+        // Get the updated product with images
+        const updatedProductWithImages = await prisma.product.findUnique({
+          where: { id: product.id },
+          include: { images: true }
+        });
+        
+        console.log('Final product with images:', JSON.stringify(
+          updatedProductWithImages, 
+          (key, value) => typeof value === 'bigint' ? value.toString() : value
+        ));
+        
+        // Use the product with images for subsequent operations
+        if (updatedProductWithImages) {
+          product = updatedProductWithImages;
+        }
+        
+        console.log('=== END DEBUG ===');
+      } catch (productError) {
+        console.error('Error creating product or images:', productError);
+        throw productError; // Re-throw to be caught by the outer catch block
+      }
       
       // Handle category paths separately
       if (categories?.length > 0) {
@@ -130,12 +210,13 @@ export async function POST(request: NextRequest) {
         await Promise.all(categoryPromises);
       }
       
-      console.log("Created product with images:", product.images);
+      // Type assertion for product with images to satisfy TypeScript
+      const productWithImages = product as unknown as ProductWithImages;
+      console.log("Created product with images:", productWithImages.images);
       
       // Use safeJSONStringify to handle BigInt values
       const serializedProduct = JSON.parse(safeJSONStringify(product));
       return NextResponse.json(serializedProduct);
-    });
   } catch (error) {
     console.error('Error creating product:', error);
     return NextResponse.json({ error: 'Failed to create product' }, { status: 500 });

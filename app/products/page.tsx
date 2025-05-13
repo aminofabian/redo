@@ -3,10 +3,7 @@ import ResourcesClient from "./ResourcesClient";
 import prisma from "@/lib/db";
 import { Skeleton } from "@/components/ui/skeleton";
 import { revalidatePath } from 'next/cache';
-// Use Prisma types for database results
-import { Prisma } from "@prisma/client";
 
-// Use Prisma's ProductWithIncludes type for database results
 type ProductWithRelations = {
   id: string;
   title: string;
@@ -57,12 +54,13 @@ type ProductWithRelations = {
   CategoryPath: any[];
 };
 
-// Server component to fetch products
 export default async function ResourcesPage() {
   let products: ProductWithRelations[] = [];
+  let allUniversities: any[] = [];
+  let allProductTypes: any[] = [];
   
   try {
-    // Fetch products with related data
+    // Fetch all products
     products = await prisma.product.findMany({
       where: {
         isPublished: true,
@@ -91,16 +89,56 @@ export default async function ResourcesPage() {
         createdAt: 'desc'
       }
     }) as unknown as ProductWithRelations[];
-  } catch (error) {
-    // Log the error for debugging
-    console.error('Error fetching products:', error);
     
-    // Attempt to reconnect to the database
+    // Fetch all universities directly from the CategoryPath model
+    allUniversities = await prisma.categoryPath.findMany({
+      where: {
+        level1: 'university',
+        level2: {
+          not: null
+        }
+      },
+      select: {
+        id: true,
+        path: true,
+        level1: true,
+        level2: true,
+        level3: true
+      },
+      distinct: ['level2']
+    });
+    
+    // Debug: Log all universities data to see what we're getting from the database
+    console.log('All universities from database:', JSON.stringify(allUniversities, null, 2));
+    
+    // Fetch all product types directly from the CategoryPath model
+    allProductTypes = await prisma.categoryPath.findMany({
+      where: {
+        level1: 'product-type',
+        level2: {
+          not: null
+        }
+      },
+      select: {
+        id: true,
+        path: true,
+        level1: true,
+        level2: true,
+        level3: true
+      },
+      distinct: ['level2']
+    });
+    
+    // Debug: Log product types from database
+    console.log('All product types from database:', JSON.stringify(allProductTypes, null, 2));
+  } catch (error) {
+    console.error('Error fetching data:', error);
+    
     try {
       await prisma.$disconnect();
       await prisma.$connect();
       
-      // Retry the query once
+      // Retry fetching products
       products = await prisma.product.findMany({
         where: {
           isPublished: true,
@@ -129,28 +167,120 @@ export default async function ResourcesPage() {
           createdAt: 'desc'
         }
       }) as unknown as ProductWithRelations[];
+      
+      // Retry fetching universities
+      allUniversities = await prisma.categoryPath.findMany({
+        where: {
+          level1: "university",
+          level2: {
+            not: null
+          }
+        },
+        select: {
+          level2: true,
+        },
+        distinct: ['level2']
+      });
+      
+      // Retry fetching product types
+      allProductTypes = await prisma.category.findMany({
+        where: {
+          level: 1,
+          isActive: true
+        },
+        select: {
+          name: true,
+          id: true,
+          slug: true,
+        }
+      });
     } catch (retryError) {
-      console.error('Error retrying product fetch:', retryError);
-      // If retry fails, return empty array to prevent page crash
+      console.error('Error retrying data fetch:', retryError);
       products = [];
-      // Revalidate the page after a short delay
+      allUniversities = [];
+      allProductTypes = [];
       revalidatePath('/products');
     }
   }
 
-  // Debug image data for troubleshooting
   if (products.length > 0) {
     console.log("First product images data:", products[0].images);
   }
+  
+  // Format universities from CategoryPath model data
+  console.log('Processing universities, count before formatting:', allUniversities.length);
+  
+  const formattedUniversities = allUniversities.map(uni => {
+    // Log each university object to see its structure
+    console.log('Processing university:', uni);
+    
+    // Skip if no level2 (university name)
+    if (!uni || !uni.level2) {
+      console.log('Skipping university with no level2:', uni);
+      return null;
+    }
+    
+    // Verify it's a university category
+    if (uni.level1 !== 'university') {
+      console.log('Skipping non-university category:', uni);
+      return null;
+    }
+    
+    // Format the university name from the slug in level2
+    const universitySlug = uni.level2;
+    let universityName = universitySlug
+      .replace(/-/g, ' ') // Replace hyphens with spaces
+      .replace(/\buniversity\s+of\b/i, 'University of') // Fix "university of" capitalization
+      .replace(/\b(\w)/g, (l: string) => l.toUpperCase()); // Capitalize all words
+    
+    // Special formatting for universities that start with "University"
+    const formattedName = universityName.startsWith('University ') 
+      ? universityName
+      : (universityName.toLowerCase().includes('university') 
+          ? universityName 
+          : `${universityName} University`); // Add "University" if missing
+          
+    console.log(`Formatted university: ${universitySlug} -> ${formattedName}`);
+    return formattedName;
+  }).filter(Boolean).sort();
+  
+  console.log('Formatted universities result:', formattedUniversities);
+  
+  // Format product types from CategoryPath model data
+  console.log('Processing product types, count before formatting:', allProductTypes.length);
+  
+  const formattedProductTypes = allProductTypes.map(type => {
+    console.log('Processing product type:', type);
+    
+    // Skip if no level2 (product type name)
+    if (!type || !type.level2) {
+      console.log('Skipping product type with no level2:', type);
+      return null;
+    }
+    
+    // Verify it's a product type category
+    if (type.level1 !== 'product-type') {
+      console.log('Skipping non-product-type category:', type);
+      return null;
+    }
+    
+    // Format the product type name from the slug in level2
+    const productTypeSlug = type.level2;
+    const productTypeName = productTypeSlug
+      .replace(/-/g, ' ') // Replace hyphens with spaces
+      .replace(/\b(\w)/g, (l: string) => l.toUpperCase()); // Capitalize each word
+    
+    console.log(`Formatted product type: ${productTypeSlug} -> ${productTypeName}`);
+    return productTypeName;
+  }).filter(Boolean).sort();
+  
+  console.log('Formatted product types result:', formattedProductTypes);
 
-  // Map database products to the format expected by the UI
   const resources = products.map(product => {
-    // Find primary image or use the first one
     const primaryImage = product.images && product.images.length > 0 
       ? product.images.find(img => img.isPrimary) || product.images[0]
       : null;
     
-    // Debug the image URL we're extracting
     if (primaryImage) {
       console.log(`Product ${product.id} primary image URL:`, primaryImage.url);
     } else {
@@ -254,7 +384,7 @@ export default async function ResourcesPage() {
   return (
     <div className="bg-gradient-to-b from-gray-50 to-white min-h-screen">
       <div className="max-w-7xl mx-auto px-4 py-12">
-        <header className="mb-12 text-center">
+        <header className="mb-3 text-center">
           <h1 className="text-4xl font-bold mb-4">Study Resources</h1>
           <p className="text-gray-600 max-w-2xl mx-auto">
             Discover our premium study materials to help you achieve your learning goals. 
@@ -274,7 +404,11 @@ export default async function ResourcesPage() {
               </button>
             </div>
           ) : (
-            <ResourcesClient initialResources={resources} />
+            <ResourcesClient 
+              initialResources={resources}
+              allUniversities={formattedUniversities}
+              allProductTypes={formattedProductTypes}
+            />
           )}
         </Suspense>
       </div>

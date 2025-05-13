@@ -58,8 +58,21 @@ function customFetch(url: string, options = {}) {
 
 async function getProduct(slug: string) {
   try {
-    // Use our custom fetch function
-    return await customFetch(`http://localhost:3000/api/products/slug/${slug}`);
+    // Sanitize the slug to prevent invalid URLs
+    const sanitizedSlug = slug.replace(/[^a-zA-Z0-9-]/g, '');
+    
+    // Check if slug was corrupted with API responses
+    if (sanitizedSlug.includes('apicategories') || 
+        sanitizedSlug.includes('200in') ||
+        sanitizedSlug.includes('404in') ||
+        sanitizedSlug.length > 100) {
+      console.error('Invalid product slug detected:', slug);
+      return null;
+    }
+    
+    console.log(`Fetching product with slug: ${sanitizedSlug}`);
+    // Use our custom fetch function with the sanitized slug
+    return await customFetch(`http://localhost:3000/api/products/slug/${sanitizedSlug}`);
   } catch (error) {
     console.error("Error fetching product:", error);
     return null;
@@ -89,7 +102,20 @@ export default async function ProductPage({ params }: { params: { slug: string }
   const product = await getProduct(params.slug);
   
   if (!product) {
-    return <div>Product not found</div>;
+    return (
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+        <div className="bg-white p-8 rounded-xl shadow-md text-center">
+          <h1 className="text-2xl font-bold text-gray-800 mb-4">Product Not Found</h1>
+          <p className="text-gray-600 mb-6">The product you're looking for could not be found or may have been removed.</p>
+          <a 
+            href="/products" 
+            className="inline-flex items-center px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition-colors"
+          >
+            ← Return to Products
+          </a>
+        </div>
+      </div>
+    );
   }
   
   const serializedProduct = serializeProduct(product);
@@ -97,6 +123,11 @@ export default async function ProductPage({ params }: { params: { slug: string }
   // Get category IDs for related products
   const categoryIds = serializedProduct.categories.map(c => c.category.id);
   const relatedProducts = await getRelatedProducts(serializedProduct.id, categoryIds);
+  
+  // Helper function for price formatting
+  function formatPrice(price: any): string {
+    return `$${Number(price).toFixed(2)}`;
+  }
   
   // Calculate various display values
   const hasDiscount = (serializedProduct.discountAmount ?? 0) > 0 || (serializedProduct.discountPercent ?? 0) > 0;
@@ -110,7 +141,7 @@ export default async function ProductPage({ params }: { params: { slug: string }
   const updatedAt = new Date(serializedProduct.updatedAt);
   const timeAgo = formatDistanceToNow(updatedAt, { addSuffix: true });
   
-  // Get categories from the product
+  // Extract categories for easier referencing
   const categories = serializedProduct.categories.map(c => c.category);
   
   console.log("Product price data:", {
@@ -121,83 +152,90 @@ export default async function ProductPage({ params }: { params: { slug: string }
   });
   
   return (
-    <div className="max-w-7xl mx-auto p-6">
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 lg:py-12">
+      {/* Breadcrumb navigation */}
+      <nav className="flex items-center text-sm text-gray-500 mb-6 hover:text-gray-700 transition-colors">
+        <a href="/products" className="hover:underline">Products</a>
+        <span className="mx-2">→</span>
+        {categories.length > 0 && (
+          <>
+            <a href={`/products?category=${categories[0].id}`} className="hover:underline">{categories[0].name}</a>
+            <span className="mx-2">→</span>
+          </>
+        )}
+        <span className="text-gray-800 font-medium truncate">{serializedProduct.title}</span>
+      </nav>
+      
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 lg:gap-12">
         {/* Left column - Images and main product info */}
         <div className="lg:col-span-2">
           <div className="bg-white p-6 rounded-lg shadow-sm border mb-6">
-            <h1 className="text-3xl font-bold mb-4">{serializedProduct.title}</h1>
+            <h1 className="text-3xl lg:text-4xl font-bold mb-4 tracking-tight text-gray-900">{serializedProduct.title}</h1>
             
-            <div className="flex flex-wrap gap-2 mb-4">
+            <div className="flex flex-wrap gap-2 mb-6">
               {categories.map(category => (
-                <span key={category.id} className="px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded-full">
+                <a 
+                  href={`/products?category=${category.id}`}
+                  key={category.id} 
+                  className="px-3 py-1.5 bg-blue-50 text-blue-700 text-xs font-medium rounded-full hover:bg-blue-100 transition-colors"
+                >
                   {category.name}
-                </span>
+                </a>
               ))}
             </div>
             
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {/* Replace the old image component with the new gallery */}
-              <div>
+            {/* More dominant product image section with subtle animations */}
+            <div className="mb-10 transition-all duration-300 hover:translate-y-[-4px]">
+              <div className="w-full rounded-xl overflow-hidden shadow-md">
                 <ProductImageGallery 
                   images={serializedProduct.images || []} 
                   productTitle={serializedProduct.title} 
                 />
               </div>
-              
-              {/* Product info */}
-              <div className="relative">
-                <div className="mb-6">
-                  <div className="flex items-baseline gap-2 mb-1">
-                    <span className="text-2xl font-bold">${finalPrice.toFixed(2)}</span>
+            </div>
+            
+            {/* Product info with improved layout */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+              <div className="relative flex flex-col">
+                <div className="mb-8">
+                  <div className="flex items-baseline gap-3 mb-2">
+                    <span className="text-3xl font-bold text-gray-900">${finalPrice.toFixed(2)}</span>
                     {hasDiscount && (
                       <>
-                        <span className="text-gray-500 line-through text-sm">${originalPrice.toFixed(2)}</span>
-                        <span className="bg-green-100 text-green-800 text-xs px-2 py-0.5 rounded">
-                          Save {discountPercent}%
+                        <span className="text-gray-500 line-through text-base">${originalPrice.toFixed(2)}</span>
+                        <span className="bg-green-100 text-green-800 text-xs font-medium px-3 py-1 rounded-full">
+                          {discountPercent}% OFF
                         </span>
                       </>
                     )}
                   </div>
                   {hasDiscount && (
-                    <div className="text-sm text-green-600 font-medium">
+                    <div className="text-sm text-green-600 font-medium bg-green-50 px-3 py-1.5 rounded-lg inline-block">
                       You save ${(originalPrice - finalPrice).toFixed(2)}
                     </div>
                   )}
-                  <div className="text-sm text-gray-600 mt-1">
-                    or ${(finalPrice / 3).toFixed(2)}/mo
-                  </div>
+                  {/* Monthly payment option removed */}
                 </div>
                 
-                <div className="space-y-4 mb-6">
-                  <div>
-                    <h3 className="text-sm text-gray-500 mb-1">Access Duration</h3>
-                    <p>{serializedProduct.accessDuration ? `${serializedProduct.accessDuration} days` : "Unlimited"}</p>
-                  </div>
-                  
-                  <div>
-                    <h3 className="text-sm text-gray-500 mb-1">Download Limit</h3>
-                    <p>{serializedProduct.downloadLimit ? `${serializedProduct.downloadLimit} downloads` : "Unlimited"}</p>
-                  </div>
-                  
-                  <div>
-                    <h3 className="text-sm text-gray-500 mb-1">Availability</h3>
-                    <p className={serializedProduct.inStock ? "text-green-600" : "text-red-600"}>
+                <div className="mb-8">
+                  <div className="inline-flex items-center px-4 py-2 rounded-lg border-2 border-dashed border-gray-200">
+                    <div className={`w-3 h-3 rounded-full mr-2 ${serializedProduct.inStock ? "bg-green-500" : "bg-red-500"}`}></div>
+                    <p className={`font-medium ${serializedProduct.inStock ? "text-green-700" : "text-red-700"}`}>
                       {serializedProduct.inStock ? "In Stock" : "Out of Stock"}
                     </p>
                   </div>
                 </div>
                 
-                <div className="space-y-3">
+                <div className="space-y-4 mt-auto pt-4 border-t border-gray-100">
                   <ProductInteractions product={serializedProduct} />
                 </div>
               </div>
             </div>
           </div>
           
-          {/* Description */}
-          <div className="bg-white p-6 rounded-lg shadow-sm border">
-            <h2 className="text-xl font-bold mb-4">Description</h2>
+          {/* Description with improved styling */}
+          <div className="bg-white p-6 lg:p-8 rounded-xl shadow-sm border hover:shadow-md transition-all">
+            <h2 className="text-2xl font-bold mb-4 flex items-center"><span className="w-1.5 h-6 bg-blue-600 rounded-sm mr-3"></span>Description</h2>
             <div className="prose max-w-none">
               {serializedProduct.description ? (
                 <p>{serializedProduct.description}</p>
@@ -210,58 +248,61 @@ export default async function ProductPage({ params }: { params: { slug: string }
         
         {/* Right column - Product details */}
         <div>
-          <CartSidebarWithToaster 
-            priceId={(serializedProduct.id || '').toString()}
-            price={formattedFinalPrice}
-            description={serializedProduct.title}
-          />
-          <div className="bg-white p-6 rounded-lg shadow-sm border mb-6">
-            <h2 className="text-xl font-bold mb-4">Product Details</h2>
-            <dl className="space-y-4">
-              <div>
-                <dt className="text-sm text-gray-500">Created</dt>
-                <dd>{formatDate(createdAt)}</dd>
-              </div>
-              
-              <div>
-                <dt className="text-sm text-gray-500">Last Updated</dt>
-                <dd>{formatDate(updatedAt)}</dd>
-              </div>
-              
-              {serializedProduct.featured && (
+          <div className="sticky top-24 space-y-6">
+            <CartSidebarWithToaster 
+              priceId={(serializedProduct.id || '').toString()}
+              price={formattedFinalPrice}
+              description={serializedProduct.title}
+            />
+            <div className="bg-white p-6 rounded-xl shadow-sm border mb-6 hover:shadow-md transition-all">
+              <h2 className="text-xl font-bold mb-4 flex items-center"><span className="w-1.5 h-5 bg-indigo-600 rounded-sm mr-3"></span>Product Details</h2>
+              <dl className="space-y-4">
                 <div>
-                  <dt className="text-sm text-gray-500">Featured</dt>
-                  <dd>
-                    <span className="px-2 py-1 bg-yellow-100 text-yellow-800 text-xs rounded-full">
-                      Featured Product
-                    </span>
-                  </dd>
+                  <dt className="text-sm text-gray-500">Price</dt>
+                  <dd className="text-xl font-bold">{formattedFinalPrice}</dd>
+                  {hasDiscount && (
+                    <dd className="text-sm">
+                      <span className="text-gray-500 line-through">{formattedPrice}</span>
+                      <span className="ml-2 text-green-600 font-medium">Save {discountPercent}%</span>
+                    </dd>
+                  )}
                 </div>
-              )}
-            </dl>
-          </div>
-          
-          {/* Categories */}
-          {categories.length > 0 && (
-            <div className="bg-white p-6 rounded-lg shadow-sm border">
-              <h2 className="text-xl font-bold mb-4">Categories</h2>
-              <div className="space-y-2">
-                {categories.map((category: { id: string; name: string; parentId?: string | null }) => (
-                  <div key={category.id} className="p-3 border rounded flex justify-between items-center">
-                    <span>{category.name}</span>
-                    {category.parentId && (
-                      <span className="text-xs text-gray-500">Has parent</span>
-                    )}
+                
+                {serializedProduct.featured && (
+                  <div>
+                    <dt className="text-sm text-gray-500">Featured</dt>
+                    <dd>
+                      <span className="px-2 py-1 bg-yellow-100 text-yellow-800 text-xs rounded-full">
+                        Featured Product
+                      </span>
+                    </dd>
                   </div>
-                ))}
-              </div>
+                )}
+              </dl>
             </div>
-          )}
+          
+            {/* Categories with improved styling */}
+            {categories.length > 0 && (
+              <div className="bg-white p-6 rounded-xl shadow-sm border hover:shadow-md transition-all">
+                <h2 className="text-xl font-bold mb-4 flex items-center"><span className="w-1.5 h-5 bg-green-600 rounded-sm mr-3"></span>Categories</h2>
+                <div className="space-y-2">
+                  {categories.map((category: { id: string; name: string; parentId?: string | null }) => (
+                    <div key={category.id} className="p-3 border rounded-lg flex justify-between items-center hover:bg-gray-50 transition-colors">
+                      <span className="font-medium">{category.name}</span>
+                      {category.parentId && (
+                        <span className="text-xs bg-gray-100 px-2 py-1 rounded-full text-gray-600">Has parent</span>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
         </div>
       </div>
       {relatedProducts.length > 0 && (
-        <div className="mt-12 bg-white p-6 rounded-lg shadow-sm border">
-          <h2 className="text-2xl font-bold mb-6">Related Products</h2>
+        <div className="mt-16 bg-white p-8 rounded-xl shadow-sm border">
+          <h2 className="text-2xl font-bold mb-8 flex items-center"><span className="w-2 h-7 bg-purple-600 rounded-sm mr-3"></span>Related Products</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
             {relatedProducts.map((relatedProduct: SerializableProduct) => {
               const primaryImage = relatedProduct.images.find((img: { isPrimary: boolean; url: string }) => img.isPrimary) || relatedProduct.images[0];
@@ -273,7 +314,7 @@ export default async function ProductPage({ params }: { params: { slug: string }
                 <a 
                   key={relatedProduct.id} 
                   href={`/products/${relatedProduct.slug}`}
-                  className="group bg-white rounded-lg shadow-sm border hover:shadow-md transition-shadow"
+                  className="group bg-white rounded-xl shadow-sm border hover:shadow-lg hover:-translate-y-1 transition-all duration-300"
                 >
                   <div className="relative aspect-video">
                     <Image
@@ -305,16 +346,11 @@ export default async function ProductPage({ params }: { params: { slug: string }
           </div>
         </div>
       )}
-      {/* Toaster moved to CartSidebarWithToaster client component */}
     </div>
   );
 }
 
-// Helper functions
-function formatPrice(price: any): string {
-  return `$${Number(price).toFixed(2)}`;
-}
-
+// Helper function for date formatting
 function formatDate(date: Date): string {
   return new Intl.DateTimeFormat('en-US', {
     year: 'numeric',
@@ -323,8 +359,14 @@ function formatDate(date: Date): string {
   }).format(date);
 }
 
-function calculateAverageRating(reviews: any[]) {
-  if (reviews.length === 0) return "0.0";
-  const total = reviews.reduce((sum, review) => sum + review.rating, 0);
+// Helper function for calculating average rating
+function calculateAverageRating(reviews: any[]): string {
+  if (!reviews || reviews.length === 0) return "0.0";
+  
+  let total = 0;
+  for (const review of reviews) {
+    total += review.rating || 0;
+  }
+  
   return (total / reviews.length).toFixed(1);
 }

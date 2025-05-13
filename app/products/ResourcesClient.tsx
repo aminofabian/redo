@@ -12,6 +12,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { cn } from "@/lib/utils";
 import { Input } from "@/components/ui/input";
 import ProductCardGallery from "./ProductCardGallery";
+import { useRouter, useSearchParams, usePathname } from "next/navigation";
 
 // Type definition to match your data structure
 type Resource = {
@@ -52,34 +53,79 @@ type FilterGroup = {
   options: string[];
 };
 
-// Define valid filter keys
-type FilterKey = 'type' | 'university' | 'level';
+// Define valid filter keys - removed 'level' as requested
+type FilterKey = 'type' | 'university';
 
-export default function ResourcesClient({ initialResources }: { initialResources: Resource[] }) {
+interface ResourcesClientProps {
+  initialResources: Resource[];
+  allUniversities: string[];
+  allProductTypes: string[];
+}
+
+export default function ResourcesClient({ initialResources, allUniversities, allProductTypes }: ResourcesClientProps) {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const pathname = usePathname();
+  const searchTimeout = React.useRef<NodeJS.Timeout>();
+  
+  // Get filter values from URL query parameters
+  const queryType = searchParams.get('type') || "";
+  const queryUniversity = searchParams.get('university') || "";
+  const queryLevel = searchParams.get('level') || "";
+  const queryCategory = searchParams.get('category') || "All";
+  const querySearch = searchParams.get('search') || "";
+  const querySort = searchParams.get('sort') || "popular";
+  const queryView = (searchParams.get('view') as 'grid' | 'list') || 'grid';
+  
+  // Local UI state
   const [products, setProducts] = useState<Resource[]>(initialResources);
-  const [searchTerm, setSearchTerm] = useState("");
-  const [selectedFilters, setSelectedFilters] = useState({
-    type: "",
-    university: "",
-    level: "",
-  });
-  const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
-  const [sortBy, setSortBy] = useState("popular");
-  const [selectedCategory, setSelectedCategory] = useState("All");
-  const [activeFiltersCount, setActiveFiltersCount] = useState(0);
   const [showFilterPanel, setShowFilterPanel] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 10;
+  
+  // Create an object to track all active filters from URL params (no level filter now)
+  const selectedFilters = {
+    type: queryType,
+    university: queryUniversity,
+  };
+  
+  // Calculate active filters count for the badge
+  const activeFiltersCount = Object.values(selectedFilters).filter(Boolean).length +
+    (queryCategory !== "All" ? 1 : 0) +
+    (querySearch ? 1 : 0);
 
-  // Extract categories by their hierarchy level or type
+  // Extract categories by their hierarchy level or type - improved with new data format
   const getCategoriesByType = (type: string): string[] => {
+    // If we already have our formatted lists from the database, use those instead
+    if (type === 'university' && allUniversities.length > 0) {
+      return allUniversities;
+    }
+    
+    if (type === 'product-type' && allProductTypes.length > 0) {
+      return allProductTypes;
+    }
+    
+    // Fallback to extracting from current resources if database lists are empty
     const values = new Set<string>();
     
     initialResources.forEach(resource => {
-      if (resource.categories && resource.categories.length > 0) {
+      if (resource.CategoryPath && resource.CategoryPath.length > 0) {
+        // First check CategoryPath which contains the structured hierarchy
+        resource.CategoryPath.forEach(catPath => {
+          if (catPath.level1 === type && catPath.level2) {
+            // Format the subcategory name properly
+            const formatted = catPath.level2
+              .replace(/-/g, ' ')
+              .replace(/\b(\w)/g, (letter) => letter.toUpperCase());
+            values.add(formatted);
+          }
+        });
+      } else if (resource.categories && resource.categories.length > 0) {
+        // Fallback to categories if CategoryPath isn't available
         resource.categories.forEach(categoryRelation => {
           const category = categoryRelation.category;
           
-          // Check if the category path starts with our type (e.g., "university/")
-          // or if the category name directly matches our type
+          // Check if the category path starts with our type or matches directly
           if (category.path?.startsWith(`${type}/`) || 
               category.name.toLowerCase() === type.toLowerCase()) {
             values.add(category.name);
@@ -220,23 +266,19 @@ export default function ResourcesClient({ initialResources }: { initialResources
     return Array.from(values).sort();
   };
 
-  // Now update the filter groups to use these functions
+  // Use database data for filter groups and remove academic levels
   const filterGroups: FilterGroup[] = [
     {
       id: 'type',
       name: 'Product Type',
-      options: Array.from(new Set(initialResources.map(r => r.type))).filter(Boolean),
+      options: allProductTypes.length > 0 ? allProductTypes : getCategoriesByType('product-type'),
     },
     {
       id: 'university',
       name: 'University',
-      options: getUniversities(),
-    },
-    {
-      id: 'level',
-      name: 'Academic Level',
-      options: getLevels(),
+      options: allUniversities.length > 0 ? allUniversities : getCategoriesByType('university'),
     }
+    // Academic levels filter removed as requested
   ];
 
   // Get unique categories for category filter
@@ -244,19 +286,15 @@ export default function ResourcesClient({ initialResources }: { initialResources
     initialResources.flatMap(resource => resource.tags)
   ))];
 
-  // Count active filters
-  useEffect(() => {
-    const count = Object.values(selectedFilters).filter(value => value !== "").length;
-    setActiveFiltersCount(count);
-  }, [selectedFilters]);
+  // We no longer need to count active filters in a useEffect as we calculate it directly when declaring the activeFiltersCount constant
 
-  // Filter function
+  // Filter function using URL parameters
   const applyFilters = () => {
     let filtered = [...initialResources];
     
     // Filter by search term
-    if (searchTerm) {
-      const search = searchTerm.toLowerCase();
+    if (querySearch) {
+      const search = querySearch.toLowerCase();
       filtered = filtered.filter(resource => 
         resource.title.toLowerCase().includes(search) ||
         resource.description.toLowerCase().includes(search) ||
@@ -265,74 +303,147 @@ export default function ResourcesClient({ initialResources }: { initialResources
     }
     
     // Filter by category
-    if (selectedCategory && selectedCategory !== "All") {
+    if (queryCategory && queryCategory !== "All") {
       filtered = filtered.filter(resource => 
-        resource.tags.includes(selectedCategory)
+        resource.tags.includes(queryCategory)
       );
     }
     
-    // Filter by product type
-    if (selectedFilters.type) {
-      filtered = filtered.filter(resource => resource.type === selectedFilters.type);
-    }
-    
-    // Filter by university
-    if (selectedFilters.university) {
+    // Filter by product type - now with proper name normalization
+    if (queryType) {
+      // Normalize the query product type for comparison
+      const normalizedQueryType = queryType.toLowerCase().replace(/\s+/g, '-');
+      
       filtered = filtered.filter(resource => {
-        // Check in CategoryPath
+        // Direct match against resource type
+        if (resource.type === queryType) {
+          return true;
+        }
+        
+        // Check CategoryPath for product-type entries
         if (resource.CategoryPath && resource.CategoryPath.length > 0) {
-          if (resource.CategoryPath.some(catPath => 
-            catPath.level1 === 'university' &&
-            catPath.level2 && 
-            catPath.level2.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase()) === selectedFilters.university
-          )) {
-            return true;
+          for (const catPath of resource.CategoryPath) {
+            if (catPath.level1 === 'product-type' && catPath.level2) {
+              // Direct match against slug
+              if (catPath.level2 === normalizedQueryType) {
+                return true;
+              }
+              
+              // Match against formatted product type
+              const formattedType = catPath.level2
+                .replace(/-/g, ' ')
+                .replace(/\b(\w)/g, (l: string) => l.toUpperCase());
+                
+              if (formattedType === queryType) {
+                return true;
+              }
+            }
           }
         }
         
-        // Check in regular categories
+        // Check in category data
         if (resource.categories && resource.categories.length > 0) {
-          if (resource.categories.some(cat => cat.category.name === selectedFilters.university)) {
-            return true;
+          for (const cat of resource.categories) {
+            if (cat.category.name === queryType) {
+              return true;
+            }
+            
+            // Check if path starts with product-type
+            if (cat.category.path?.startsWith('product-type/')) {
+              const pathParts = cat.category.path.split('/');
+              if (pathParts.length >= 2) {
+                const typeSlug = pathParts[1];
+                const formattedType = typeSlug
+                  .replace(/-/g, ' ')
+                  .replace(/\b(\w)/g, (l: string) => l.toUpperCase());
+                  
+                if (formattedType === queryType) {
+                  return true;
+                }
+              }
+            }
           }
         }
         
         // Check in tags
-        return resource.tags.includes(selectedFilters.university);
+        return resource.tags.includes(queryType);
       });
     }
     
-    // Filter by level
-    if (selectedFilters.level) {
+    // Filter by university - now with proper name normalization
+    if (queryUniversity) {
+      // Normalize the query university name for comparison with slug-based data
+      const normalizedQueryUniversity = normalizeForComparison(queryUniversity);
+      
       filtered = filtered.filter(resource => {
-        const level = selectedFilters.level;
-        
-        // Check in CategoryPath
+        // Check in CategoryPath - most reliable method
         if (resource.CategoryPath && resource.CategoryPath.length > 0) {
           for (const catPath of resource.CategoryPath) {
-            if (catPath.level3 && 
-                catPath.level3.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase()) === level) {
-              return true;
+            // Match by level1/level2 structure
+            if (catPath.level1 === 'university' && catPath.level2) {
+              // Direct match against level2
+              if (catPath.level2 === normalizedQueryUniversity) {
+                return true;
+              }
+              
+              // Match against formatted university name
+              const formattedPathUniversity = catPath.level2
+                .replace(/-/g, ' ')
+                .replace(/\b(\w)/g, (l: string) => l.toUpperCase());
+                
+              if (formattedPathUniversity === queryUniversity) {
+                return true;
+              }
+              
+              // Handle "University of X" vs "X University" format differences
+              if (queryUniversity.startsWith('University of ')) {
+                const withoutPrefix = queryUniversity.replace('University of ', '');
+                if (formattedPathUniversity.includes(withoutPrefix)) {
+                  return true;
+                }
+              } else if (queryUniversity.endsWith(' University')) {
+                const withoutSuffix = queryUniversity.replace(' University', '');
+                if (formattedPathUniversity.includes(withoutSuffix)) {
+                  return true;
+                }
+              }
             }
           }
         }
         
-        // Check in categories
+        // Fallback to categories
         if (resource.categories && resource.categories.length > 0) {
           for (const cat of resource.categories) {
-            if (cat.category.name === level) {
+            if (cat.category.name === queryUniversity) {
               return true;
+            }
+            
+            // Check if the path matches university structure
+            if (cat.category.path?.startsWith('university/')) {
+              const pathParts = cat.category.path.split('/');
+              if (pathParts.length >= 2) {
+                const uniSlug = pathParts[1];
+                const formattedUni = uniSlug
+                  .replace(/-/g, ' ')
+                  .replace(/\b(\w)/g, (l: string) => l.toUpperCase());
+                  
+                if (formattedUni === queryUniversity) {
+                  return true;
+                }
+              }
             }
           }
         }
         
-        // Finally check in tags
-        return resource.tags.some(tag => tag === level);
+        // Fallback to tags
+        return resource.tags.includes(queryUniversity);
       });
     }
     
+    // Level filter has been removed as requested
+    
     // Apply sorting
-    switch (sortBy) {
+    switch (querySort) {
       case "popular":
         filtered.sort((a, b) => (b.viewCount || 0) - (a.viewCount || 0));
         break;
@@ -343,10 +454,10 @@ export default function ResourcesClient({ initialResources }: { initialResources
         // Assuming you have a date field, otherwise fall back to popularity
         filtered.sort((a, b) => (b.viewCount || 0) - (a.viewCount || 0));
         break;
-      case "priceAsc":
+      case "price-low":
         filtered.sort((a, b) => a.finalPrice - b.finalPrice);
         break;
-      case "priceDesc":
+      case "price-high":
         filtered.sort((a, b) => b.finalPrice - a.finalPrice);
         break;
       default:
@@ -356,16 +467,14 @@ export default function ResourcesClient({ initialResources }: { initialResources
     return filtered;
   };
 
-  // Apply filters when they change
+  // Apply filters when URL parameters change
   useEffect(() => {
     const filtered = applyFilters();
     setProducts(filtered);
-  }, [selectedFilters, sortBy, searchTerm, initialResources]);
+  }, [searchParams, initialResources]);
 
-  // Filter resources by category
-  const filteredResources = selectedCategory === "All" 
-    ? products 
-    : products.filter(r => r.tags.includes(selectedCategory));
+  // Get filtered resources directly
+  const filteredResources = products;
 
   // Sort options for the dropdown
   const sortOptions = [
@@ -375,7 +484,34 @@ export default function ResourcesClient({ initialResources }: { initialResources
     { value: "price-high", label: "Price: High to Low" },
   ];
 
-  // Add this function after the handleFilterChange function
+  // Function to update URL query parameters
+  const updateURLParams = (params: Record<string, string>) => {
+    const newParams = new URLSearchParams(searchParams.toString());
+    
+    // Update or remove each parameter
+    Object.entries(params).forEach(([key, value]) => {
+      if (value) {
+        newParams.set(key, value);
+      } else {
+        newParams.delete(key);
+      }
+    });
+    
+    // Create the new URL with updated parameters
+    const url = `${pathname}?${newParams.toString()}`;
+    router.push(url, { scroll: false });
+  };
+  
+  // Normalize a display name to be comparable with a slug form
+  const normalizeForComparison = (displayName: string): string => {
+    return displayName
+      .toLowerCase()
+      .replace(/\s+university$/i, '') // Remove trailing "university"
+      .replace(/university\s+of\s+/i, '') // Remove leading "university of"
+      .replace(/\s+/g, '-'); // Replace spaces with hyphens
+  };
+
+  // Add debug filter function for development
   const debugFilter = (filterId: FilterKey, value: string) => {
     console.log(`Debugging filter: ${filterId} = ${value}`);
     
@@ -423,27 +559,51 @@ export default function ResourcesClient({ initialResources }: { initialResources
     console.log(`Total matches for ${filterId}=${value}: ${matchCount}/${initialResources.length}`);
   };
 
-  // Update handleFilterChange to call the debug function
+  // Update filter handlers to use URL parameters
   const handleFilterChange = (filterId: FilterKey, value: string) => {
-    // Debug the filter before applying it
-    debugFilter(filterId, value);
+    // Toggle the filter (if already selected, remove it)
+    const newValue = selectedFilters[filterId] === value ? "" : value;
     
-    setSelectedFilters(prev => ({
-      ...prev,
-      [filterId]: prev[filterId] === value ? "" : value
-    }));
+    // Update URL with the new filter
+    updateURLParams({ [filterId]: newValue });
+    
+    // Reset to first page when filters change
+    setCurrentPage(1);
+  };
+  
+  // Handle category filter change
+  const handleCategoryChange = (category: string) => {
+    updateURLParams({ category: category === "All" ? "" : category });
+    // Reset to first page when category changes
+    setCurrentPage(1);
+  };
+  
+  // Handle search term change
+  const handleSearchChange = (term: string) => {
+    // Debounce search to avoid too many URL updates
+    clearTimeout(searchTimeout.current);
+    searchTimeout.current = setTimeout(() => {
+      updateURLParams({ search: term });
+      // Reset to first page when search changes
+      setCurrentPage(1);
+    }, 300);
+  };
+  
+  // Handle sort change
+  const handleSortChange = (sort: string) => {
+    updateURLParams({ sort });
+    // Reset to first page when sort changes
+    setCurrentPage(1);
+  };
+  
+  // Handle view mode change
+  const handleViewModeChange = (view: 'grid' | 'list') => {
+    updateURLParams({ view });
   };
 
   // Clear all filters
   const clearAllFilters = () => {
-    setSelectedFilters({
-      type: "",
-      university: "",
-      level: "",
-    });
-    setSelectedCategory("All");
-    setSearchTerm("");
-    setSortBy("popular");
+    router.push(pathname, { scroll: false });
   };
 
   // Grid item renderer
@@ -454,8 +614,8 @@ export default function ResourcesClient({ initialResources }: { initialResources
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.3 }}
     >
-      <Card className="h-full flex flex-col overflow-hidden hover:shadow-lg transition-shadow">
-        <div className="relative overflow-hidden">
+      <Card className="h-full flex flex-col overflow-hidden hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 border border-gray-100 rounded-xl">
+        <div className="relative overflow-hidden h-48">
           {resource.images && resource.images.length > 0 ? (
             <ProductCardGallery 
               images={resource.images} 
@@ -466,7 +626,7 @@ export default function ResourcesClient({ initialResources }: { initialResources
             <img
               src={resource.image || "/placeholder-image.jpg"}
               alt={resource.title}
-              className="aspect-video w-full object-cover transition-transform duration-300 hover:scale-105"
+              className="w-full h-full object-cover transition-transform duration-300 hover:scale-105"
             />
           )}
           {resource.hasDiscount && (
@@ -483,7 +643,7 @@ export default function ResourcesClient({ initialResources }: { initialResources
             <span className="text-xs text-gray-500">({resource.reviews} reviews)</span>
           </div>
           
-          <h3 className="font-semibold text-lg mb-1 line-clamp-2">{resource.title}</h3>
+          <h3 className="font-semibold text-lg mb-1 line-clamp-2 overflow-hidden text-ellipsis">{resource.title}</h3>
           
           <div className="flex flex-wrap gap-1 my-2">
             {resource.tags.slice(0, 3).map((tag) => (
@@ -496,35 +656,28 @@ export default function ResourcesClient({ initialResources }: { initialResources
             )}
           </div>
           
-          <p className="text-gray-500 text-sm line-clamp-2 mb-2">{resource.description}</p>
+          <p className="text-gray-600 text-sm line-clamp-2 mb-3 leading-relaxed">{resource.description}</p>
         </CardContent>
         
-        <CardFooter className="border-t pt-4">
-          <div className="w-full">
-            <div className="flex justify-between items-center">
-              <div>
-                {resource.hasDiscount ? (
-                  <>
-                    <span className="text-lg font-bold">${resource.finalPrice}</span>
-                    <span className="text-sm text-gray-400 line-through ml-2">
-                      ${resource.price}
-                    </span>
-                  </>
-                ) : (
-                  <span className="text-lg font-bold">${resource.price}</span>
-                )}
-              </div>
-              
-              <Link href={`/products/${resource.slug}`}>
-                <Button>View Details</Button>
-              </Link>
+        <CardFooter className="border-t pt-4 bg-gray-50/30">
+          <div className="w-full flex items-center justify-between">
+            <div>
+              {resource.hasDiscount ? (
+                <div className="flex flex-col">
+                  <span className="text-lg font-bold text-primary">${resource.finalPrice}</span>
+                  <span className="text-xs text-gray-500 line-through">${resource.price}</span>
+                </div>
+              ) : (
+                <span className="text-lg font-bold text-gray-900">${resource.price}</span>
+              )}
+              {resource.monthlyPrice > 0 && (
+                <span className="text-xs text-gray-600 block mt-0.5">or ${resource.monthlyPrice}/month</span>
+              )}
             </div>
             
-            {resource.monthlyPrice && (
-              <p className="text-xs text-gray-500 mt-1">
-                Or ${resource.monthlyPrice}/month for 3 months
-              </p>
-            )}
+            <Link href={`/products/${generateProductSlug(resource)}`}>
+              <Button size="sm" className="shadow-sm hover:shadow transition-all duration-200 font-medium px-4 py-2">View Details</Button>
+            </Link>
           </div>
         </CardFooter>
       </Card>
@@ -539,9 +692,9 @@ export default function ResourcesClient({ initialResources }: { initialResources
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.3 }}
     >
-      <Card className="overflow-hidden hover:shadow-lg transition-shadow">
+      <Card className="overflow-hidden hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 border border-gray-100 rounded-xl">
         <div className="flex flex-col md:flex-row">
-          <div className="relative md:w-1/4 h-48 md:h-auto">
+          <div className="relative md:w-1/4 h-48 md:h-48 overflow-hidden flex-shrink-0">
             {resource.images && resource.images.length > 0 ? (
               <ProductCardGallery 
                 images={resource.images} 
@@ -562,7 +715,7 @@ export default function ResourcesClient({ initialResources }: { initialResources
             )}
           </div>
           
-          <div className="flex-1 p-4 flex flex-col">
+          <div className="flex-1 p-5 flex flex-col min-w-0">
             <div className="flex justify-between items-start mb-2">
               <h3 className="font-semibold text-xl mb-1">{resource.title}</h3>
               <div className="flex items-center gap-1">
@@ -595,36 +748,35 @@ export default function ResourcesClient({ initialResources }: { initialResources
                   <span>{resource.chapters}</span>
                 </div>
               )}
-              {resource.questions && (
-                <div className="flex items-center gap-1">
-                  <Users className="w-4 h-4" />
-                  <span>{resource.questions}</span>
-                </div>
-              )}
-            </div>
-            
-            <div className="flex items-center justify-between mt-4 pt-4 border-t">
               <div>
                 {resource.hasDiscount ? (
-                  <>
-                    <span className="text-lg font-bold">${resource.finalPrice}</span>
-                    <span className="text-sm text-gray-400 line-through ml-2">
+                  <div className="flex items-baseline gap-2">
+                    <span className="text-lg font-bold text-primary">${resource.finalPrice}</span>
+                    <span className="text-sm text-gray-400 line-through">
                       ${resource.price}
                     </span>
-                    {resource.monthlyPrice && (
-                      <p className="text-xs text-gray-500 mt-1">
-                        Or ${resource.monthlyPrice}/month for 3 months
-                      </p>
-                    )}
-                  </>
+                  </div>
                 ) : (
-                  <span className="text-lg font-bold">${resource.price}</span>
+                  <span className="text-lg font-bold text-gray-900">${resource.price}</span>
+                )}
+                
+                {resource.monthlyPrice > 0 && (
+                  <p className="text-xs text-gray-600 mt-1">
+                    or ${resource.monthlyPrice}/month
+                  </p>
                 )}
               </div>
               
-              <Link href={`/products/${resource.slug}`}>
-                <Button>View Details</Button>
-              </Link>
+              <div className="flex gap-3 items-center">
+                <div className="flex items-center gap-1.5 text-sm text-gray-600 bg-gray-100 px-2.5 py-1 rounded-full">
+                  <Clock className="w-3.5 h-3.5" />
+                  <span>{resource.duration}</span>
+                </div>
+                
+                <Link href={`/products/${generateProductSlug(resource)}`}>
+                  <Button size="sm" className="shadow-sm hover:shadow transition-all duration-200 font-medium">View Details</Button>
+                </Link>
+              </div>
             </div>
           </div>
         </div>
@@ -632,11 +784,11 @@ export default function ResourcesClient({ initialResources }: { initialResources
     </motion.div>
   );
 
-  // Render active filters
+  // Render active filters using URL parameters
   const renderActiveFilters = () => {
     const activeFilters = Object.entries(selectedFilters).filter(([_, value]) => value !== "");
     
-    if (activeFilters.length === 0 && selectedCategory === "All" && !searchTerm) {
+    if (activeFilters.length === 0 && queryCategory === "All" && !querySearch) {
       return null;
     }
     
@@ -644,22 +796,22 @@ export default function ResourcesClient({ initialResources }: { initialResources
       <div className="flex flex-wrap items-center gap-2 mb-4">
         <span className="text-sm font-medium text-gray-700">Active filters:</span>
         
-        {selectedCategory !== "All" && (
+        {queryCategory !== "All" && (
           <Badge className="bg-primary/10 text-primary hover:bg-primary/20 flex items-center gap-1">
-            {selectedCategory}
+            {queryCategory}
             <X 
               className="w-3 h-3 cursor-pointer" 
-              onClick={() => setSelectedCategory("All")}
+              onClick={() => handleCategoryChange("All")}
             />
           </Badge>
         )}
         
-        {searchTerm && (
+        {querySearch && (
           <Badge className="bg-primary/10 text-primary hover:bg-primary/20 flex items-center gap-1">
-            Search: {searchTerm}
+            Search: {querySearch}
             <X 
               className="w-3 h-3 cursor-pointer" 
-              onClick={() => setSearchTerm("")}
+              onClick={() => updateURLParams({ search: "" })}
             />
           </Badge>
         )}
@@ -715,21 +867,21 @@ export default function ResourcesClient({ initialResources }: { initialResources
   }, []);
 
   return (
-    <div className="w-full">
+    <div className="w-full bg-gray-50 pb-16 pt-8">
       {/* Main grid layout with side menu on larger screens */}
-      <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-4 gap-8 max-w-7xl mx-auto px-4 sm:px-6">
         {/* Side menu with filters - only showing product types */}
         <div className="hidden lg:block">
           {/* Universities Filter Section */}
-          <div className="bg-white p-6 rounded-lg shadow-sm h-fit sticky top-4 mb-4">
-            <h3 className="font-medium text-base text-gray-900 mb-6">Universities</h3>
+          <div className="bg-white p-6 rounded-xl shadow-md h-fit sticky top-4 mb-4 border border-gray-100">
+            <h3 className="font-semibold text-base text-gray-900 mb-6 flex items-center"><span className="w-1.5 h-5 bg-primary rounded mr-2"></span>Universities</h3>
             
             <div className="space-y-1">
               <button 
                 onClick={() => handleFilterChange('university', "")}
                 className={cn(
                   "w-full text-left px-3 py-2 rounded-md text-sm transition-colors flex items-center justify-between",
-                  selectedFilters.university === "" 
+                  queryUniversity === "" 
                     ? "bg-gray-100 font-medium text-gray-900" 
                     : "text-gray-600 hover:bg-gray-50"
                 )}
@@ -738,49 +890,71 @@ export default function ResourcesClient({ initialResources }: { initialResources
                 <span className="text-xs text-gray-500">{initialResources.length}</span>
               </button>
               
-              {/* University list */}
-              {getUniversities().map(university => {
-                // Count resources for this university
+              {/* University list from database */}
+              {allUniversities.map(university => {
+                // Count resources for this university using the same advanced matching logic
+                const normalizedUniversity = normalizeForComparison(university);
                 const count = initialResources.filter(resource => {
-                  // Same filtering logic as before
-                  if (resource.CategoryPath?.some(catPath => 
-                    catPath.level1 === 'university' &&
-                    catPath.level2?.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase()) === university
-                  )) return true;
+                  // Check CategoryPath first
+                  if (resource.CategoryPath && resource.CategoryPath.length > 0) {
+                    for (const catPath of resource.CategoryPath) {
+                      if (catPath.level1 === 'university' && catPath.level2) {
+                        // Direct slug match
+                        if (catPath.level2 === normalizedUniversity) return true;
+                        
+                        // Format match
+                        const formattedUni = catPath.level2
+                          .replace(/-/g, ' ')
+                          .replace(/\b(\w)/g, (l: string) => l.toUpperCase());
+                        if (formattedUni === university) return true;
+                        
+                        // Handle format variations (University of X vs X University)
+                        if (university.startsWith('University of ')) {
+                          const withoutPrefix = university.replace('University of ', '');
+                          if (formattedUni.includes(withoutPrefix)) return true;
+                        } else if (university.endsWith(' University')) {
+                          const withoutSuffix = university.replace(' University', '');
+                          if (formattedUni.includes(withoutSuffix)) return true;
+                        }
+                      }
+                    }
+                  }
                   
+                  // Then check categories
                   if (resource.categories?.some(cat => cat.category.name === university)) return true;
                   
+                  // Finally check tags
                   return resource.tags.includes(university);
                 }).length;
                 
                 return (
-                  <button
-                    key={university}
-                    onClick={() => handleFilterChange('university', university)}
-                    className={cn(
-                      "w-full text-left px-3 py-2 rounded-md text-sm transition-colors flex items-center justify-between",
-                      selectedFilters.university === university 
-                        ? "bg-gray-100 font-medium text-gray-900" 
-                        : "text-gray-600 hover:bg-gray-50"
-                    )}
-                  >
-                    <span className="truncate pr-2">{university}</span>
-                    <span className="text-xs text-gray-500">{count}</span>
-                  </button>
+                  <Link key={university} href={{ pathname: '/products', query: { university } }}>
+                    <button
+                      className={cn(
+                        "w-full text-left px-3 py-2 rounded-md text-sm transition-colors flex items-center justify-between",
+                        queryUniversity === university 
+                          ? "bg-gray-100 font-medium text-gray-900" 
+                          : "text-gray-600 hover:bg-gray-50"
+                      )}
+                    >
+                      <span className="truncate pr-2">{university}</span>
+                      <span className="text-xs text-gray-500">{count}</span>
+                    </button>
+                  </Link>
                 );
               })}
             </div>
           </div>
           
           {/* Product Type Section - Only showing if level1 contains "product type" */}
-          <div className="bg-white p-6 rounded-lg shadow-sm h-fit mb-4">
-            <h3 className="font-medium text-base text-gray-900 mb-4">Product Type</h3>
+          <div className="bg-white p-6 rounded-xl shadow-md h-fit mb-4 border border-gray-100">
+            <h3 className="font-semibold text-base text-gray-900 mb-4 flex items-center"><span className="w-1.5 h-5 bg-primary rounded mr-2"></span>Product Type</h3>
             <div className="space-y-1">
               <button 
                 onClick={() => handleFilterChange('type', "")}
                 className={cn(
                   "w-full text-left px-3 py-2 rounded-md text-sm transition-colors",
-                  selectedFilters.type === "" 
+                  queryType === "" 
                     ? "bg-gray-100 font-medium text-gray-900" 
                     : "text-gray-600 hover:bg-gray-50"
                 )}
@@ -788,83 +962,83 @@ export default function ResourcesClient({ initialResources }: { initialResources
                 All Types
               </button>
               
-              {/* Show product types */}
-              {Array.from(new Set(initialResources.map(r => r.type))).filter(Boolean).map(type => (
-                <button
-                  key={type}
-                  onClick={() => handleFilterChange('type', type)}
-                  className={cn(
-                    "w-full text-left px-3 py-2 rounded-md text-sm transition-colors",
-                    selectedFilters.type === type 
-                      ? "bg-gray-100 font-medium text-gray-900" 
-                      : "text-gray-600 hover:bg-gray-50"
-                  )}
-                >
-                  {type}
-                </button>
-              ))}
-              
-              {/* Add subheading for levels */}
-              <div className="pt-4 pb-2 mt-2 border-t border-gray-100">
-                <h4 className="text-sm font-medium text-gray-600">Academic Levels</h4>
-              </div>
-              
-              <button 
-                onClick={() => handleFilterChange('level', "")}
-                className={cn(
-                  "w-full text-left px-3 py-2 rounded-md text-sm transition-colors",
-                  selectedFilters.level === "" 
-                    ? "bg-gray-100 font-medium text-gray-900" 
-                    : "text-gray-600 hover:bg-gray-50"
-                )}
-              >
-                All Levels
-              </button>
-              
-              {getLevels().map(level => (
-                <button
-                  key={level}
-                  onClick={() => handleFilterChange('level', level)}
-                  className={cn(
-                    "w-full text-left px-3 py-2 rounded-md text-sm transition-colors",
-                    selectedFilters.level === level 
-                      ? "bg-gray-100 font-medium text-gray-900" 
-                      : "text-gray-600 hover:bg-gray-50"
-                  )}
-                >
-                  {level}
-                </button>
-              ))}
+              {/* Show product types from database */}
+              {allProductTypes.map(type => {
+                // Count resources for this product type using normalized matching
+                const normalizedType = type.toLowerCase().replace(/\s+/g, '-');
+                const count = initialResources.filter(resource => {
+                  // Direct match with resource type
+                  if (resource.type === type) return true;
+                  
+                  // Check CategoryPath for product-type entries
+                  if (resource.CategoryPath && resource.CategoryPath.length > 0) {
+                    for (const catPath of resource.CategoryPath) {
+                      if (catPath.level1 === 'product-type' && catPath.level2) {
+                        // Direct slug match
+                        if (catPath.level2 === normalizedType) return true;
+                        
+                        // Format match
+                        const formattedType = catPath.level2
+                          .replace(/-/g, ' ')
+                          .replace(/\b(\w)/g, (l: string) => l.toUpperCase());
+                        if (formattedType === type) return true;
+                      }
+                    }
+                  }
+                  
+                  // Check categories
+                  if (resource.categories?.some(cat => cat.category.name === type)) return true;
+                  
+                  // Check tags
+                  return resource.tags.includes(type);
+                }).length;
+                
+                return (
+                  <button
+                    key={type}
+                    onClick={() => handleFilterChange('type', type)}
+                    className={cn(
+                      "w-full text-left px-3 py-2 rounded-md text-sm transition-colors flex items-center justify-between",
+                      queryType === type 
+                        ? "bg-gray-100 font-medium text-gray-900" 
+                        : "text-gray-600 hover:bg-gray-50"
+                    )}
+                  >
+                    <span className="truncate pr-2">{type}</span>
+                    <span className="text-xs text-gray-500">{count}</span>
+                  </button>
+                );
+              })}
             </div>
           </div>
         </div>
         
-        {/* Main content area */}
+        {/* Main content area - All content in a single column */}
         <div className="lg:col-span-3">
           {/* Search and Category bar */}
-          <div className="mb-6">
-            <div className="flex flex-col md:flex-row gap-4 mb-4">
+          <div>
+            <div className="flex flex-col md:flex-row gap-2 mb-2">
               <div className="relative flex-grow">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+                <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-primary/70" />
                 <Input
-                  placeholder="Search resources..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="pl-10"
+                  type="text"
+                  placeholder="Search study resources..."
+                  className="pl-12 pr-4 py-6 w-full rounded-full text-base border-gray-200 shadow-md hover:shadow-lg hover:border-gray-300 focus:border-primary focus:ring-2 focus:ring-primary/30 transition-all bg-white"
+                  value={querySearch}
+                  onChange={(e) => handleSearchChange(e.target.value)}
                 />
               </div>
+              
               <Button 
-                variant="outline"
-                className={cn(
-                  "flex items-center gap-2",
-                  showFilterPanel && "bg-primary/10"
-                )}
+                variant={showFilterPanel ? "default" : "outline"}
+                size="lg"
+                className="md:w-auto flex items-center justify-between gap-2 px-6 rounded-full shadow-md hover:shadow-lg transition-all duration-200 bg-white hover:bg-gray-50 border-gray-200 hover:border-gray-300"
                 onClick={() => setShowFilterPanel(!showFilterPanel)}
               >
-                <SlidersHorizontal className="h-4 w-4" />
-                <span>Filters</span>
+                <SlidersHorizontal className="h-5 w-5" />
+                <span className="font-medium">Filters</span>
                 {activeFiltersCount > 0 && (
-                  <Badge className="h-5 w-5 p-0 flex items-center justify-center text-xs rounded-full">
+                  <Badge className="ml-1 bg-white text-primary h-6 w-6 p-0 flex items-center justify-center text-xs rounded-full">
                     {activeFiltersCount}
                   </Badge>
                 )}
@@ -872,74 +1046,38 @@ export default function ResourcesClient({ initialResources }: { initialResources
             </div>
             
             {/* Category filter tabs */}
-            <div className="flex flex-wrap gap-2 mb-4 overflow-x-auto pb-2">
+            <div className="flex flex-wrap gap- overflow-x-auto pb-2">
               {categories.map((category) => (
                 <button
                   key={category}
-                  onClick={() => setSelectedCategory(category)}
-                  className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${
-                    selectedCategory === category
-                      ? "bg-primary text-white"
-                      : "bg-gray-100 hover:bg-gray-200 text-gray-800"
+                  onClick={() => handleCategoryChange(category)}
+                  className={`px-4 py-2 rounded-full text-sm font-medium transition-all duration-200 shadow-sm ${
+                    queryCategory === category
+                      ? "bg-primary text-white ring-2 ring-primary/20"
+                      : "bg-white hover:bg-gray-50 text-gray-800 border border-gray-200 hover:border-gray-300"
                   }`}
                 >
                   {category}
                 </button>
               ))}
             </div>
-            
-            {/* Active filters display */}
-            {renderActiveFilters()}
           </div>
           
-          {/* Expanded filter panel - show regardless of options count */}
-          {showFilterPanel && (
-            <div className="bg-white rounded-lg shadow-md p-4 mb-6">
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                {filterGroups.map(group => (
-                  <div key={group.id} className="space-y-2">
-                    <h3 className="font-medium text-sm">{group.name}</h3>
-                    {group.options.length > 0 ? (
-                      <div className="flex flex-wrap gap-2">
-                        {group.options.map(option => (
-                          <button
-                            key={option}
-                            onClick={() => handleFilterChange(group.id as FilterKey, option)}
-                            className={cn(
-                              "px-3 py-1 text-xs rounded-full border transition-colors",
-                              selectedFilters[group.id as FilterKey] === option
-                                ? "bg-primary text-white border-primary"
-                                : "bg-white hover:bg-gray-50 border-gray-200"
-                            )}
-                          >
-                            {option}
-                          </button>
-                        ))}
-                      </div>
-                    ) : (
-                      <p className="text-xs text-gray-500">No {group.name.toLowerCase()} options available</p>
-                    )}
-                  </div>
-                ))}
-              </div>
+          {/* Controls section */}
+          <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-2 bg-white p-4 rounded-xl shadow-sm border border-gray-100">
+            <div className="mb-3 md:mb-0">
+              <p className="text-sm font-medium text-gray-700">
+                Showing <span className="font-semibold text-primary">{filteredResources.length}</span> of {initialResources.length} resources
+              </p>
             </div>
-          )}
-          
-          {/* Controls row */}
-          <div className="flex flex-col sm:flex-row justify-between items-center mb-6 gap-4">
-            <div className="flex items-center gap-2">
-              <div className="text-sm text-gray-500">
-                Showing {filteredResources.length} of {initialResources.length} resources
-              </div>
-            </div>
-            
-            <div className="flex items-center gap-4">
+              
+            <div className="flex items-center gap-2 flex-wrap">
               {/* Sort dropdown */}
               <Popover>
                 <PopoverTrigger asChild>
-                  <Button variant="outline" className="flex items-center gap-2">
-                    <span>Sort: {sortOptions.find(opt => opt.value === sortBy)?.label}</span>
-                    <ChevronDown className="h-4 w-4" />
+                  <Button variant="outline" className="flex items-center gap-2 bg-white border-gray-200 hover:bg-gray-50 hover:border-gray-300 shadow-sm">
+                    <span className="font-medium">Sort: <span className="text-primary">{sortOptions.find(opt => opt.value === querySort)?.label}</span></span>
+                    <ChevronDown className="h-4 w-4 text-gray-500" />
                   </Button>
                 </PopoverTrigger>
                 <PopoverContent className="w-48 p-0">
@@ -949,9 +1087,9 @@ export default function ResourcesClient({ initialResources }: { initialResources
                         key={option.value}
                         className={cn(
                           "px-4 py-2 text-sm text-left hover:bg-gray-100 transition-colors",
-                          sortBy === option.value && "bg-primary/10 font-medium"
+                          querySort === option.value && "bg-primary/10 font-medium"
                         )}
-                        onClick={() => setSortBy(option.value)}
+                        onClick={() => handleSortChange(option.value)}
                       >
                         {option.label}
                       </button>
@@ -961,17 +1099,17 @@ export default function ResourcesClient({ initialResources }: { initialResources
               </Popover>
               
               {/* View mode toggle */}
-              <div className="flex items-center border rounded-md overflow-hidden">
+              <div className="flex items-center border border-gray-200 rounded-lg overflow-hidden shadow-sm">
                 <button
-                  className={`p-2 ${viewMode === 'grid' ? 'bg-primary text-white' : 'bg-white text-gray-600 hover:bg-gray-100'}`}
-                  onClick={() => setViewMode('grid')}
+                  className={`p-2.5 transition-all duration-200 ${queryView === 'grid' ? 'bg-primary text-white' : 'bg-white text-gray-600 hover:bg-gray-50'}`}
+                  onClick={() => handleViewModeChange('grid')}
                   aria-label="Grid view"
                 >
                   <Grid className="h-4 w-4" />
                 </button>
                 <button
-                  className={`p-2 ${viewMode === 'list' ? 'bg-primary text-white' : 'bg-white text-gray-600 hover:bg-gray-100'}`}
-                  onClick={() => setViewMode('list')}
+                  className={`p-2.5 transition-all duration-200 ${queryView === 'list' ? 'bg-primary text-white' : 'bg-white text-gray-600 hover:bg-gray-50'}`}
+                  onClick={() => handleViewModeChange('list')}
                   aria-label="List view"
                 >
                   <List className="h-4 w-4" />
@@ -980,29 +1118,95 @@ export default function ResourcesClient({ initialResources }: { initialResources
             </div>
           </div>
           
-          {/* Resources display */}
-          {filteredResources.length > 0 ? (
-            viewMode === 'grid' ? (
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-                {filteredResources.map(resource => renderGridItem(resource))}
-              </div>
+          {/* Resources display with pagination */}
+          <div>
+            {filteredResources.length > 0 ? (
+              <>
+                {queryView === 'grid' ? (
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                    {filteredResources
+                      .slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage)
+                      .map(resource => renderGridItem(resource))}
+                  </div>
+                ) : (
+                  <div className="flex flex-col gap-6">
+                    {filteredResources
+                      .slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage)
+                      .map(resource => renderListItem(resource))}
+                  </div>
+                )}
+                
+                {/* Pagination controls */}
+                {filteredResources.length > itemsPerPage && (
+                  <div className="flex justify-center mt-8 mb-4">
+                    <div className="flex items-center gap-2">
+                      <Button 
+                        variant="outline" 
+                        size="sm"
+                        onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                        disabled={currentPage === 1}
+                        className="px-4 py-2 bg-white border-gray-200 hover:bg-gray-50"
+                      >
+                        Previous
+                      </Button>
+                      
+                      {Array.from({ length: Math.ceil(filteredResources.length / itemsPerPage) }, (_, i) => i + 1)
+                        .filter(pageNum => {
+                          const maxPages = Math.ceil(filteredResources.length / itemsPerPage);
+                          // Show first, last, current and pages adjacent to current
+                          return pageNum === 1 || 
+                                 pageNum === maxPages || 
+                                 (pageNum >= currentPage - 1 && pageNum <= currentPage + 1);
+                        })
+                        .map((pageNum, index, array) => {
+                          // Show ellipsis when pages are skipped
+                          const prevPage = array[index - 1];
+                          const showEllipsisBefore = index > 0 && pageNum - prevPage > 1;
+                          
+                          return (
+                            <React.Fragment key={pageNum}>
+                              {showEllipsisBefore && (
+                                <span className="px-3 py-2 text-gray-400">...</span>
+                              )}
+                              <Button 
+                                variant={currentPage === pageNum ? "default" : "outline"}
+                                size="sm"
+                                onClick={() => setCurrentPage(pageNum)}
+                                className={`w-10 h-10 flex items-center justify-center p-0 ${currentPage === pageNum ? 'bg-primary text-white hover:bg-primary/90' : 'bg-white text-gray-700 hover:bg-gray-50'}`}
+                              >
+                                {pageNum}
+                              </Button>
+                            </React.Fragment>
+                          );
+                        })}
+                      
+                      <Button 
+                        variant="outline" 
+                        size="sm"
+                        onClick={() => setCurrentPage(prev => Math.min(prev + 1, Math.ceil(filteredResources.length / itemsPerPage)))}
+                        disabled={currentPage === Math.ceil(filteredResources.length / itemsPerPage)}
+                        className="px-4 py-2 bg-white border-gray-200 hover:bg-gray-50"
+                      >
+                        Next
+                      </Button>
+                    </div>
+                  </div>
+                )}
+              </>
             ) : (
-              <div className="flex flex-col gap-6">
-                {filteredResources.map(resource => renderListItem(resource))}
+              <div className="text-center py-12 bg-white rounded-xl shadow-sm p-8 border border-gray-100">
+                <p className="text-gray-500 mb-2">No resources found with the selected filters.</p>
+                <p className="text-sm text-gray-400 mb-4">Try adjusting your filters or search term.</p>
+                <Button 
+                  variant="outline" 
+                  onClick={clearAllFilters}
+                  className="bg-white hover:bg-gray-50 shadow-sm"
+                >
+                  Clear All Filters
+                </Button>
               </div>
-            )
-          ) : (
-            <div className="text-center py-12 bg-white rounded-lg shadow-sm p-8">
-              <p className="text-gray-500 mb-2">No resources found with the selected filters.</p>
-              <p className="text-sm text-gray-400 mb-4">Try adjusting your filters or search term.</p>
-              <Button 
-                variant="outline" 
-                onClick={clearAllFilters}
-              >
-                Clear All Filters
-              </Button>
-            </div>
-          )}
+            )}
+          </div>
         </div>
       </div>
     </div>
