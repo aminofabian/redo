@@ -36,7 +36,7 @@ interface DashboardData {
       image?: string | null;
     };
     productName?: string;
-    timestamp: Date;
+    timestamp: string;
     id: string;
   }>;
 }
@@ -248,7 +248,9 @@ export function DashboardOverview() {
                       )}
                     </p>
                     <p className="text-xs text-gray-500">
-                      {formatDistanceToNow(new Date(activity.timestamp), { addSuffix: true })}
+                      {typeof activity.timestamp === 'string' 
+                      ? formatDistanceToNow(new Date(activity.timestamp), { addSuffix: true })
+                      : 'recently'}
                     </p>
                   </div>
                 </div>

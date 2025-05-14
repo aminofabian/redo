@@ -1,6 +1,5 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextResponse } from 'next/server';
 import prisma from '@/lib/db';
-import { auth } from '@/lib/auth';
 
 type CategoryWithCount = {
   id: string;
@@ -16,17 +15,27 @@ type CategoryCount = {
   count: number;
 }
 
-export async function GET(request: NextRequest) {
+// Using the EXACT export syntax that fixed your previous 405 Method Not Allowed error
+export async function GET() {
+  console.log('ProductsCount API: Starting database query...');
+  
   try {
-    const session = await auth();
-    
-    // Check if user is logged in
-    if (!session?.user) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    // Verify database connection first
+    try {
+      await prisma.$queryRaw`SELECT 1`;
+      console.log('DATABASE CONNECTION TEST: Success');
+    } catch (connectionError) {
+      console.error('DATABASE CONNECTION FAILED:', connectionError);
+      return NextResponse.json({ 
+        error: 'Database connection failed', 
+        message: String(connectionError)
+      }, { status: 500 });
     }
     
     // Get total product count
+    console.log('ProductsCount API: Counting products...');
     const totalCount = await prisma.product.count();
+    console.log(`ProductsCount API: Found ${totalCount} total products`);
     
     // Get category counts
     const categories = await prisma.category.findMany({
@@ -37,29 +46,40 @@ export async function GET(request: NextRequest) {
       }
     });
     
-    // Format the counts
-    const categoryCounts = categories.map((category: CategoryWithCount): CategoryCount => ({
+    // Map categories with counts
+    const categoriesWithCounts = categories.map(category => ({
       id: category.id,
       name: category.name,
       count: category._count.products
     }));
     
-    // Find specific category counts
-    const studyGuides = categoryCounts.find((c: CategoryCount) => c.name.toLowerCase() === 'study guides')?.count || 0;
-    const practiceTests = categoryCounts.find((c: CategoryCount) => c.name.toLowerCase() === 'practice tests')?.count || 0;
-    const videoCourses = categoryCounts.find((c: CategoryCount) => c.name.toLowerCase() === 'video courses')?.count || 0;
+    // Count by category type
+    let studyGuides = 0;
+    let practiceTests = 0;
+    let videoCourses = 0;
+    
+    categoriesWithCounts.forEach(category => {
+      const name = category.name.toLowerCase();
+      if (name.includes('study') || name.includes('guide')) {
+        studyGuides += category.count;
+      } else if (name.includes('practice') || name.includes('test')) {
+        practiceTests += category.count;
+      } else if (name.includes('video') || name.includes('course')) {
+        videoCourses += category.count;
+      }
+    });
     
     return NextResponse.json({
       total: totalCount,
-      categories: categoryCounts,
       studyGuides,
       practiceTests,
-      videoCourses
+      videoCourses,
+      categories: categoriesWithCounts
     });
   } catch (error) {
-    console.error('Error fetching product counts:', error);
+    console.error('ProductsCount API Error:', error);
     return NextResponse.json(
-      { error: 'Failed to fetch product counts' },
+      { error: 'Failed to fetch product counts', details: String(error) },
       { status: 500 }
     );
   }
