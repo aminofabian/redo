@@ -350,6 +350,9 @@ export function CartSidebar({ priceId, price, description }: props) {
   const [paypalMainLoaded, setPaypalMainLoaded] = useState(false);
   const [paypalQuickLoaded, setPaypalQuickLoaded] = useState(false);
 
+  const [showCheckoutSheet, setShowCheckoutSheet] = useState(false);
+  const [isProcessingCheckout, setIsProcessingCheckout] = useState(false);
+
   const fetchPaypalClientId = async () => {
     try {
       const response = await fetch('/api/paypal-sdk');
@@ -454,80 +457,55 @@ export function CartSidebar({ priceId, price, description }: props) {
   };
 
   const handleProceedToPayment = async () => {
+    setIsProcessingCheckout(true);
+    
     try {
-      setShowEmailForm(false);
-      
-      console.log("Proceeding to payment with session:", {
-        status: sessionStatus,
-        isAuthenticated: sessionStatus === 'authenticated',
-        user: session?.user
-      });
-
-      if (sessionStatus !== 'authenticated' && !guestEmail) {
-        console.log("User is not authenticated and no guest email provided");
+      // Show email form for guests
+      if (!session?.user) {
         setShowEmailForm(true);
+        setShowCheckoutSheet(true);
+        setIsProcessingCheckout(false);
         return;
       }
-      
-      setIsLoading(true);
-      
-      const localCart = JSON.parse(localStorage.getItem('cart') || '[]');
-      
-      if (localCart.length === 0) {
-        toast.error('Your cart is empty');
-        setIsLoading(false);
-        return;
-      }
-      
-      const payload = {
-        items: localCart.map((item: CartItem) => ({
-          productId: item.id,
-          quantity: item.quantity
-        })),
-        isGuestCheckout: sessionStatus !== 'authenticated', 
-        userEmail: session?.user?.email || guestEmail || null
-      };
-      
-      console.log("Sending order payload:", payload);
-      
-      const response = await fetch('/api/order', {
+
+      // Fetch payment gateways
+      const response = await fetch('/api/payment-gateways');
+      if (!response.ok) throw new Error('Failed to fetch payment gateways');
+      const data = await response.json();
+      setPaymentGateways(data.gateways);
+
+      // Create an order with properly formatted product IDs
+      const orderResponse = await fetch('/api/order', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload)
+        body: JSON.stringify({
+          items: items.map(item => ({
+            productId: item.id,
+            quantity: item.quantity || 1,
+            price: typeof item.price === 'string' ? parseFloat(item.price) : item.price
+          })),
+          totalPrice: parseFloat(calculateFinalPrice())
+        })
       });
-      
-      const responseText = await response.text();
-      let responseData;
-      
-      try {
-        responseData = JSON.parse(responseText);
-      } catch (e) {
-        console.error('Failed to parse response as JSON:', responseText);
-        toast.error('Server returned an invalid response');
-        return;
+
+      if (!orderResponse.ok) throw new Error('Failed to create order');
+      const orderData = await orderResponse.json();
+      setOrderId(orderData.id);
+      localStorage.setItem('orderId', orderData.id);
+
+      // Pre-fetch PayPal configuration if PayPal is available
+      const hasPaypal = data.gateways.find((gateway: PaymentGateway) => gateway.name === 'PAYPAL');
+      if (hasPaypal) {
+        await fetchPaypalClientId();
       }
 
-      if (!response.ok) {
-        const errorMessage = responseData.error || responseData.details || 'Failed to create order';
-        console.error('Order creation failed:', errorMessage);
-        toast.error(errorMessage);
-        return;
-      }
-
-      const { orderId } = responseData;
-      setOrderId(orderId);
-      console.log('Order created successfully:', orderId);
-
-      await fetchPaymentGateways();
-
-      await fetchIdsAndFinalPrice(orderId);
-
+      // Open checkout sheet
+      setShowCheckoutSheet(true);
     } catch (error) {
-      console.error('Checkout error:', error);
-      const errorMessage = error instanceof Error ? error.message : 'Failed to proceed to checkout';
-      toast.error(errorMessage);
+      console.error('Error in checkout process:', error);
+      toast.error('Failed to initialize checkout. Please try again.');
     } finally {
-      setIsLoading(false);
+      setIsProcessingCheckout(false);
     }
   };
 
@@ -558,13 +536,35 @@ export function CartSidebar({ priceId, price, description }: props) {
     return true;
   };
 
-  const handleEmailSubmit = (e: React.FormEvent) => {
+  const handleEmailSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    console.log('Email submit form triggered with:', guestEmail);
     
-    if (validateEmail(guestEmail)) {
-      setShowEmailForm(false);
-      handleProceedToPayment();
+    // Basic validation
+    if (!guestEmail || !guestEmail.includes('@')) {
+      setEmailError('Please enter a valid email address');
+      return;
+    }
+    
+    setEmailError('');
+    setShowEmailForm(false);
+    setIsProcessingCheckout(true);
+    
+    try {
+      // Create guest user session or store email
+      await fetch('/api/guest-checkout', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: guestEmail })
+      });
+      
+      // Continue with checkout process - fetch payment methods
+      await fetchPaymentGateways();
+    } catch (error) {
+      console.error('Error creating guest checkout:', error);
+      toast.error('Something went wrong. Please try again.');
+      setShowEmailForm(true);
+    } finally {
+      setIsProcessingCheckout(false);
     }
   };
 
@@ -668,10 +668,13 @@ export function CartSidebar({ priceId, price, description }: props) {
 
   const handleRegularItemsCheckout = () => {
     console.log("Checking out regular items only");
-    // Filter out package items from the cart
-    const regularItems = items.filter(item => 
-      !currentPackage?.items.some(pkg => pkg.id === item.id)
-    );
+    // Filter out package items from the cart by exact ID comparison
+    const regularItems = items.filter(item => {
+      // Check if this cart item ID exists in any package items
+      return !currentPackage?.items?.some(
+        packageItem => packageItem.id?.toString() === item.id?.toString()
+      );
+    });
     
     const regularTotal = regularItems.reduce((sum, item) => {
       const price = typeof item.price === 'string' ? parseFloat(item.price) : item.price;
@@ -683,15 +686,75 @@ export function CartSidebar({ priceId, price, description }: props) {
   };
 
   // Base checkout function that handles different item selections
-  const handleCheckoutWithItems = (checkoutItems, total, isBundle) => {
+  const handleCheckoutWithItems = (
+    checkoutItems: CartItem[],
+    total: number,
+    isBundle: boolean
+  ) => {
     // Store the selected items in session/local storage or state
     sessionStorage.setItem('checkoutItems', JSON.stringify(checkoutItems));
     sessionStorage.setItem('checkoutTotal', total.toString());
     sessionStorage.setItem('isBundle', isBundle.toString());
     
     // Now continue with your existing checkout flow
-    // You'll need to modify your payment processing to use these stored items
     handleProceedToPayment();
+  };
+
+  const handleStripeCheckout = async () => {
+    setIsProcessingCheckout(true);
+
+    try {
+      console.log("Initializing checkout with Stripe");
+      
+      // Format cart items properly for Stripe
+      const cartItems = items.map(item => ({
+        productId: item.id,
+        quantity: item.quantity || 1,
+        price: typeof item.price === 'string' ? parseFloat(item.price) : item.price,
+        title: item.title || 'Product'
+      }));
+      
+      // Create checkout session with properly formatted data
+      const response = await fetch('/api/stripe/checkout-sessions/create', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          cartItems,
+          orderId: orderId || 'unknown',
+          customerEmail: session?.user?.email || guestEmail,
+          totalAmount: parseFloat(calculateFinalPrice()),
+          hasPackageDiscount: !!currentPackage?.items?.length,
+          metadata: {
+            orderId: orderId || 'unknown'
+          }
+        })
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        console.error('Stripe checkout error details:', errorData);
+        throw new Error(`Failed to create checkout session: ${response.status}`);
+      }
+      
+      const { sessionId } = await response.json();
+      
+      // Redirect to Stripe checkout
+      const stripe = await stripePromise;
+      if (!stripe) {
+        throw new Error('Stripe not initialized');
+      }
+      
+      const { error } = await stripe.redirectToCheckout({ sessionId });
+      
+      if (error) {
+        throw error;
+      }
+    } catch (error) {
+      console.error('Error in Stripe checkout:', error);
+      toast.error('Failed to initialize Stripe checkout. Please try again.');
+    } finally {
+      setIsProcessingCheckout(false);
+    }
   };
 
   return (
@@ -889,12 +952,19 @@ export function CartSidebar({ priceId, price, description }: props) {
             <div className="flex justify-between font-medium">
               <span>Regular Items:</span>
               <span>${items.reduce((sum, item) => {
-                // Only sum non-package items
-                if (!currentPackage?.items.some(pkg => pkg.id === item.id)) {
-                  const price = typeof item.price === 'string' ? parseFloat(item.price) : item.price;
-                  return sum + price;
+                // Check if this item exists in the package by ID
+                const isInPackage = currentPackage?.items?.some(
+                  packageItem => packageItem.id?.toString() === item.id?.toString()
+                );
+                
+                // If item is in package, don't count it here since it will be counted in the package
+                if (isInPackage) {
+                  return sum;
                 }
-                return sum;
+                
+                // Only add non-package items
+                const price = typeof item.price === 'string' ? parseFloat(item.price) : item.price;
+                return sum + price;
               }, 0).toFixed(2)}</span>
             </div>
           )}
@@ -930,6 +1000,113 @@ export function CartSidebar({ priceId, price, description }: props) {
           </div>
         </div>
       </div>
+
+      {/* Add this checkout sheet just before the closing fragment */}
+      <Sheet 
+        open={showCheckoutSheet} 
+        onOpenChange={(open) => setShowCheckoutSheet(open)}
+      >
+        <SheetContent side="right" className="w-full sm:max-w-md">
+          <SheetHeader>
+            <SheetTitle>
+              {!session?.user && showEmailForm ? 'Enter Your Email' : 'Select Payment Method'}
+            </SheetTitle>
+          </SheetHeader>
+          
+          <div className="mt-6">
+            {!session?.user && showEmailForm ? (
+              <form onSubmit={handleEmailSubmit} className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="email">Email Address</Label>
+                  <Input
+                    id="email"
+                    type="email"
+                    placeholder="your@email.com"
+                    value={guestEmail}
+                    onChange={(e) => setGuestEmail(e.target.value)}
+                    className={emailError ? "border-red-500" : ""}
+                  />
+                  {emailError && (
+                    <p className="text-sm text-red-500">{emailError}</p>
+                  )}
+                </div>
+                <Button type="submit" className="w-full">
+                  Continue to Payment
+                </Button>
+              </form>
+            ) : isProcessingCheckout ? (
+              <div className="flex justify-center py-8">
+                <Loader2 className="h-8 w-8 animate-spin" />
+              </div>
+            ) : paymentGateways.length === 0 ? (
+              <p className="text-center text-gray-500">No payment methods available</p>
+            ) : (
+              <div className="space-y-4">
+                {paymentGateways.map((gateway) => (
+                  <div 
+                    key={gateway.id}
+                    className="border rounded-lg p-4 cursor-pointer hover:bg-gray-50"
+                  >
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <h3 className="font-medium">{gateway.name}</h3>
+
+                        {gateway.isActive && gateway.name === 'PAYPAL' && paypalOptions.clientId && (
+                          <div className="mt-2">
+                            <div className="flex flex-col items-center gap-4">
+                              <h1 className="text-xl font-semibold">PayPal Checkout</h1>
+                              <PayPalButtonWrapper 
+                                clientId={paypalOptions.clientId}
+                                onLoad={() => setPaypalMainLoaded(true)}
+                              />
+                            </div>
+                          </div>
+                        )}
+                          
+                        {gateway.isActive && gateway.name === 'STRIPE' && (
+                         <div className="flex flex-col items-center gap-4">
+                           <h1 className="text-xl font-semibold">Stripe Checkout</h1>
+                           <button
+                             onClick={handleStripeCheckout}
+                             disabled={isProcessingCheckout}
+                             className="bg-indigo-600 hover:bg-indigo-700 text-white font-medium py-2 px-6 rounded-md shadow-lg transition duration-300 ease-in-out disabled:opacity-50"
+                           >
+                             {isProcessingCheckout ? 'Processing...' : 'Pay with Stripe'}
+                           </button>
+                         </div>
+                        )}
+                        
+                        {gateway.businessName && (
+                          <p className="text-sm text-gray-500">
+                            Powered by {gateway.businessName}
+                          </p>
+                        )}
+                      </div>
+                      
+                      <div className="text-sm">
+                        {gateway.environment === 'test' && (
+                          <span className="bg-yellow-100 text-yellow-800 px-2 py-1 rounded text-xs">
+                            Test Mode
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                    
+                    <div className="mt-2 text-sm text-gray-500 flex gap-2">
+                      {gateway.supportsCreditCards && (
+                        <span className="bg-gray-100 px-2 py-1 rounded">Credit Card</span>
+                      )}
+                      {gateway.supportsDirectDebit && (
+                        <span className="bg-gray-100 px-2 py-1 rounded">Direct Debit</span>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        </SheetContent>
+      </Sheet>
     </>
   );
 } 
