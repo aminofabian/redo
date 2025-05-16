@@ -113,23 +113,11 @@ export default function HomeClient({ initialProducts }: HomeClientProps) {
             <Hero />
           </Suspense>
           
-          {/* Product Categories Bar - New Addition */}
-          <div className="bg-gray-100 py-4 mb-8">
-            <div className="container mx-auto px-4">
-              <div className="flex justify-center space-x-8 overflow-x-auto">
-                <a href="#" className="whitespace-nowrap px-4 py-2 font-medium hover:text-blue-600">New Arrivals</a>
-                <a href="#" className="whitespace-nowrap px-4 py-2 font-medium hover:text-blue-600">Best Sellers</a>
-                <a href="#" className="whitespace-nowrap px-4 py-2 font-medium hover:text-blue-600">Study Guides</a>
-                <a href="#" className="whitespace-nowrap px-4 py-2 font-medium hover:text-blue-600">Clinical Resources</a>
-                <a href="#" className="whitespace-nowrap px-4 py-2 font-medium hover:text-blue-600">NCLEX Prep</a>
-                <a href="#" className="whitespace-nowrap px-4 py-2 font-medium hover:text-blue-600">Special Offers</a>
-              </div>
-            </div>
-          </div>
+        
           
           {/* Featured Products Section - Moved up */}
           <section className="container mx-auto px-4 mb-12">
-            <h2 className="text-3xl font-bold text-center mb-8">Featured Products</h2>
+            {/* <h2 className="text-3xl font-bold text-center mb-8">Featured Products</h2> */}
             <Suspense fallback={<div>Loading...</div>}>
               {/* @ts-ignore - Products will be passed from parent */}
               <FeaturedResourcesWrapper products={initialProducts} />

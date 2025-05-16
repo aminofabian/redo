@@ -74,29 +74,22 @@ const UniversitySlider: React.FC<UniversitySliderProps> = ({ universities }) => 
 
   return (
     <motion.div 
-      className="w-full overflow-hidden relative rounded-xl bg-white/90 p-6 shadow-sm border border-gray-100 backdrop-blur-sm"
+      className="w-full overflow-hidden relative rounded-xl bg-white/90 p-4 shadow-sm border border-gray-100 backdrop-blur-sm"
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       transition={{ duration: 0.5 }}
     >
-      <h2 className="text-xl font-semibold text-gray-800 mb-6 text-center flex items-center justify-center">
-        <span className="inline-block pb-1 border-b-2 border-[#5d8e9a] flex items-center">
-          <GraduationCap className="mr-2 h-5 w-5 text-[#5d8e9a]" />
-          Trusted By Leading Nursing Schools
-        </span>
-      </h2>
-      
       <div 
         ref={sliderRef}
         className="flex overflow-x-auto scrollbar-hide snap-x snap-mandatory scroll-smooth"
         style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
       >
-        <div className="flex space-x-6 slider-content pl-2">
+        <div className="flex space-x-4 slider-content pl-2">
           {universities.map((university) => (
             <motion.div
               key={university.id}
-              className="shrink-0 w-[220px] md:w-[240px] bg-white rounded-xl overflow-hidden shadow-sm hover:shadow-lg transition-all duration-500 cursor-pointer border border-gray-100 relative group"
-              whileHover={{ y: -8, scale: 1.02 }}
+              className="shrink-0 w-[160px] md:w-[180px] bg-white rounded-lg overflow-hidden shadow-sm hover:shadow-lg transition-all duration-500 cursor-pointer border border-gray-100 relative group"
+              whileHover={{ y: -5, scale: 1.02 }}
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ 
@@ -106,20 +99,20 @@ const UniversitySlider: React.FC<UniversitySliderProps> = ({ universities }) => 
               }}
             >
               <div className="absolute inset-0 bg-gradient-to-b from-[#5d8e9a]/0 to-[#5d8e9a]/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-              <div className="p-5 h-[120px] flex items-center justify-center bg-white">
+              <div className="p-3 h-[90px] flex items-center justify-center bg-white">
                 <Image
                   src={university.imagePath}
                   alt={university.name}
-                  width={140}
-                  height={100}
-                  className="object-contain w-[140px] h-[100px] group-hover:scale-110 transition-transform duration-500"
+                  width={100}
+                  height={70}
+                  className="object-contain w-[100px] h-[70px] group-hover:scale-110 transition-transform duration-500"
                   onError={(e) => {
                     (e.target as HTMLImageElement).src = '/images/default-category.jpg'
                   }}
                 />
               </div>
-              <div className="p-3 bg-gray-50 border-t border-gray-100 h-[50px] flex items-center justify-center group-hover:bg-[#5d8e9a]/10 transition-colors duration-500">
-                <h3 className="text-sm font-semibold text-gray-800 text-center truncate w-full">
+              <div className="p-2 bg-gray-50 border-t border-gray-100 h-[40px] flex items-center justify-center group-hover:bg-[#5d8e9a]/10 transition-colors duration-500">
+                <h3 className="text-xs font-semibold text-gray-800 text-center truncate w-full">
                   {university.name}
                 </h3>
               </div>
