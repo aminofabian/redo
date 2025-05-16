@@ -14,6 +14,8 @@ import FloatingButtons from "@/components/ui/FloatingButtons";
 import HeroWrapper from "@/components/HeroWrapper";
 import { type ProductWithImages } from "@/types/db";
 import Hero from "./ui/Hero";
+import UniversitySlider from "./ui/hero/UniversitySlider";
+import { nursingSchools } from "./ui/hero/data";
 
 // Dynamic imports for components that need client-only rendering
 const FeaturedResourcesWrapper = dynamic(() => import('@/components/FeaturedResourcesWrapper'), {
@@ -123,17 +125,24 @@ export default function HomeClient({ initialProducts }: HomeClientProps) {
               <FeaturedResourcesWrapper products={initialProducts} />
             </Suspense>
           </section>
+
+          <section className="mb-12">
+            <div className="container mx-auto px-4">
+              <h2 className="text-3xl font-bold text-center mb-8">Shop by Category</h2>
+              <UniversitySlider universities={nursingSchools} />
+            </div>
+          </section>
           
           {/* Categories */}
-          <section className="mb-12">
+          {/* <section className="mb-12">
             <div className="container mx-auto px-4">
               <h2 className="text-3xl font-bold text-center mb-8">Shop by Category</h2>
               <CategoryShowcase />
             </div>
-          </section>
+          </section> */}
           
           {/* Popular Products Section */}
-          <DiscoverNursing products={initialProducts.filter(p => p.featured)} />
+          {/* <DiscoverNursing products={initialProducts.filter(p => p.featured)} /> */}
           
           {/* Benefits/Features Section */}
           <section className="bg-gray-50 py-12 mb-12">
