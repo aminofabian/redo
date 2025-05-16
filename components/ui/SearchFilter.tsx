@@ -1,40 +1,87 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Search, Filter, GraduationCap, X } from "lucide-react";
 import { Button } from "./button";
 import { motion, AnimatePresence } from "framer-motion";
-
-// University data type
-interface University {
-  id: string;
-  name: string;
-  imagePath: string;
-}
+import { useRouter, useSearchParams } from "next/navigation";
 
 interface SearchFilterProps {
-  universities: University[];
+  universities?: string[]; // Accept formatted university names
 }
 
-const SearchFilter: React.FC<SearchFilterProps> = ({ universities }) => {
-  const [searchQuery, setSearchQuery] = useState("");
+const SearchFilter: React.FC<SearchFilterProps> = ({ universities: propUniversities }) => {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  
+  const [universities, setUniversities] = useState<string[]>(propUniversities || []);
+  const [loading, setLoading] = useState(!propUniversities);
+  const [searchQuery, setSearchQuery] = useState(searchParams.get("q") || "");
   const [showFilters, setShowFilters] = useState(false);
-  const [selectedUniversity, setSelectedUniversity] = useState<string | null>(null);
+  const [selectedUniversity, setSelectedUniversity] = useState<string | null>(
+    searchParams.get("university")
+  );
 
-  const handleUniversitySelect = (id: string) => {
-    setSelectedUniversity(prev => prev === id ? null : id);
-    // In a real app, you would trigger the filter/search here
+  // Fetch universities from database only if not provided via props
+  useEffect(() => {
+    if (propUniversities) return;
+    
+    const fetchUniversities = async () => {
+      try {
+        const response = await fetch('/api/universities');
+        if (!response.ok) throw new Error('Failed to fetch universities');
+        const data = await response.json();
+        
+        // Format universities the same way as in products page
+        const formattedUniversities = data.map((uni: any) => {
+          if (!uni || !uni.level2) return null;
+          
+          // Format the university name from the slug in level2
+          const universitySlug = uni.level2;
+          let universityName = universitySlug
+            .replace(/-/g, ' ') // Replace hyphens with spaces
+            .replace(/\buniversity\s+of\b/i, 'University of') // Fix "university of" capitalization
+            .replace(/\b(\w)/g, (l: string) => l.toUpperCase()); // Capitalize all words
+          
+          // Special formatting for universities that start with "University"
+          return universityName.startsWith('University ') 
+            ? universityName
+            : (universityName.toLowerCase().includes('university') 
+                ? universityName 
+                : `${universityName} University`);
+        }).filter(Boolean).sort();
+        
+        setUniversities(formattedUniversities);
+      } catch (error) {
+        console.error('Error fetching universities:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchUniversities();
+  }, [propUniversities]);
+
+  const handleUniversitySelect = (name: string) => {
+    setSelectedUniversity(prev => prev === name ? null : name);
   };
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
-    // In a real app, you would trigger the search with the query and filters
-    console.log("Searching for:", searchQuery, "University:", selectedUniversity);
+    
+    // Build the query parameters for search
+    const params = new URLSearchParams();
+    if (searchQuery) params.set("q", searchQuery);
+    if (selectedUniversity) params.set("university", selectedUniversity);
+    
+    // Navigate using the router with search parameters
+    router.push(`/?${params.toString()}`);
   };
 
   const clearSearch = () => {
     setSearchQuery("");
     setSelectedUniversity(null);
+    router.push("/");
   };
 
   return (
@@ -47,7 +94,7 @@ const SearchFilter: React.FC<SearchFilterProps> = ({ universities }) => {
     >
       <form onSubmit={handleSearch} className="space-y-6">
         <div className="flex flex-col md:flex-row gap-4">
-          {/* Search input - now larger */}
+          {/* Search input */}
           <div className="relative flex-grow">
             <div className="absolute inset-y-0 left-0 flex items-center pl-4 pointer-events-none">
               <Search className="w-6 h-6 text-[#5d8e9a]" />
@@ -70,7 +117,7 @@ const SearchFilter: React.FC<SearchFilterProps> = ({ universities }) => {
             )}
           </div>
 
-          {/* Filter toggle button - now larger */}
+          {/* Filter toggle button */}
           <Button 
             type="button"
             variant="outline"
@@ -81,7 +128,7 @@ const SearchFilter: React.FC<SearchFilterProps> = ({ universities }) => {
             Filter by University
           </Button>
 
-          {/* Search button - now larger */}
+          {/* Search button */}
           <Button 
             type="submit"
             className="bg-gradient-to-r from-[#5d8e9a] to-[#3a6b79] hover:from-[#4d7e8a] hover:to-[#2a5b69] text-white px-6 h-14 text-base font-medium shadow-md hover:shadow-lg transition-all duration-300"
@@ -106,22 +153,26 @@ const SearchFilter: React.FC<SearchFilterProps> = ({ universities }) => {
                   <GraduationCap className="w-5 h-5 mr-2 text-[#5d8e9a]" />
                   Select University
                 </h3>
-                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
-                  {universities.map((university) => (
-                    <button
-                      key={university.id}
-                      type="button"
-                      onClick={() => handleUniversitySelect(university.id)}
-                      className={`text-left text-sm px-4 py-3 rounded-md transition-all duration-200 ${
-                        selectedUniversity === university.id
-                          ? 'bg-[#5d8e9a]/20 text-[#5d8e9a] font-medium shadow-sm'
-                          : 'hover:bg-gray-100 text-gray-700 hover:shadow-sm'
-                      }`}
-                    >
-                      {university.name}
-                    </button>
-                  ))}
-                </div>
+                {loading ? (
+                  <div className="text-center py-4 text-gray-500">Loading universities...</div>
+                ) : (
+                  <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
+                    {universities.map((university, index) => (
+                      <button
+                        key={index}
+                        type="button"
+                        onClick={() => handleUniversitySelect(university)}
+                        className={`text-left text-sm px-4 py-3 rounded-md transition-all duration-200 ${
+                          selectedUniversity === university
+                            ? 'bg-[#5d8e9a]/20 text-[#5d8e9a] font-medium shadow-sm'
+                            : 'hover:bg-gray-100 text-gray-700 hover:shadow-sm'
+                        }`}
+                      >
+                        {university}
+                      </button>
+                    ))}
+                  </div>
+                )}
               </div>
             </motion.div>
           )}

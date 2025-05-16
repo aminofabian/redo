@@ -1,16 +1,57 @@
 "use client";
 
 import { motion } from "framer-motion";
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { Sparkles } from "lucide-react";
 import SearchFilter from "../SearchFilter";
 import Testimonials from "./Testimonials";
 import EnhancedStats from "./EnhancedStats";
 import TriggerSection from "./TriggerSection";
 import UniversitySlider from "./UniversitySlider";
-import { nursingSchools } from "./data";
 
 const Hero = () => {
+  const [universities, setUniversities] = useState<string[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  // Fetch universities from database
+  useEffect(() => {
+    const fetchUniversities = async () => {
+      try {
+        const response = await fetch('/api/universities');
+        if (!response.ok) throw new Error('Failed to fetch universities');
+        const data = await response.json();
+        
+        // Format university names from the database data
+        const formattedUniversities = data.map((uni: any) => {
+          if (!uni || !uni.level2) return null;
+          
+          // Format the university name from the slug in level2
+          const universitySlug = uni.level2;
+          let universityName = universitySlug
+            .replace(/-/g, ' ') // Replace hyphens with spaces
+            .replace(/\buniversity\s+of\b/i, 'University of') // Fix capitalization
+            .replace(/\b(\w)/g, (l: string) => l.toUpperCase()); // Capitalize all words
+          
+          // Special formatting for universities that start with "University"
+          return universityName.startsWith('University ') 
+            ? universityName
+            : (universityName.toLowerCase().includes('university') 
+                ? universityName 
+                : `${universityName} University`);
+        }).filter(Boolean).sort();
+        
+        setUniversities(formattedUniversities);
+      } catch (error) {
+        console.error('Error fetching universities:', error);
+        setUniversities([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchUniversities();
+  }, []);
+
   return (
     <div className="relative bg-white overflow-hidden">
       {/* Enhanced background elements */}
@@ -83,7 +124,7 @@ const Hero = () => {
             <div className="absolute inset-0 bg-green-100 rounded-xl blur-xl -z-10 transform scale-105"></div>
             <div className="p-0.5 bg-yellow-200 rounded-xl">
               <div className="bg-white rounded-xl shadow-md">
-                <SearchFilter universities={nursingSchools} />
+                <SearchFilter universities={universities} />
               </div>
             </div>
           </motion.div>

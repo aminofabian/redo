@@ -1,9 +1,3 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
-
 generator client {
   provider = "prisma-client-js"
   output   = "../src/generated/client"
@@ -31,15 +25,14 @@ model Account {
   type              String
   provider          String
   providerAccountId String
-  refresh_token     String? @db.Text
-  access_token      String? @db.Text
+  refresh_token     String?
+  access_token      String?
   expires_at        Int?
   token_type        String?
   scope             String?
-  id_token          String? @db.Text
+  id_token          String?
   session_state     String?
-
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user              User    @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([provider, providerAccountId])
   @@index([userId])
@@ -47,17 +40,17 @@ model Account {
 
 model User {
   id                 String     @id @default(cuid())
-  name               String?
+  firstName          String?
+  lastName           String?
   email              String     @unique
-  emailVerified      DateTime?
   image              String?
   password           String?
+  isTwoFactorEnabled Boolean    @default(false)
+  emailVerified      DateTime?
+  name               String?
   role               String     @default("ADMIN")
   accounts           Account[]
   sessions           Session[]
-  firstName          String?
-  lastName           String?
-  isTwoFactorEnabled Boolean    @default(false)
   reviews            Review[]
   createdProducts    Product[]  @relation("CreatedProducts")
   purchases          Purchase[]
@@ -86,52 +79,38 @@ model PasswordResetToken {
 }
 
 model Product {
-  id              BigInt   @id @default(autoincrement())
+  id              Int               @id @default(autoincrement())
   title           String
-  slug            String   @unique
-  description     String?  @db.Text
-  price           Decimal  @db.Decimal(10, 2)
-  discountAmount  Decimal? @db.Decimal(10, 2)
+  slug            String            @unique
+  description     String?
+  price           Decimal           @db.Decimal(10, 2)
+  discountAmount  Decimal?          @db.Decimal(10, 2)
   discountPercent Int?
-  discountType    String? // "percent" or "amount"
-  finalPrice      Decimal  @db.Decimal(10, 2)
-
-  // Access Settings
-  accessDuration Int? // in days, null means unlimited
-  downloadLimit  Int? // null means unlimited
-
-  // Status
-  inStock     Boolean @default(true)
-  isPublished Boolean @default(false)
-  featured    Boolean @default(false)
-
-  // Order items
-  orderItems OrderItem[]
-
-  // Media & Downloads
-  images      ProductImage[]
-  downloadUrl String? // Google Drive sharing URL
-  fileType    String? // Type of document (pdf, doc, etc)
-  fileSize    String? // Size of the file
-  downloads   Download[]
-
-  // Relationships
-  categories   CategoryProduct[]
-  reviews      Review[]
-  purchases    Purchase[]
-  CategoryPath CategoryPath[]
-
-  // Analytics & Metrics
-  viewCount     Int     @default(0)
-  downloadCount Int     @default(0)
-  purchaseCount Int     @default(0)
-  totalRevenue  Decimal @default(0) @db.Decimal(10, 2)
-
-  // Metadata
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-  createdBy   User?    @relation("CreatedProducts", fields: [createdById], references: [id])
-  createdById String?
+  discountType    String?
+  finalPrice      Decimal           @db.Decimal(10, 2)
+  accessDuration  Int?
+  downloadLimit   Int?
+  inStock         Boolean           @default(true)
+  isPublished     Boolean           @default(false)
+  featured        Boolean           @default(false)
+  downloadUrl     String?
+  viewCount       Int               @default(0)
+  downloadCount   Int               @default(0)
+  purchaseCount   Int               @default(0)
+  totalRevenue    Decimal           @default(0) @db.Decimal(10, 2)
+  createdAt       DateTime          @default(now())
+  updatedAt       DateTime          @updatedAt
+  createdById     String?
+  fileSize        String?
+  fileType        String?
+  orderItems      OrderItem[]
+  images          ProductImage[]
+  downloads       Download[]
+  categories      CategoryProduct[]
+  reviews         Review[]
+  purchases       Purchase[]
+  CategoryPath    CategoryPath[]
+  createdBy       User?             @relation("CreatedProducts", fields: [createdById], references: [id])
 
   @@index([createdById])
   @@index([slug])
@@ -139,14 +118,13 @@ model Product {
 }
 
 model ProductImage {
-  id        String  @id @default(cuid())
+  id        String   @id @default(cuid())
   url       String
   alt       String?
-  isPrimary Boolean @default(false)
-  product   Product @relation(fields: [productId], references: [id], onDelete: Cascade)
-  productId BigInt
-
+  isPrimary Boolean  @default(false)
+  productId Int
   createdAt DateTime @default(now())
+  product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
 
   @@index([productId])
 }
@@ -156,28 +134,27 @@ model Category {
   name        String            @unique
   slug        String            @unique
   description String?
-  path        String // Store the full path e.g. "university/chamberlain/nr322"
-  level       Int               @default(1) // Track the depth level (1=root, 2=child, etc)
+  parentId    String?
+  createdAt   DateTime          @default(now())
+  updatedAt   DateTime          @updatedAt
   isActive    Boolean           @default(true)
+  level       Int               @default(1)
+  path        String
   products    CategoryProduct[]
   parent      Category?         @relation("CategoryHierarchy", fields: [parentId], references: [id], onDelete: Restrict, onUpdate: Restrict)
-  parentId    String?
   children    Category[]        @relation("CategoryHierarchy")
 
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  @@unique([name, parentId]) // Allow same name at different levels
-  @@unique([slug, parentId]) // Allow same slug at different levels
-  @@index([path]) // Index for path lookups
-  @@index([level]) // Index for level queries
+  @@unique([name, parentId])
+  @@unique([slug, parentId])
+  @@index([path])
+  @@index([level])
 }
 
 model CategoryProduct {
-  product    Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
-  productId  BigInt
-  category   Category @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+  productId  Int
   categoryId String
+  product    Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  category   Category @relation(fields: [categoryId], references: [id], onDelete: Cascade)
 
   @@id([productId, categoryId])
   @@index([productId])
@@ -185,83 +162,49 @@ model CategoryProduct {
 }
 
 model PaymentGateway {
-  id       String  @id @default(cuid())
-  name     String // "PAYPAL" or "STRIPE"
-  isActive Boolean @default(false)
-
-  // Enhanced config storage
-  config Json // Securely store configuration details
-
-  // Encryption details
-  encryptionKey String? @db.Text // For encrypting sensitive data
-  encryptionIV  String? @db.Text // Initialization vector for encryption
-
-  // Merchant information
-  merchantId    String?
-  businessName  String?
-  businessEmail String?
-
-  // Environment settings
-  environment String @default("test") // "test" or "production"
-
-  // General configuration
-  description String?
-  notes       String? @db.Text
-
-  // API endpoints for custom configurations
-  apiEndpoint String?
-  webhookUrl  String?
-
-  // Supported payment methods
-  supportsCreditCards Boolean @default(true)
-  supportsDirectDebit Boolean @default(false)
-
-  // Track gateway usage
-  transactions Transaction[]
-
-  // Meta data
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  @@unique([name])
+  id                  String        @id @default(cuid())
+  name                String        @unique
+  isActive            Boolean       @default(false)
+  config              Json
+  encryptionKey       String?
+  encryptionIV        String?
+  merchantId          String?
+  businessName        String?
+  businessEmail       String?
+  environment         String        @default("test")
+  description         String?
+  notes               String?
+  apiEndpoint         String?
+  webhookUrl          String?
+  supportsCreditCards Boolean       @default(true)
+  supportsDirectDebit Boolean       @default(false)
+  createdAt           DateTime      @default(now())
+  updatedAt           DateTime      @updatedAt
+  transactions        Transaction[]
 }
 
 model Transaction {
-  id String @id @default(cuid())
-
-  amount   Decimal @db.Decimal(10, 2)
-  currency String  @default("USD")
-
-  status       String // "pending", "completed", "failed", "refunded", etc.
-  errorMessage String? @db.Text
-  errorCode    String?
-
-  // Payment details
-  paymentMethod String? // e.g. "credit_card", "paypal", "mpesa"
-  paymentType   String? // e.g. "one-time", "subscription"
-  receiptUrl    String?
-  receiptEmail  String?
-
-  // External Gateway Data
+  id                   String          @id @default(cuid())
+  amount               Decimal         @db.Decimal(10, 2)
+  currency             String          @default("USD")
+  status               String
+  paymentMethod        String?
+  paymentType          String?
   gatewayId            String?
+  gatewayTransactionId String?
+  gatewayCustomerId    String?
+  receiptUrl           String?
+  receiptEmail         String?
+  purchaseId           String?
+  errorMessage         String?
+  errorCode            String?
+  metadata             Json?
+  createdAt            DateTime        @default(now())
+  updatedAt            DateTime        @updatedAt
+  completedAt          DateTime?
   paymentGateway       PaymentGateway? @relation(fields: [gatewayId], references: [id])
-  gatewayTransactionId String? // ID from external payment gateway
-  gatewayCustomerId    String? // Customer ID in gateway
-
-  // Related Purchase
-  purchaseId String?
-  purchase   Purchase? @relation(fields: [purchaseId], references: [id])
-
-  // Related Orders (one-to-many)
-  orders Order[]
-
-  // Arbitrary metadata (raw payloads, internal tracking)
-  metadata Json?
-
-  // Timestamps
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
-  completedAt DateTime?
+  purchase             Purchase?       @relation(fields: [purchaseId], references: [id])
+  orders               Order[]
 
   @@index([gatewayId])
   @@index([purchaseId])
@@ -270,94 +213,85 @@ model Transaction {
 }
 
 model Purchase {
-  id        String  @id @default(cuid())
-  product   Product @relation(fields: [productId], references: [id])
-  productId BigInt
-  user      User    @relation(fields: [userId], references: [id])
-  userId    String
-  amount    Decimal @db.Decimal(10, 2)
-
-  // Access tracking
+  id            String        @id @default(cuid())
+  productId     Int
+  userId        String
+  amount        Decimal       @db.Decimal(10, 2)
   accessExpires DateTime?
   downloadsLeft Int?
-
-  status String @default("completed") // pending, completed, refunded
-
-  // Link to payment transactions
-  transactions Transaction[]
-
-  downloads Download[]
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  status        String        @default("completed")
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+  product       Product       @relation(fields: [productId], references: [id])
+  user          User          @relation(fields: [userId], references: [id])
+  transactions  Transaction[]
+  downloads     Download[]
 
   @@index([productId])
   @@index([userId])
 }
 
 model Review {
-  id        String  @id @default(cuid())
-  rating    Int     @db.SmallInt
-  comment   String? @db.Text
-  product   Product @relation(fields: [productId], references: [id], onDelete: Cascade)
-  productId BigInt
-  user      User    @relation(fields: [userId], references: [id])
-  userId    String
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id              String   @id @default(cuid())
+  rating          Int      @db.SmallInt
+  comment         String?
+  productId       Int
+  userId          String
+  userName        String?
+  helpfulCount    Int      @default(0)
+  notHelpfulCount Int      @default(0)
+  status          String   @default("pending")
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  product         Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  user            User     @relation(fields: [userId], references: [id])
 
   @@index([productId])
   @@index([userId])
+  @@index([status])
 }
 
 model PackageDiscount {
   id        String   @id @default(cuid())
-  minItems  Int // Minimum number of items required
-  discount  Decimal  @db.Decimal(5, 2) // Discount percentage
+  minItems  Int
+  discount  Decimal  @db.Decimal(5, 2)
   isActive  Boolean  @default(true)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
 
-// Optional - if you want to store category tree flat paths
 model CategoryPath {
   id        String  @id @default(cuid())
+  productId Int
+  path      String
+  level1    String?
+  level2    String?
+  level3    String?
+  level4    String?
+  level5    String?
   product   Product @relation(fields: [productId], references: [id], onDelete: Cascade)
-  productId BigInt
-  path      String // Full path string e.g. "university/chamberlain/nr322"
-  level1    String? // First level segment (e.g. "university")
-  level2    String? // Second level segment (e.g. "chamberlain")
-  level3    String? // Third level segment (e.g. "nr322")
-  level4    String? // For deeper hierarchies if needed
-  level5    String? // For deeper hierarchies if needed
 
   @@unique([productId, path])
   @@index([productId])
   @@index([path])
-  @@index([level1, level2, level3]) // For hierarchical filtering
+  @@index([level1, level2, level3])
 }
 
 model Order {
-  id     String @id @default(cuid())
-  user   User   @relation(fields: [userId], references: [id])
-  userId String
-
-  status      String  @default("pending") // pending, paid, cancelled, refunded, etc.
-  totalAmount Decimal @db.Decimal(10, 2)
-  currency    String  @default("USD")
-
-  orderItems OrderItem[]
-
-  paymentStatus   String       @default("unpaid") // unpaid, paid, failed
-  paymentIntentId String? // For Stripe/PayPal transaction ID
-  transaction     Transaction? @relation(fields: [transactionId], references: [id], onDelete: Cascade)
+  id              String       @id @default(cuid())
+  userId          String
+  status          String       @default("pending")
+  totalAmount     Decimal      @db.Decimal(10, 2)
+  currency        String       @default("USD")
+  paymentStatus   String       @default("unpaid")
+  paymentIntentId String?
   transactionId   String?
-
-  metadata Json?
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  metadata        Json?
+  createdAt       DateTime     @default(now())
+  updatedAt       DateTime     @updatedAt
+  user            User         @relation(fields: [userId], references: [id])
+  orderItems      OrderItem[]
+  transaction     Transaction? @relation(fields: [transactionId], references: [id], onDelete: Cascade)
 
   @@index([userId])
   @@index([status])
@@ -366,13 +300,13 @@ model Order {
 
 model OrderItem {
   id        String   @id @default(cuid())
-  order     Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
   orderId   String
-  product   Product  @relation(fields: [productId], references: [id])
-  productId BigInt
+  productId Int
   quantity  Int      @default(1)
   price     Decimal  @db.Decimal(10, 2)
   createdAt DateTime @default(now())
+  order     Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  product   Product  @relation(fields: [productId], references: [id])
 
   @@index([orderId])
   @@index([productId])
@@ -381,13 +315,12 @@ model OrderItem {
 model Download {
   id           String   @id @default(cuid())
   userId       String
-  productId    BigInt // Changed to BigInt to match Product.id type
+  productId    Int
   purchaseId   String
   downloadedAt DateTime @default(now())
-
-  user     User     @relation(fields: [userId], references: [id])
-  product  Product  @relation(fields: [productId], references: [id])
-  purchase Purchase @relation(fields: [purchaseId], references: [id])
+  user         User     @relation(fields: [userId], references: [id])
+  product      Product  @relation(fields: [productId], references: [id])
+  purchase     Purchase @relation(fields: [purchaseId], references: [id])
 
   @@index([userId])
   @@index([productId])

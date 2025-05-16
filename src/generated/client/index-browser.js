@@ -144,15 +144,15 @@ exports.Prisma.AccountScalarFieldEnum = {
 
 exports.Prisma.UserScalarFieldEnum = {
   id: 'id',
-  name: 'name',
-  email: 'email',
-  emailVerified: 'emailVerified',
-  image: 'image',
-  password: 'password',
-  role: 'role',
   firstName: 'firstName',
   lastName: 'lastName',
-  isTwoFactorEnabled: 'isTwoFactorEnabled'
+  email: 'email',
+  image: 'image',
+  password: 'password',
+  isTwoFactorEnabled: 'isTwoFactorEnabled',
+  emailVerified: 'emailVerified',
+  name: 'name',
+  role: 'role'
 };
 
 exports.Prisma.VerificationTokenScalarFieldEnum = {
@@ -185,15 +185,15 @@ exports.Prisma.ProductScalarFieldEnum = {
   isPublished: 'isPublished',
   featured: 'featured',
   downloadUrl: 'downloadUrl',
-  fileType: 'fileType',
-  fileSize: 'fileSize',
   viewCount: 'viewCount',
   downloadCount: 'downloadCount',
   purchaseCount: 'purchaseCount',
   totalRevenue: 'totalRevenue',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt',
-  createdById: 'createdById'
+  createdById: 'createdById',
+  fileSize: 'fileSize',
+  fileType: 'fileType'
 };
 
 exports.Prisma.ProductImageScalarFieldEnum = {
@@ -210,12 +210,12 @@ exports.Prisma.CategoryScalarFieldEnum = {
   name: 'name',
   slug: 'slug',
   description: 'description',
-  path: 'path',
-  level: 'level',
-  isActive: 'isActive',
   parentId: 'parentId',
   createdAt: 'createdAt',
-  updatedAt: 'updatedAt'
+  updatedAt: 'updatedAt',
+  isActive: 'isActive',
+  level: 'level',
+  path: 'path'
 };
 
 exports.Prisma.CategoryProductScalarFieldEnum = {
@@ -249,16 +249,16 @@ exports.Prisma.TransactionScalarFieldEnum = {
   amount: 'amount',
   currency: 'currency',
   status: 'status',
-  errorMessage: 'errorMessage',
-  errorCode: 'errorCode',
   paymentMethod: 'paymentMethod',
   paymentType: 'paymentType',
-  receiptUrl: 'receiptUrl',
-  receiptEmail: 'receiptEmail',
   gatewayId: 'gatewayId',
   gatewayTransactionId: 'gatewayTransactionId',
   gatewayCustomerId: 'gatewayCustomerId',
+  receiptUrl: 'receiptUrl',
+  receiptEmail: 'receiptEmail',
   purchaseId: 'purchaseId',
+  errorMessage: 'errorMessage',
+  errorCode: 'errorCode',
   metadata: 'metadata',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt',
@@ -283,6 +283,10 @@ exports.Prisma.ReviewScalarFieldEnum = {
   comment: 'comment',
   productId: 'productId',
   userId: 'userId',
+  userName: 'userName',
+  helpfulCount: 'helpfulCount',
+  notHelpfulCount: 'notHelpfulCount',
+  status: 'status',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
 };

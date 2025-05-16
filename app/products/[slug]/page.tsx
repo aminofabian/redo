@@ -3,6 +3,8 @@ import { formatDistanceToNow } from 'date-fns';
 import ProductImageGallery from './ProductImageGallery';
 import { CartSidebarWithToaster, ProductInteractions } from './ClientComponents';
 import type { Product, SerializableProduct } from "@/types/products";
+import ReviewButton from './ReviewButton';
+import ReviewVoteButtons from './ReviewVoteButtons';
 
 type RelatedProduct = Product;
 
@@ -32,7 +34,17 @@ function serializeProduct(product: any): SerializableProduct {
         parentId: cat.category.parentId
       }
     })) ?? [],
-    reviews: product.reviews ?? [] // Default to empty array when reviews don't exist
+    reviews: (product.reviews ?? []).map((review: any) => ({
+      id: review.id,
+      rating: review.rating,
+      comment: review.comment,
+      userName: review.userName || 'Anonymous',
+      helpfulCount: review.helpfulCount || 0,
+      notHelpfulCount: review.notHelpfulCount || 0,
+      status: review.status || 'pending',
+      isGuest: review.isGuest || false,
+      createdAt: review.createdAt?.toISOString ? review.createdAt.toISOString() : review.createdAt
+    }))
   };
 }
 
@@ -71,7 +83,6 @@ async function getProduct(slug: string) {
     }
     
     console.log(`Fetching product with slug: ${sanitizedSlug}`);
-    // Use our custom fetch function with the sanitized slug
     return await customFetch(`http://localhost:3000/api/products/slug/${sanitizedSlug}`);
   } catch (error) {
     console.error("Error fetching product:", error);
@@ -300,6 +311,100 @@ export default async function ProductPage({ params }: { params: { slug: string }
           </div>
         </div>
       </div>
+
+      {/* Reviews Section */}
+      <div className="mt-16 bg-white p-8 rounded-xl shadow-sm border">
+        <h2 className="text-2xl font-bold mb-8 flex items-center">
+          <span className="w-2 h-7 bg-yellow-500 rounded-sm mr-3"></span>
+          Customer Reviews
+        </h2>
+
+        {/* Overall rating summary */}
+        <div className="flex items-center mb-8">
+          <div className="mr-4">
+            <span className="text-5xl font-bold text-gray-900">
+              {calculateAverageRating(serializedProduct.reviews)}
+            </span>
+            <span className="text-xl text-gray-500">/5</span>
+          </div>
+          
+          <div>
+            <div className="flex text-yellow-400 text-2xl mb-1">
+              {Array.from({ length: 5 }).map((_, i) => (
+                <span key={i}>
+                  {parseFloat(calculateAverageRating(serializedProduct.reviews)) >= i + 1 
+                    ? "★" 
+                    : parseFloat(calculateAverageRating(serializedProduct.reviews)) > i 
+                      ? "★" 
+                      : "☆"}
+                </span>
+              ))}
+            </div>
+            <p className="text-gray-500">Based on {serializedProduct.reviews.length} reviews</p>
+          </div>
+          
+          <div className="ml-auto">
+            <ReviewButton 
+              productId={serializedProduct.id} 
+              productName={serializedProduct.title} 
+            />
+          </div>
+        </div>
+        
+        {/* Reviews list */}
+        {serializedProduct.reviews.length > 0 ? (
+          <div className="space-y-6">
+            {serializedProduct.reviews
+              .filter(review => review.status === 'approved') // Only show approved reviews
+              .map((review: any, index: number) => (
+                <div key={review.id || index} className="border-b border-gray-200 pb-6 last:border-0">
+                  <div className="flex justify-between items-start mb-2">
+                    <div>
+                      <div className="flex items-center">
+                        <h3 className="font-semibold text-lg">{review.userName || "Anonymous"}</h3>
+                        {review.isGuest && (
+                          <span className="ml-2 text-xs bg-gray-100 px-2 py-1 rounded-full text-gray-600">Guest</span>
+                        )}
+                      </div>
+                      <div className="flex text-yellow-400 my-1">
+                        {Array.from({ length: 5 }).map((_, i) => (
+                          <span key={i}>{review.rating > i ? "★" : "☆"}</span>
+                        ))}
+                      </div>
+                    </div>
+                    <span className="text-gray-500 text-sm">
+                      {review.createdAt 
+                        ? formatDate(new Date(review.createdAt)) 
+                        : "Unknown date"}
+                    </span>
+                  </div>
+                  
+                  <p className="text-gray-700 mb-3">{review.comment || "No review content provided."}</p>
+                  
+                  <ReviewVoteButtons reviewId={review.id} helpfulCount={review.helpfulCount} notHelpfulCount={review.notHelpfulCount} />
+                </div>
+              ))}
+            
+            {serializedProduct.reviews.filter(r => r.status === 'pending').length > 0 && (
+              <div className="mt-4 p-4 bg-yellow-50 rounded-lg border border-yellow-100">
+                <p className="text-yellow-700 text-sm">
+                  <span className="font-medium">Note:</span> There {serializedProduct.reviews.filter(r => r.status === 'pending').length === 1 ? 'is' : 'are'} {serializedProduct.reviews.filter(r => r.status === 'pending').length} pending review{serializedProduct.reviews.filter(r => r.status === 'pending').length === 1 ? '' : 's'} awaiting moderation.
+                </p>
+              </div>
+            )}
+          </div>
+        ) : (
+          <div className="text-center py-8">
+            <p className="text-gray-500 mb-4">No reviews yet for this product</p>
+            <ReviewButton 
+              productId={serializedProduct.id} 
+              productName={serializedProduct.title} 
+              isFirstReview={true}
+            />
+          </div>
+        )}
+      </div>
+      
       {relatedProducts.length > 0 && (
         <div className="mt-16 bg-white p-8 rounded-xl shadow-sm border">
           <h2 className="text-2xl font-bold mb-8 flex items-center"><span className="w-2 h-7 bg-purple-600 rounded-sm mr-3"></span>Related Products</h2>
@@ -359,14 +464,17 @@ function formatDate(date: Date): string {
   }).format(date);
 }
 
-// Helper function for calculating average rating
+// Helper function for calculating average rating - only consider approved reviews
 function calculateAverageRating(reviews: any[]): string {
   if (!reviews || reviews.length === 0) return "0.0";
   
+  const approvedReviews = reviews.filter(review => review.status === 'approved');
+  if (approvedReviews.length === 0) return "0.0";
+  
   let total = 0;
-  for (const review of reviews) {
+  for (const review of approvedReviews) {
     total += review.rating || 0;
   }
   
-  return (total / reviews.length).toFixed(1);
+  return (total / approvedReviews.length).toFixed(1);
 }
