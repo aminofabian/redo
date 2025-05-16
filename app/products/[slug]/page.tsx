@@ -1,3 +1,5 @@
+'use client';
+
 import Image from "next/image";
 import { formatDistanceToNow } from 'date-fns';
 import ProductImageGallery from './ProductImageGallery';
@@ -5,6 +7,7 @@ import { CartSidebarWithToaster, ProductInteractions } from './ClientComponents'
 import type { Product, SerializableProduct } from "@/types/products";
 import ReviewButton from './ReviewButton';
 import ReviewVoteButtons from './ReviewVoteButtons';
+import ReviewSection from './ReviewSection';
 
 type RelatedProduct = Product;
 
@@ -340,7 +343,7 @@ export default async function ProductPage({ params }: { params: { slug: string }
                 </span>
               ))}
             </div>
-            <p className="text-gray-500">Based on {serializedProduct.reviews.length} reviews</p>
+            <p className="text-gray-500">Based on {serializedProduct.reviews.filter(review => review.status === 'approved').length} approved reviews</p>
           </div>
           
           <div className="ml-auto">
@@ -352,57 +355,11 @@ export default async function ProductPage({ params }: { params: { slug: string }
         </div>
         
         {/* Reviews list */}
-        {serializedProduct.reviews.length > 0 ? (
-          <div className="space-y-6">
-            {serializedProduct.reviews
-              .filter(review => review.status === 'approved') // Only show approved reviews
-              .map((review: any, index: number) => (
-                <div key={review.id || index} className="border-b border-gray-200 pb-6 last:border-0">
-                  <div className="flex justify-between items-start mb-2">
-                    <div>
-                      <div className="flex items-center">
-                        <h3 className="font-semibold text-lg">{review.userName || "Anonymous"}</h3>
-                        {review.isGuest && (
-                          <span className="ml-2 text-xs bg-gray-100 px-2 py-1 rounded-full text-gray-600">Guest</span>
-                        )}
-                      </div>
-                      <div className="flex text-yellow-400 my-1">
-                        {Array.from({ length: 5 }).map((_, i) => (
-                          <span key={i}>{review.rating > i ? "★" : "☆"}</span>
-                        ))}
-                      </div>
-                    </div>
-                    <span className="text-gray-500 text-sm">
-                      {review.createdAt 
-                        ? formatDate(new Date(review.createdAt)) 
-                        : "Unknown date"}
-                    </span>
-                  </div>
-                  
-                  <p className="text-gray-700 mb-3">{review.comment || "No review content provided."}</p>
-                  
-                  <ReviewVoteButtons reviewId={review.id} helpfulCount={review.helpfulCount} notHelpfulCount={review.notHelpfulCount} />
-                </div>
-              ))}
-            
-            {serializedProduct.reviews.filter(r => r.status === 'pending').length > 0 && (
-              <div className="mt-4 p-4 bg-yellow-50 rounded-lg border border-yellow-100">
-                <p className="text-yellow-700 text-sm">
-                  <span className="font-medium">Note:</span> There {serializedProduct.reviews.filter(r => r.status === 'pending').length === 1 ? 'is' : 'are'} {serializedProduct.reviews.filter(r => r.status === 'pending').length} pending review{serializedProduct.reviews.filter(r => r.status === 'pending').length === 1 ? '' : 's'} awaiting moderation.
-                </p>
-              </div>
-            )}
-          </div>
-        ) : (
-          <div className="text-center py-8">
-            <p className="text-gray-500 mb-4">No reviews yet for this product</p>
-            <ReviewButton 
-              productId={serializedProduct.id} 
-              productName={serializedProduct.title} 
-              isFirstReview={true}
-            />
-          </div>
-        )}
+        <ReviewSection 
+          reviews={serializedProduct.reviews} 
+          productId={serializedProduct.id}
+          productName={serializedProduct.title}
+        />
       </div>
       
       {relatedProducts.length > 0 && (
@@ -411,8 +368,11 @@ export default async function ProductPage({ params }: { params: { slug: string }
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
             {relatedProducts.map((relatedProduct: SerializableProduct) => {
               const primaryImage = relatedProduct.images.find((img: { isPrimary: boolean; url: string }) => img.isPrimary) || relatedProduct.images[0];
-              const avgRating = relatedProduct.reviews.length > 0
-                ? (relatedProduct.reviews.reduce((sum: number, review: { rating: number }) => sum + review.rating, 0) / relatedProduct.reviews.length).toFixed(1)
+              
+              // Filter to only approved reviews before calculating average
+              const approvedReviews = relatedProduct.reviews.filter(review => review.status === 'approved');
+              const avgRating = approvedReviews.length > 0
+                ? (approvedReviews.reduce((sum: number, review: { rating: number }) => sum + review.rating, 0) / approvedReviews.length).toFixed(1)
                 : "0.0";
 
               return (
@@ -441,7 +401,7 @@ export default async function ProductPage({ params }: { params: { slug: string }
                       <div className="flex items-center text-sm text-gray-600">
                         <span className="text-yellow-400">★</span>
                         <span className="ml-1">{avgRating}</span>
-                        <span className="ml-1">({relatedProduct.reviews.length})</span>
+                        <span className="ml-1">({approvedReviews.length})</span>
                       </div>
                     </div>
                   </div>

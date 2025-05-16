@@ -13,12 +13,17 @@ export type ProductCategory = {
 };
 
 export type ProductReview = {
+  id: string;
   rating: number;
-  user: {
-    firstName: string | null;
-    lastName: string | null;
-    image: string | null;
-  };
+  comment?: string;
+  userId: string;
+  userName?: string;
+  helpfulCount: number;
+  notHelpfulCount: number;
+  status: string;
+  isGuest?: boolean;
+  createdAt: string | Date;
+  updatedAt?: string | Date;
 };
 
 export type SerializableProduct = {

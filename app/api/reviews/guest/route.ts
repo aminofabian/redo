@@ -22,25 +22,24 @@ export async function POST(req: NextRequest) {
     }
     
     // For guest reviews, we need to handle them differently
-    // We can save the review with a placeholder for userId or set up a guest user
-    // Here's a simplified approach
     const guestUserId = "guest-user"; // You might want to store this in your database
     
-    // Create the review without requiring a valid user
+    // Create the review without requiring a valid user - set status to approved for now
     const review = await prisma.review.create({
       data: {
         rating,
         comment: content,
         userName: userName || 'Anonymous Guest',
         productId: Number(productId),
-        userId: guestUserId, // Using placeholder for guest user
-        status: 'pending', // Reviews start as pending for moderation
+        userId: guestUserId, 
+        status: 'approved', // Change from 'pending' to 'approved' for immediate visibility
+        isGuest: true
       },
     });
     
     return NextResponse.json({ 
       success: true, 
-      message: 'Review submitted successfully and is pending approval',
+      message: 'Review submitted successfully',
       review 
     });
     

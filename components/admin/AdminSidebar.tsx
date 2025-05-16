@@ -17,7 +17,11 @@ import {
   AlertCircle,
   Filter,
   Loader2,
-  CreditCard
+  CreditCard,
+  Star,
+  ThumbsUp,
+  CheckCircle,
+  XCircle
 } from "lucide-react";
 import { useState, useEffect } from "react";
 import { Input } from "@/components/ui/input";
@@ -29,7 +33,7 @@ import { ProductDrawer } from "./ProductDrawer";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, usePathname } from "next/navigation";
 import PaymentGatewaySidebar from "./PaymentGatewaySidebar";
 
 // Updated interface for real product data
@@ -104,6 +108,7 @@ export default function AdminSidebar() {
   const [users, setUsers] = useState<User[]>([]);
 
   const router = useRouter();
+  const pathname = usePathname();
 
   useEffect(() => {
     // Fetch all products from the mock API and count them
@@ -261,6 +266,13 @@ export default function AdminSidebar() {
       title: "Payment Settings",
       icon: CreditCard,
       href: "#",
+      directNav: false,
+      badge: "",
+    },
+    {
+      title: "Reviews",
+      icon: Star,
+      href: "/admin/reviews",
       directNav: false,
       badge: "",
     }
@@ -599,6 +611,20 @@ export default function AdminSidebar() {
 
               {activeMenu === "Payment Settings" && (
                 <PaymentGatewaySidebar />
+              )}
+
+              {activeMenu === "Reviews" && (
+                <div className="space-y-1">
+                  <Link
+                    href="/admin/reviews"
+                    className={`flex items-center p-2 text-sm rounded-lg ${
+                      pathname === '/admin/reviews' ? 'bg-gray-100 text-gray-900' : 'text-gray-600 hover:bg-gray-50'
+                    }`}
+                  >
+                    <Star className="w-5 h-5 mr-2" />
+                    <span>Reviews</span>
+                  </Link>
+                </div>
               )}
             </div>
           </motion.div>
