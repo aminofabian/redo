@@ -6,6 +6,7 @@ import { Button } from "./button";
 import { ArrowRight, Download, ShieldCheck, HeadphonesIcon, ThumbsUp, PiggyBank, Sparkles, GraduationCap } from "lucide-react";
 import React, { useRef, useEffect, useState } from "react";
 import UniversitySlider from "./UniversitySlider";
+import SearchFilter from "./SearchFilter";
 
 // Hardcoded nursing schools data
 const nursingSchools = [
@@ -174,19 +175,13 @@ const Hero = () => {
           </motion.p>
 
           <motion.div
-            className="flex flex-col sm:flex-row items-center justify-center gap-4 relative"
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, delay: 0.2 }}
+            className="max-w-5xl mx-auto relative z-10"
           >
-            <Button size="lg" className="w-full sm:w-auto bg-gradient-to-r from-[#5d8e9a] to-[#3a6b79] hover:from-[#4d7e8a] hover:to-[#2a5b69] shadow-lg hover:shadow-xl transition-all duration-300 text-white font-medium py-6">
-              Get Started Today
-              <ArrowRight className="ml-2 h-5 w-5" />
-            </Button>
-            <Button size="lg" variant="outline" className="w-full sm:w-auto mt-3 sm:mt-0 border-[#5d8e9a] text-[#5d8e9a] hover:bg-[#537f8a]/5 py-6 font-medium">
-              <GraduationCap className="mr-2 h-5 w-5" />
-              Explore Resources
-            </Button>
+            <div className="absolute inset-0 bg-gradient-to-r from-[#5d8e9a]/5 to-[#3a6b79]/5 rounded-xl blur-xl -z-10 transform scale-105"></div>
+            <SearchFilter universities={nursingSchools} />
           </motion.div>
         </div>
 
@@ -234,9 +229,6 @@ const Hero = () => {
             </div>
           </div>
         </motion.div>
-
-        {/* University Slider Component */}
-        <UniversitySlider universities={nursingSchools} />
 
         {/* Enhanced triggers section */}
         <motion.div

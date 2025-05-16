@@ -74,15 +74,15 @@ const UniversitySlider: React.FC<UniversitySliderProps> = ({ universities }) => 
 
   return (
     <motion.div 
-      className="w-full mb-14 overflow-hidden relative rounded-xl bg-white p-8 shadow-md border border-gray-100"
+      className="w-full overflow-hidden relative rounded-xl bg-white/90 p-6 shadow-sm border border-gray-100 backdrop-blur-sm"
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
-      transition={{ duration: 0.5, delay: 0.4 }}
+      transition={{ duration: 0.5 }}
     >
-      <h2 className="text-2xl font-semibold text-gray-800 mb-8 text-center flex items-center justify-center">
-        <span className="inline-block pb-2 border-b-2 border-[#5d8e9a] flex items-center">
+      <h2 className="text-xl font-semibold text-gray-800 mb-6 text-center flex items-center justify-center">
+        <span className="inline-block pb-1 border-b-2 border-[#5d8e9a] flex items-center">
           <GraduationCap className="mr-2 h-5 w-5 text-[#5d8e9a]" />
-          Featured Nursing Schools
+          Trusted By Leading Nursing Schools
         </span>
       </h2>
       
