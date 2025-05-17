@@ -12,6 +12,12 @@ function generateId(length = 8) {
     .join('');
 }
 
+// Configure the route to handle larger files
+export const maxDuration = 60; // Extends the timeout to 60 seconds
+export const fetchCache = 'force-no-store'; // Prevents caching of results
+export const revalidate = 0; // Prevents revalidation
+export const runtime = 'nodejs'; // Uses Node.js runtime for S3 SDK compatibility
+
 export async function POST(request: NextRequest) {
   try {
     // Check if AWS config is present
@@ -82,13 +88,4 @@ export async function POST(request: NextRequest) {
       details: error instanceof Error ? error.message : 'Unknown error' 
     }, { status: 500 });
   }
-}
-
-// Increase the limit for the request body size
-export const config = {
-  api: {
-    bodyParser: {
-      sizeLimit: '10mb',
-    },
-  },
-}; 
+} 
