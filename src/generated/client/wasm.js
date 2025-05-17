@@ -287,6 +287,8 @@ exports.Prisma.ReviewScalarFieldEnum = {
   helpfulCount: 'helpfulCount',
   notHelpfulCount: 'notHelpfulCount',
   status: 'status',
+  isGuest: 'isGuest',
+  email: 'email',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
 };

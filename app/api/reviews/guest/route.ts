@@ -3,8 +3,8 @@ import { prisma } from '@/lib/prisma';
 
 export async function POST(req: NextRequest) {
   try {
-    // Parse the request body
-    const { productId, rating, content, userName } = await req.json();
+    // Parse the request body ONCE at the beginning
+    const { productId, rating, content, userName, email } = await req.json();
     
     // Validate the input
     if (!productId || !rating || !content) {
@@ -33,7 +33,8 @@ export async function POST(req: NextRequest) {
         productId: Number(productId),
         userId: guestUserId, 
         status: 'approved', // Change from 'pending' to 'approved' for immediate visibility
-        isGuest: true
+        isGuest: true,      // This field needs to be in your Prisma schema
+        email: email || null // Use the parsed email variable
       },
     });
     

@@ -1,12 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
-import { getServerSession } from 'next-auth';
-import { authOptions } from '@/lib/auth';
+import { auth } from '@/auth';
 
 export async function POST(req: NextRequest) {
   try {
     // Get the current user
-    const session = await getServerSession(authOptions);
+    const session = await auth();
     
     if (!session?.user) {
       return NextResponse.json(

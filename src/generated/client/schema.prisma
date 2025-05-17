@@ -236,15 +236,17 @@ model Review {
   rating          Int      @db.SmallInt
   comment         String?
   productId       Int
-  userId          String
+  userId          String?
   userName        String?
   helpfulCount    Int      @default(0)
   notHelpfulCount Int      @default(0)
   status          String   @default("pending")
+  isGuest         Boolean  @default(false)
+  email           String?
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
   product         Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
-  user            User     @relation(fields: [userId], references: [id])
+  user            User?    @relation(fields: [userId], references: [id])
 
   @@index([productId])
   @@index([userId])

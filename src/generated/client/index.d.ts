@@ -17071,6 +17071,8 @@ export namespace Prisma {
     helpfulCount: number | null
     notHelpfulCount: number | null
     status: string | null
+    isGuest: boolean | null
+    email: string | null
     createdAt: Date | null
     updatedAt: Date | null
   }
@@ -17085,6 +17087,8 @@ export namespace Prisma {
     helpfulCount: number | null
     notHelpfulCount: number | null
     status: string | null
+    isGuest: boolean | null
+    email: string | null
     createdAt: Date | null
     updatedAt: Date | null
   }
@@ -17099,6 +17103,8 @@ export namespace Prisma {
     helpfulCount: number
     notHelpfulCount: number
     status: number
+    isGuest: number
+    email: number
     createdAt: number
     updatedAt: number
     _all: number
@@ -17129,6 +17135,8 @@ export namespace Prisma {
     helpfulCount?: true
     notHelpfulCount?: true
     status?: true
+    isGuest?: true
+    email?: true
     createdAt?: true
     updatedAt?: true
   }
@@ -17143,6 +17151,8 @@ export namespace Prisma {
     helpfulCount?: true
     notHelpfulCount?: true
     status?: true
+    isGuest?: true
+    email?: true
     createdAt?: true
     updatedAt?: true
   }
@@ -17157,6 +17167,8 @@ export namespace Prisma {
     helpfulCount?: true
     notHelpfulCount?: true
     status?: true
+    isGuest?: true
+    email?: true
     createdAt?: true
     updatedAt?: true
     _all?: true
@@ -17253,11 +17265,13 @@ export namespace Prisma {
     rating: number
     comment: string | null
     productId: number
-    userId: string
+    userId: string | null
     userName: string | null
     helpfulCount: number
     notHelpfulCount: number
     status: string
+    isGuest: boolean
+    email: string | null
     createdAt: Date
     updatedAt: Date
     _count: ReviewCountAggregateOutputType | null
@@ -17291,10 +17305,12 @@ export namespace Prisma {
     helpfulCount?: boolean
     notHelpfulCount?: boolean
     status?: boolean
+    isGuest?: boolean
+    email?: boolean
     createdAt?: boolean
     updatedAt?: boolean
     product?: boolean | ProductDefaultArgs<ExtArgs>
-    user?: boolean | UserDefaultArgs<ExtArgs>
+    user?: boolean | Review$userArgs<ExtArgs>
   }, ExtArgs["result"]["review"]>
 
   export type ReviewSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
@@ -17307,10 +17323,12 @@ export namespace Prisma {
     helpfulCount?: boolean
     notHelpfulCount?: boolean
     status?: boolean
+    isGuest?: boolean
+    email?: boolean
     createdAt?: boolean
     updatedAt?: boolean
     product?: boolean | ProductDefaultArgs<ExtArgs>
-    user?: boolean | UserDefaultArgs<ExtArgs>
+    user?: boolean | Review$userArgs<ExtArgs>
   }, ExtArgs["result"]["review"]>
 
   export type ReviewSelectUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
@@ -17323,10 +17341,12 @@ export namespace Prisma {
     helpfulCount?: boolean
     notHelpfulCount?: boolean
     status?: boolean
+    isGuest?: boolean
+    email?: boolean
     createdAt?: boolean
     updatedAt?: boolean
     product?: boolean | ProductDefaultArgs<ExtArgs>
-    user?: boolean | UserDefaultArgs<ExtArgs>
+    user?: boolean | Review$userArgs<ExtArgs>
   }, ExtArgs["result"]["review"]>
 
   export type ReviewSelectScalar = {
@@ -17339,40 +17359,44 @@ export namespace Prisma {
     helpfulCount?: boolean
     notHelpfulCount?: boolean
     status?: boolean
+    isGuest?: boolean
+    email?: boolean
     createdAt?: boolean
     updatedAt?: boolean
   }
 
-  export type ReviewOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "rating" | "comment" | "productId" | "userId" | "userName" | "helpfulCount" | "notHelpfulCount" | "status" | "createdAt" | "updatedAt", ExtArgs["result"]["review"]>
+  export type ReviewOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "rating" | "comment" | "productId" | "userId" | "userName" | "helpfulCount" | "notHelpfulCount" | "status" | "isGuest" | "email" | "createdAt" | "updatedAt", ExtArgs["result"]["review"]>
   export type ReviewInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     product?: boolean | ProductDefaultArgs<ExtArgs>
-    user?: boolean | UserDefaultArgs<ExtArgs>
+    user?: boolean | Review$userArgs<ExtArgs>
   }
   export type ReviewIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     product?: boolean | ProductDefaultArgs<ExtArgs>
-    user?: boolean | UserDefaultArgs<ExtArgs>
+    user?: boolean | Review$userArgs<ExtArgs>
   }
   export type ReviewIncludeUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     product?: boolean | ProductDefaultArgs<ExtArgs>
-    user?: boolean | UserDefaultArgs<ExtArgs>
+    user?: boolean | Review$userArgs<ExtArgs>
   }
 
   export type $ReviewPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     name: "Review"
     objects: {
       product: Prisma.$ProductPayload<ExtArgs>
-      user: Prisma.$UserPayload<ExtArgs>
+      user: Prisma.$UserPayload<ExtArgs> | null
     }
     scalars: $Extensions.GetPayloadResult<{
       id: string
       rating: number
       comment: string | null
       productId: number
-      userId: string
+      userId: string | null
       userName: string | null
       helpfulCount: number
       notHelpfulCount: number
       status: string
+      isGuest: boolean
+      email: string | null
       createdAt: Date
       updatedAt: Date
     }, ExtArgs["result"]["review"]>
@@ -17770,7 +17794,7 @@ export namespace Prisma {
   export interface Prisma__ReviewClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
     readonly [Symbol.toStringTag]: "PrismaPromise"
     product<T extends ProductDefaultArgs<ExtArgs> = {}>(args?: Subset<T, ProductDefaultArgs<ExtArgs>>): Prisma__ProductClient<$Result.GetResult<Prisma.$ProductPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
-    user<T extends UserDefaultArgs<ExtArgs> = {}>(args?: Subset<T, UserDefaultArgs<ExtArgs>>): Prisma__UserClient<$Result.GetResult<Prisma.$UserPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
+    user<T extends Review$userArgs<ExtArgs> = {}>(args?: Subset<T, Review$userArgs<ExtArgs>>): Prisma__UserClient<$Result.GetResult<Prisma.$UserPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
     /**
      * Attaches callbacks for the resolution and/or rejection of the Promise.
      * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -17809,6 +17833,8 @@ export namespace Prisma {
     readonly helpfulCount: FieldRef<"Review", 'Int'>
     readonly notHelpfulCount: FieldRef<"Review", 'Int'>
     readonly status: FieldRef<"Review", 'String'>
+    readonly isGuest: FieldRef<"Review", 'Boolean'>
+    readonly email: FieldRef<"Review", 'String'>
     readonly createdAt: FieldRef<"Review", 'DateTime'>
     readonly updatedAt: FieldRef<"Review", 'DateTime'>
   }
@@ -18204,6 +18230,25 @@ export namespace Prisma {
      * Limit how many Reviews to delete.
      */
     limit?: number
+  }
+
+  /**
+   * Review.user
+   */
+  export type Review$userArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the User
+     */
+    select?: UserSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the User
+     */
+    omit?: UserOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: UserInclude<ExtArgs> | null
+    where?: UserWhereInput
   }
 
   /**
@@ -24071,6 +24116,8 @@ export namespace Prisma {
     helpfulCount: 'helpfulCount',
     notHelpfulCount: 'notHelpfulCount',
     status: 'status',
+    isGuest: 'isGuest',
+    email: 'email',
     createdAt: 'createdAt',
     updatedAt: 'updatedAt'
   };
@@ -25341,15 +25388,17 @@ export namespace Prisma {
     rating?: IntFilter<"Review"> | number
     comment?: StringNullableFilter<"Review"> | string | null
     productId?: IntFilter<"Review"> | number
-    userId?: StringFilter<"Review"> | string
+    userId?: StringNullableFilter<"Review"> | string | null
     userName?: StringNullableFilter<"Review"> | string | null
     helpfulCount?: IntFilter<"Review"> | number
     notHelpfulCount?: IntFilter<"Review"> | number
     status?: StringFilter<"Review"> | string
+    isGuest?: BoolFilter<"Review"> | boolean
+    email?: StringNullableFilter<"Review"> | string | null
     createdAt?: DateTimeFilter<"Review"> | Date | string
     updatedAt?: DateTimeFilter<"Review"> | Date | string
     product?: XOR<ProductScalarRelationFilter, ProductWhereInput>
-    user?: XOR<UserScalarRelationFilter, UserWhereInput>
+    user?: XOR<UserNullableScalarRelationFilter, UserWhereInput> | null
   }
 
   export type ReviewOrderByWithRelationInput = {
@@ -25357,11 +25406,13 @@ export namespace Prisma {
     rating?: SortOrder
     comment?: SortOrderInput | SortOrder
     productId?: SortOrder
-    userId?: SortOrder
+    userId?: SortOrderInput | SortOrder
     userName?: SortOrderInput | SortOrder
     helpfulCount?: SortOrder
     notHelpfulCount?: SortOrder
     status?: SortOrder
+    isGuest?: SortOrder
+    email?: SortOrderInput | SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
     product?: ProductOrderByWithRelationInput
@@ -25376,15 +25427,17 @@ export namespace Prisma {
     rating?: IntFilter<"Review"> | number
     comment?: StringNullableFilter<"Review"> | string | null
     productId?: IntFilter<"Review"> | number
-    userId?: StringFilter<"Review"> | string
+    userId?: StringNullableFilter<"Review"> | string | null
     userName?: StringNullableFilter<"Review"> | string | null
     helpfulCount?: IntFilter<"Review"> | number
     notHelpfulCount?: IntFilter<"Review"> | number
     status?: StringFilter<"Review"> | string
+    isGuest?: BoolFilter<"Review"> | boolean
+    email?: StringNullableFilter<"Review"> | string | null
     createdAt?: DateTimeFilter<"Review"> | Date | string
     updatedAt?: DateTimeFilter<"Review"> | Date | string
     product?: XOR<ProductScalarRelationFilter, ProductWhereInput>
-    user?: XOR<UserScalarRelationFilter, UserWhereInput>
+    user?: XOR<UserNullableScalarRelationFilter, UserWhereInput> | null
   }, "id">
 
   export type ReviewOrderByWithAggregationInput = {
@@ -25392,11 +25445,13 @@ export namespace Prisma {
     rating?: SortOrder
     comment?: SortOrderInput | SortOrder
     productId?: SortOrder
-    userId?: SortOrder
+    userId?: SortOrderInput | SortOrder
     userName?: SortOrderInput | SortOrder
     helpfulCount?: SortOrder
     notHelpfulCount?: SortOrder
     status?: SortOrder
+    isGuest?: SortOrder
+    email?: SortOrderInput | SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
     _count?: ReviewCountOrderByAggregateInput
@@ -25414,11 +25469,13 @@ export namespace Prisma {
     rating?: IntWithAggregatesFilter<"Review"> | number
     comment?: StringNullableWithAggregatesFilter<"Review"> | string | null
     productId?: IntWithAggregatesFilter<"Review"> | number
-    userId?: StringWithAggregatesFilter<"Review"> | string
+    userId?: StringNullableWithAggregatesFilter<"Review"> | string | null
     userName?: StringNullableWithAggregatesFilter<"Review"> | string | null
     helpfulCount?: IntWithAggregatesFilter<"Review"> | number
     notHelpfulCount?: IntWithAggregatesFilter<"Review"> | number
     status?: StringWithAggregatesFilter<"Review"> | string
+    isGuest?: BoolWithAggregatesFilter<"Review"> | boolean
+    email?: StringNullableWithAggregatesFilter<"Review"> | string | null
     createdAt?: DateTimeWithAggregatesFilter<"Review"> | Date | string
     updatedAt?: DateTimeWithAggregatesFilter<"Review"> | Date | string
   }
@@ -26950,10 +27007,12 @@ export namespace Prisma {
     helpfulCount?: number
     notHelpfulCount?: number
     status?: string
+    isGuest?: boolean
+    email?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     product: ProductCreateNestedOneWithoutReviewsInput
-    user: UserCreateNestedOneWithoutReviewsInput
+    user?: UserCreateNestedOneWithoutReviewsInput
   }
 
   export type ReviewUncheckedCreateInput = {
@@ -26961,11 +27020,13 @@ export namespace Prisma {
     rating: number
     comment?: string | null
     productId: number
-    userId: string
+    userId?: string | null
     userName?: string | null
     helpfulCount?: number
     notHelpfulCount?: number
     status?: string
+    isGuest?: boolean
+    email?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
   }
@@ -26978,10 +27039,12 @@ export namespace Prisma {
     helpfulCount?: IntFieldUpdateOperationsInput | number
     notHelpfulCount?: IntFieldUpdateOperationsInput | number
     status?: StringFieldUpdateOperationsInput | string
+    isGuest?: BoolFieldUpdateOperationsInput | boolean
+    email?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     product?: ProductUpdateOneRequiredWithoutReviewsNestedInput
-    user?: UserUpdateOneRequiredWithoutReviewsNestedInput
+    user?: UserUpdateOneWithoutReviewsNestedInput
   }
 
   export type ReviewUncheckedUpdateInput = {
@@ -26989,11 +27052,13 @@ export namespace Prisma {
     rating?: IntFieldUpdateOperationsInput | number
     comment?: NullableStringFieldUpdateOperationsInput | string | null
     productId?: IntFieldUpdateOperationsInput | number
-    userId?: StringFieldUpdateOperationsInput | string
+    userId?: NullableStringFieldUpdateOperationsInput | string | null
     userName?: NullableStringFieldUpdateOperationsInput | string | null
     helpfulCount?: IntFieldUpdateOperationsInput | number
     notHelpfulCount?: IntFieldUpdateOperationsInput | number
     status?: StringFieldUpdateOperationsInput | string
+    isGuest?: BoolFieldUpdateOperationsInput | boolean
+    email?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
@@ -27003,11 +27068,13 @@ export namespace Prisma {
     rating: number
     comment?: string | null
     productId: number
-    userId: string
+    userId?: string | null
     userName?: string | null
     helpfulCount?: number
     notHelpfulCount?: number
     status?: string
+    isGuest?: boolean
+    email?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
   }
@@ -27020,6 +27087,8 @@ export namespace Prisma {
     helpfulCount?: IntFieldUpdateOperationsInput | number
     notHelpfulCount?: IntFieldUpdateOperationsInput | number
     status?: StringFieldUpdateOperationsInput | string
+    isGuest?: BoolFieldUpdateOperationsInput | boolean
+    email?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
@@ -27029,11 +27098,13 @@ export namespace Prisma {
     rating?: IntFieldUpdateOperationsInput | number
     comment?: NullableStringFieldUpdateOperationsInput | string | null
     productId?: IntFieldUpdateOperationsInput | number
-    userId?: StringFieldUpdateOperationsInput | string
+    userId?: NullableStringFieldUpdateOperationsInput | string | null
     userName?: NullableStringFieldUpdateOperationsInput | string | null
     helpfulCount?: IntFieldUpdateOperationsInput | number
     notHelpfulCount?: IntFieldUpdateOperationsInput | number
     status?: StringFieldUpdateOperationsInput | string
+    isGuest?: BoolFieldUpdateOperationsInput | boolean
+    email?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
@@ -28483,6 +28554,8 @@ export namespace Prisma {
     helpfulCount?: SortOrder
     notHelpfulCount?: SortOrder
     status?: SortOrder
+    isGuest?: SortOrder
+    email?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
   }
@@ -28504,6 +28577,8 @@ export namespace Prisma {
     helpfulCount?: SortOrder
     notHelpfulCount?: SortOrder
     status?: SortOrder
+    isGuest?: SortOrder
+    email?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
   }
@@ -28518,6 +28593,8 @@ export namespace Prisma {
     helpfulCount?: SortOrder
     notHelpfulCount?: SortOrder
     status?: SortOrder
+    isGuest?: SortOrder
+    email?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
   }
@@ -29820,10 +29897,12 @@ export namespace Prisma {
     update?: XOR<XOR<ProductUpdateToOneWithWhereWithoutReviewsInput, ProductUpdateWithoutReviewsInput>, ProductUncheckedUpdateWithoutReviewsInput>
   }
 
-  export type UserUpdateOneRequiredWithoutReviewsNestedInput = {
+  export type UserUpdateOneWithoutReviewsNestedInput = {
     create?: XOR<UserCreateWithoutReviewsInput, UserUncheckedCreateWithoutReviewsInput>
     connectOrCreate?: UserCreateOrConnectWithoutReviewsInput
     upsert?: UserUpsertWithoutReviewsInput
+    disconnect?: UserWhereInput | boolean
+    delete?: UserWhereInput | boolean
     connect?: UserWhereUniqueInput
     update?: XOR<XOR<UserUpdateToOneWithWhereWithoutReviewsInput, UserUpdateWithoutReviewsInput>, UserUncheckedUpdateWithoutReviewsInput>
   }
@@ -30537,6 +30616,8 @@ export namespace Prisma {
     helpfulCount?: number
     notHelpfulCount?: number
     status?: string
+    isGuest?: boolean
+    email?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     product: ProductCreateNestedOneWithoutReviewsInput
@@ -30551,6 +30632,8 @@ export namespace Prisma {
     helpfulCount?: number
     notHelpfulCount?: number
     status?: string
+    isGuest?: boolean
+    email?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
   }
@@ -30822,11 +30905,13 @@ export namespace Prisma {
     rating?: IntFilter<"Review"> | number
     comment?: StringNullableFilter<"Review"> | string | null
     productId?: IntFilter<"Review"> | number
-    userId?: StringFilter<"Review"> | string
+    userId?: StringNullableFilter<"Review"> | string | null
     userName?: StringNullableFilter<"Review"> | string | null
     helpfulCount?: IntFilter<"Review"> | number
     notHelpfulCount?: IntFilter<"Review"> | number
     status?: StringFilter<"Review"> | string
+    isGuest?: BoolFilter<"Review"> | boolean
+    email?: StringNullableFilter<"Review"> | string | null
     createdAt?: DateTimeFilter<"Review"> | Date | string
     updatedAt?: DateTimeFilter<"Review"> | Date | string
   }
@@ -31070,20 +31155,24 @@ export namespace Prisma {
     helpfulCount?: number
     notHelpfulCount?: number
     status?: string
+    isGuest?: boolean
+    email?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
-    user: UserCreateNestedOneWithoutReviewsInput
+    user?: UserCreateNestedOneWithoutReviewsInput
   }
 
   export type ReviewUncheckedCreateWithoutProductInput = {
     id?: string
     rating: number
     comment?: string | null
-    userId: string
+    userId?: string | null
     userName?: string | null
     helpfulCount?: number
     notHelpfulCount?: number
     status?: string
+    isGuest?: boolean
+    email?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
   }
@@ -33785,6 +33874,8 @@ export namespace Prisma {
     helpfulCount?: number
     notHelpfulCount?: number
     status?: string
+    isGuest?: boolean
+    email?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
   }
@@ -33914,6 +34005,8 @@ export namespace Prisma {
     helpfulCount?: IntFieldUpdateOperationsInput | number
     notHelpfulCount?: IntFieldUpdateOperationsInput | number
     status?: StringFieldUpdateOperationsInput | string
+    isGuest?: BoolFieldUpdateOperationsInput | boolean
+    email?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     product?: ProductUpdateOneRequiredWithoutReviewsNestedInput
@@ -33928,6 +34021,8 @@ export namespace Prisma {
     helpfulCount?: IntFieldUpdateOperationsInput | number
     notHelpfulCount?: IntFieldUpdateOperationsInput | number
     status?: StringFieldUpdateOperationsInput | string
+    isGuest?: BoolFieldUpdateOperationsInput | boolean
+    email?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
@@ -33941,6 +34036,8 @@ export namespace Prisma {
     helpfulCount?: IntFieldUpdateOperationsInput | number
     notHelpfulCount?: IntFieldUpdateOperationsInput | number
     status?: StringFieldUpdateOperationsInput | string
+    isGuest?: BoolFieldUpdateOperationsInput | boolean
+    email?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
@@ -34166,11 +34263,13 @@ export namespace Prisma {
     id?: string
     rating: number
     comment?: string | null
-    userId: string
+    userId?: string | null
     userName?: string | null
     helpfulCount?: number
     notHelpfulCount?: number
     status?: string
+    isGuest?: boolean
+    email?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
   }
@@ -34285,20 +34384,24 @@ export namespace Prisma {
     helpfulCount?: IntFieldUpdateOperationsInput | number
     notHelpfulCount?: IntFieldUpdateOperationsInput | number
     status?: StringFieldUpdateOperationsInput | string
+    isGuest?: BoolFieldUpdateOperationsInput | boolean
+    email?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
-    user?: UserUpdateOneRequiredWithoutReviewsNestedInput
+    user?: UserUpdateOneWithoutReviewsNestedInput
   }
 
   export type ReviewUncheckedUpdateWithoutProductInput = {
     id?: StringFieldUpdateOperationsInput | string
     rating?: IntFieldUpdateOperationsInput | number
     comment?: NullableStringFieldUpdateOperationsInput | string | null
-    userId?: StringFieldUpdateOperationsInput | string
+    userId?: NullableStringFieldUpdateOperationsInput | string | null
     userName?: NullableStringFieldUpdateOperationsInput | string | null
     helpfulCount?: IntFieldUpdateOperationsInput | number
     notHelpfulCount?: IntFieldUpdateOperationsInput | number
     status?: StringFieldUpdateOperationsInput | string
+    isGuest?: BoolFieldUpdateOperationsInput | boolean
+    email?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
@@ -34307,11 +34410,13 @@ export namespace Prisma {
     id?: StringFieldUpdateOperationsInput | string
     rating?: IntFieldUpdateOperationsInput | number
     comment?: NullableStringFieldUpdateOperationsInput | string | null
-    userId?: StringFieldUpdateOperationsInput | string
+    userId?: NullableStringFieldUpdateOperationsInput | string | null
     userName?: NullableStringFieldUpdateOperationsInput | string | null
     helpfulCount?: IntFieldUpdateOperationsInput | number
     notHelpfulCount?: IntFieldUpdateOperationsInput | number
     status?: StringFieldUpdateOperationsInput | string
+    isGuest?: BoolFieldUpdateOperationsInput | boolean
+    email?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }

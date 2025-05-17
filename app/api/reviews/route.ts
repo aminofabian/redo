@@ -1,14 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma'; // Make sure you have this import set up
-import { getServerSession } from 'next-auth';
-import { authOptions } from '@/lib/auth'; // Adjust this import to where your auth options are defined
+import { auth } from '@/auth';
 
 export async function POST(req: NextRequest) {
   try {
     // Get the current user from the session
-    const session = await getServerSession(authOptions);
+    const session = await auth();
     
-    if (!session?.user) {
+    // Check if user exists and has an email
+    if (!session?.user?.email) {
       return NextResponse.json(
         { error: 'You must be logged in to submit a review' },
         { status: 401 }
@@ -37,7 +37,7 @@ export async function POST(req: NextRequest) {
     const existingReview = await prisma.review.findFirst({
       where: {
         productId: Number(productId),
-        userId: session.user.id,
+        userId: session.user.email,
       },
     });
     
@@ -55,7 +55,7 @@ export async function POST(req: NextRequest) {
         comment: content,
         userName: userName || 'Anonymous',
         productId: Number(productId),
-        userId: session.user.id,
+        userId: session.user.email,
         status: 'pending', // Reviews start as pending for moderation
       },
     });
