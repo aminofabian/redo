@@ -3,6 +3,7 @@ import ResourcesClient from "./ResourcesClient";
 import prisma from "@/lib/db";
 import { Skeleton } from "@/components/ui/skeleton";
 import { revalidatePath } from 'next/cache';
+import RefreshButton from "./RefreshButton";
 
 type ProductWithRelations = {
   id: string;
@@ -60,7 +61,7 @@ export default async function ResourcesPage() {
   let allProductTypes: any[] = [];
   
   try {
-    // Fetch all products
+    // Try this approach to fetch products while avoiding the problematic user relation
     products = await prisma.product.findMany({
       where: {
         isPublished: true,
@@ -72,17 +73,7 @@ export default async function ResourcesPage() {
             category: true
           }
         },
-        reviews: {
-          include: {
-            user: {
-              select: {
-                firstName: true,
-                lastName: true,
-                image: true
-              }
-            }
-          }
-        },
+        // Skip reviews completely
         CategoryPath: true
       },
       orderBy: {
@@ -150,17 +141,7 @@ export default async function ResourcesPage() {
               category: true
             }
           },
-          reviews: {
-            include: {
-              user: {
-                select: {
-                  firstName: true,
-                  lastName: true,
-                  image: true
-                }
-              }
-            }
-          },
+          // Skip reviews completely
           CategoryPath: true
         },
         orderBy: {
@@ -276,6 +257,35 @@ export default async function ResourcesPage() {
   
   console.log('Formatted product types result:', formattedProductTypes);
 
+  // Then fetch reviews separately with a simplified query
+  const productIds = products.map(p => parseInt(p.id));
+  const allReviews = await prisma.review.findMany({
+    where: {
+      productId: {
+        in: productIds
+      },
+      // Only include reviews with valid ratings
+      rating: {
+        gte: 1
+      }
+    },
+    select: {
+      id: true,
+      productId: true,
+      rating: true
+    }
+  });
+
+  // Group reviews by product ID for easy access
+  const reviewsByProduct: { [key: string]: any[] } = {};
+  allReviews.forEach(review => {
+    const productIdStr = String(review.productId);
+    if (!reviewsByProduct[productIdStr]) {
+      reviewsByProduct[productIdStr] = [];
+    }
+    reviewsByProduct[productIdStr].push(review);
+  });
+
   const resources = products.map(product => {
     const primaryImage = product.images && product.images.length > 0 
       ? product.images.find(img => img.isPrimary) || product.images[0]
@@ -287,11 +297,9 @@ export default async function ResourcesPage() {
       console.log(`Product ${product.id} has no images`);
     }
     
-    // Calculate average rating
-    const totalRating = product.reviews.reduce((sum, review) => sum + review.rating, 0);
-    const avgRating = product.reviews.length > 0 
-      ? (totalRating / product.reviews.length).toFixed(1)
-      : "0.0";
+    // Use static data for reviews temporarily
+    const avgRating = "0.0";
+    const reviewCount = 0;
     
     // Extract categories as tags
     const tags = product.categories.map(c => c.category.name);
@@ -356,7 +364,7 @@ export default async function ResourcesPage() {
       hasDiscount: Number(product.finalPrice) < Number(product.price),
       monthlyPrice: Math.round(Number(product.finalPrice) / 3),
       rating: avgRating,
-      reviews: product.reviews.length,
+      reviews: reviewCount,
       type: tags[0] || "Study Resource",
       duration: product.accessDuration ? `${product.accessDuration} days` : "Lifetime",
       tags: tags,
@@ -365,12 +373,6 @@ export default async function ResourcesPage() {
         ...cat,
         categoryId: String(cat.categoryId), 
         productId: String(cat.productId)
-      })),
-      // Also convert reviews productId from bigint to string
-      _reviews: product.reviews.map(review => ({
-        ...review,
-        productId: String(review.productId),
-        id: String(review.id)
       })),
       questions: product.description?.includes("questions") ? "2000+ Questions" : undefined,
       chapters: product.description?.includes("chapters") ? "15+ Chapters" : undefined,
@@ -396,19 +398,16 @@ export default async function ResourcesPage() {
           {products.length === 0 ? (
             <div className="text-center py-10 bg-white rounded-lg shadow-sm p-8">
               <p className="text-gray-500">Unable to load products. Please try again later.</p>
-              <button 
-                className="mt-4 px-4 py-2 bg-primary text-white rounded-md hover:bg-primary/90"
-                onClick={() => revalidatePath('/products')}
-              >
-                Refresh
-              </button>
+              <RefreshButton />
             </div>
           ) : (
-            <ResourcesClient 
-              initialResources={resources}
-              allUniversities={formattedUniversities}
-              allProductTypes={formattedProductTypes}
-            />
+            <div>
+              <ResourcesClient 
+                initialResources={resources}
+                allUniversities={formattedUniversities}
+                allProductTypes={formattedProductTypes}
+              />
+            </div>
           )}
         </Suspense>
       </div>

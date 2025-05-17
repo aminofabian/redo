@@ -33,7 +33,7 @@ type Category = {
 }
 
 type ProductWithRelations = {
-  id: bigint;
+  id: number | bigint;
   title: string;
   description: string | null;
   isPublished: boolean;
@@ -254,7 +254,7 @@ export async function GET(request: NextRequest) {
       });
       
       // Transform for easier frontend use
-      const formattedProducts = products.map((product: ProductWithRelations) => ({
+      const formattedProducts = products.map((product) => ({
         id: product.id,
         title: product.title,
         description: product.description,
