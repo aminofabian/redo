@@ -71,8 +71,64 @@ export function DashboardOverview() {
 
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center h-full py-12">
-        <Loader2 className="w-8 h-8 text-gray-400 animate-spin" />
+      <div className="p-6 space-y-6">
+        {/* Header skeleton */}
+        <div className="flex items-center justify-between">
+          <div className="h-8 w-48 bg-gray-200 rounded animate-pulse"></div>
+          <div className="h-5 w-36 bg-gray-200 rounded animate-pulse"></div>
+        </div>
+
+        {/* Stats Cards skeleton */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          {[...Array(4)].map((_, i) => (
+            <Card key={i} className="opacity-70">
+              <CardHeader className="pb-2">
+                <div className="h-4 w-28 bg-gray-200 rounded animate-pulse"></div>
+              </CardHeader>
+              <CardContent>
+                <div className="flex items-center">
+                  <div className="w-5 h-5 mr-2 bg-gray-200 rounded animate-pulse"></div>
+                  <div className="h-8 w-16 bg-gray-200 rounded animate-pulse"></div>
+                </div>
+                <div className="h-3 w-24 bg-gray-200 rounded animate-pulse mt-2"></div>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+
+        {/* Quick Actions and Recent Activity skeleton */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <Card className="lg:col-span-1 opacity-70">
+            <CardHeader>
+              <div className="h-6 w-32 bg-gray-200 rounded animate-pulse"></div>
+            </CardHeader>
+            <CardContent className="space-y-2">
+              {[...Array(4)].map((_, i) => (
+                <div key={i} className="h-10 w-full bg-gray-200 rounded animate-pulse"></div>
+              ))}
+            </CardContent>
+          </Card>
+
+          <Card className="lg:col-span-2 opacity-70">
+            <CardHeader>
+              <div className="h-6 w-32 bg-gray-200 rounded animate-pulse"></div>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                {[...Array(5)].map((_, i) => (
+                  <div key={i} className="flex items-start space-x-3">
+                    <div className="h-8 w-8 bg-gray-200 rounded-full animate-pulse"></div>
+                    <div className="flex-1">
+                      <div className="h-4 w-3/4 bg-gray-200 rounded animate-pulse"></div>
+                      <div className="h-3 w-1/4 bg-gray-200 rounded animate-pulse mt-2"></div>
+                    </div>
+                  </div>
+                ))}
+                <div className="h-8 w-full bg-gray-200 rounded animate-pulse mt-2"></div>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
       </div>
     );
   }

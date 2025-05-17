@@ -158,8 +158,21 @@ export function FilterSidebar() {
         
         <div className="flex-1 overflow-y-auto px-4">
           {isLoading ? (
-            <div className="flex items-center justify-center h-32">
-              <Loader2 className="w-8 h-8 text-gray-400 animate-spin" />
+            <div className="space-y-3">
+              {[...Array(5)].map((_, i) => (
+                <div key={i} className="p-3 rounded-lg">
+                  <div className="flex items-center space-x-3">
+                    <div className="h-10 w-10 rounded-full bg-gray-200 animate-pulse"></div>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center justify-between">
+                        <div className="h-4 w-24 bg-gray-200 rounded animate-pulse"></div>
+                        <div className="h-4 w-16 bg-gray-200 rounded animate-pulse"></div>
+                      </div>
+                      <div className="h-3 w-32 bg-gray-200 rounded animate-pulse mt-2"></div>
+                    </div>
+                  </div>
+                </div>
+              ))}
             </div>
           ) : users.length === 0 ? (
             <div className="text-center text-gray-500 py-8">
