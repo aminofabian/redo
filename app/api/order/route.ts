@@ -104,14 +104,26 @@ export async function POST(req: Request) {
 
     console.log("Product IDs to look up:", productIds);
 
+    // In your order route, convert BigInt IDs to strings and then to numbers
+    const productIdsToLookup = productIds.map(id => {
+      // Convert BigInt to string first, then to number
+      const idString = String(id).replace('n', '');
+      return parseInt(idString, 10);
+    });
+
     try {
       const products = await prisma.product.findMany({
-        where: { 
-          id: { 
-            in: productIds.map(id => typeof id === 'bigint' ? id : BigInt(String(id)))
-          } 
+        where: {
+          id: {
+            in: productIdsToLookup
+          }
         },
-        select: { id: true, price: true, finalPrice: true, title: true }
+        select: {
+          id: true,
+          price: true,
+          finalPrice: true,
+          title: true
+        }
       });
       
       console.log(`Found ${products.length} products`, products.map(p => ({id: p.id.toString(), title: p.title})));
@@ -120,7 +132,7 @@ export async function POST(req: Request) {
         return new Response(
           JSON.stringify({ 
             error: 'No valid products found', 
-            lookedFor: productIds.map(id => String(id)),
+            lookedFor: productIdsToLookup.map(id => String(id)),
             debug: items
           }), 
           { status: 400, headers: { 'Content-Type': 'application/json' } }
@@ -178,7 +190,7 @@ export async function POST(req: Request) {
         JSON.stringify({ 
           error: 'Product lookup error', 
           details: error instanceof Error ? error.message : String(error),
-          productIds: productIds.map(id => String(id))
+          productIds: productIdsToLookup.map(id => String(id))
         }), 
         { status: 500, headers: { 'Content-Type': 'application/json' } }
       );

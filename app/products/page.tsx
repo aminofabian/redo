@@ -257,35 +257,8 @@ export default async function ResourcesPage() {
   
   console.log('Formatted product types result:', formattedProductTypes);
 
-  // Then fetch reviews separately with a simplified query
-  const productIds = products.map(p => parseInt(p.id));
-  const allReviews = await prisma.review.findMany({
-    where: {
-      productId: {
-        in: productIds
-      },
-      // Only include reviews with valid ratings
-      rating: {
-        gte: 1
-      }
-    },
-    select: {
-      id: true,
-      productId: true,
-      rating: true
-    }
-  });
-
-  // Group reviews by product ID for easy access
-  const reviewsByProduct: { [key: string]: any[] } = {};
-  allReviews.forEach(review => {
-    const productIdStr = String(review.productId);
-    if (!reviewsByProduct[productIdStr]) {
-      reviewsByProduct[productIdStr] = [];
-    }
-    reviewsByProduct[productIdStr].push(review);
-  });
-
+  // Skip the review query entirely for now
+  // Just use default values for all products
   const resources = products.map(product => {
     const primaryImage = product.images && product.images.length > 0 
       ? product.images.find(img => img.isPrimary) || product.images[0]
@@ -297,7 +270,7 @@ export default async function ResourcesPage() {
       console.log(`Product ${product.id} has no images`);
     }
     
-    // Use static data for reviews temporarily
+    // Use static data for reviews - no need to look up actual reviews
     const avgRating = "0.0";
     const reviewCount = 0;
     
@@ -352,7 +325,7 @@ export default async function ResourcesPage() {
 
     // Format to match current UI expectations
     return {
-      id: String(product.id), // Convert BigInt to string
+      id: String(product.id),
       slug: product.slug || String(product.id),
       title: product.title,
       description: product.description || "",
