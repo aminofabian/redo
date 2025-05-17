@@ -527,51 +527,32 @@ export function ProductDrawer({
       return [];
     }
     
-    console.log(`Attempting to upload ${selectedFiles.length} files to S3`);
+    console.log(`Attempting to upload ${selectedFiles.length} files to S3 via proxy`);
     setUploadingImages(true);
     const uploadedUrls: string[] = [];
     
     try {
       for (const file of selectedFiles) {
         console.log(`Processing file: ${file.name}, type: ${file.type}, size: ${file.size} bytes`);
-        const filename = `${Date.now()}-${file.name.replace(/\s+/g, '-')}`;
         
-        // Create a presigned URL for upload
-        const response = await fetch('/api/upload-url', {
+        // Create form data for the file
+        const formData = new FormData();
+        formData.append('file', file);
+        
+        // Upload through our proxy endpoint
+        const response = await fetch('/api/upload-proxy', {
           method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            filename,
-            contentType: file.type,
-          }),
+          body: formData,
         });
         
         if (!response.ok) {
-          const errorText = await response.text();
-          console.error('Upload URL API error:', errorText);
-          throw new Error(`Failed to get upload URL: ${response.status} ${errorText}`);
+          const errorData = await response.json();
+          console.error('Upload proxy error:', errorData);
+          throw new Error(`Failed to upload: ${errorData.error || response.statusText}`);
         }
         
-        const { url, fileUrl } = await response.json();
-        console.log(`Received presigned URL for ${filename}`);
-        
-        // Upload the file to the presigned URL
-        const uploadResponse = await fetch(url, {
-          method: 'PUT',
-          body: file,
-          headers: {
-            'Content-Type': file.type,
-          },
-        });
-        
-        if (!uploadResponse.ok) {
-          console.error(`S3 upload failed with status: ${uploadResponse.status}`);
-          throw new Error(`S3 upload failed: ${uploadResponse.status}`);
-        }
-        
-        console.log(`Successfully uploaded to: ${fileUrl}`);
+        const { fileUrl } = await response.json();
+        console.log(`Successfully uploaded to S3 via proxy: ${fileUrl}`);
         uploadedUrls.push(fileUrl);
       }
       

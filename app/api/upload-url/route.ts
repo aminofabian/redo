@@ -37,7 +37,9 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const key = `products/${filename}`;
+    // Clean the filename to ensure it's safe for S3
+    const cleanedFilename = filename.replace(/\s+/g, '-').toLowerCase();
+    const key = `products/${Date.now()}-${cleanedFilename}`;
     
     // Create the command to put an object in the S3 bucket
     const command = new PutObjectCommand({
@@ -47,14 +49,33 @@ export async function POST(request: NextRequest) {
     });
     
     // Generate a presigned URL for the command
-    const url = await getSignedUrl(s3Client, command, { expiresIn: 3600 });
+    const url = await getSignedUrl(s3Client, command, { 
+      expiresIn: 3600,
+    });
     
     // Generate the URL to access the file after upload
     const fileUrl = `https://${bucketName}.s3.${region}.amazonaws.com/${key}`;
     
-    return NextResponse.json({ url, fileUrl });
+    console.log('Generated presigned URL for upload:', {
+      key,
+      contentType,
+      urlLength: url.length,
+      fileUrl
+    });
+    
+    return NextResponse.json({ 
+      url, 
+      fileUrl,
+      fields: {
+        'Content-Type': contentType,
+        key
+      }
+    });
   } catch (error) {
     console.error('Error generating upload URL:', error);
-    return NextResponse.json({ error: 'Failed to generate upload URL' }, { status: 500 });
+    return NextResponse.json({ 
+      error: 'Failed to generate upload URL', 
+      details: error instanceof Error ? error.message : 'Unknown error' 
+    }, { status: 500 });
   }
 } 
