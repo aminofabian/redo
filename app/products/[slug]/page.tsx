@@ -111,6 +111,26 @@ async function getRelatedProducts(productId: number, categoryIds: string[]) {
   }
 }
 
+// Add this function to fetch reviews separately
+async function getProductReviews(productId: number) {
+  try {
+    const response = await fetch(
+      `http://localhost:3000/api/reviews/product/${productId}`,
+      { cache: 'no-store' }
+    );
+    
+    if (!response.ok) {
+      console.error('Failed to fetch reviews:', response.statusText);
+      return [];
+    }
+    
+    return await response.json();
+  } catch (error) {
+    console.error("Error fetching product reviews:", error);
+    return [];
+  }
+}
+
 export default async function ProductPage({ params }: { params: { slug: string } }) {
   // Server-side data fetching
   const product = await getProduct(params.slug);
@@ -133,6 +153,12 @@ export default async function ProductPage({ params }: { params: { slug: string }
   }
   
   const serializedProduct = serializeProduct(product);
+  
+  // Fetch reviews separately
+  const reviews = await getProductReviews(serializedProduct.id);
+  
+  // Replace the reviews in the serialized product
+  serializedProduct.reviews = reviews;
   
   // Get category IDs for related products
   const categoryIds = serializedProduct.categories.map(c => c.category.id);
@@ -344,6 +370,26 @@ export default async function ProductPage({ params }: { params: { slug: string }
               ))}
             </div>
             <p className="text-gray-500">Based on {serializedProduct.reviews.filter(review => review.status === 'approved').length} approved reviews</p>
+            
+            {/* Rating breakdown */}
+            <div className="mt-4 space-y-2">
+              {[5, 4, 3, 2, 1].map(rating => {
+                const reviewsForRating = serializedProduct.reviews.filter(r => r.status === 'approved' && r.rating === rating);
+                const percentage = serializedProduct.reviews.filter(r => r.status === 'approved').length > 0 
+                  ? (reviewsForRating.length / serializedProduct.reviews.filter(r => r.status === 'approved').length) * 100 
+                  : 0;
+                
+                return (
+                  <div key={rating} className="flex items-center">
+                    <span className="w-12 text-sm font-medium text-gray-600">{rating} stars</span>
+                    <div className="flex-1 mx-4 h-2 bg-gray-200 rounded-full overflow-hidden">
+                      <div className="h-full bg-yellow-400 rounded-full" style={{ width: `${percentage}%` }}></div>
+                    </div>
+                    <span className="text-sm text-gray-500 w-16">{reviewsForRating.length} reviews</span>
+                  </div>
+                );
+              })}
+            </div>
           </div>
           
           <div className="ml-auto">
@@ -355,11 +401,80 @@ export default async function ProductPage({ params }: { params: { slug: string }
         </div>
         
         {/* Reviews list */}
-        <ReviewSection 
-          reviews={serializedProduct.reviews} 
-          productId={serializedProduct.id}
-          productName={serializedProduct.title}
-        />
+        <div className="space-y-8 mt-10">
+          {serializedProduct.reviews
+            .filter(review => review.status === 'approved')
+            .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+            .map(review => (
+              <div key={review.id} className="border-b pb-8">
+                <div className="flex justify-between items-start mb-4">
+                  <div>
+                    <div className="flex items-center">
+                      <div className="h-10 w-10 rounded-full bg-gray-200 flex items-center justify-center text-gray-700 font-bold">
+                        {(review.userName || 'Anonymous').charAt(0).toUpperCase()}
+                      </div>
+                      <div className="ml-3">
+                        <div className="font-medium">{review.userName || 'Anonymous'}</div>
+                        <div className="text-xs text-gray-500">
+                          {new Date(review.createdAt).toLocaleDateString('en-US', {
+                            year: 'numeric',
+                            month: 'long',
+                            day: 'numeric'
+                          })}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="flex text-yellow-400">
+                    {Array.from({ length: 5 }).map((_, i) => (
+                      <span key={i}>{review.rating > i ? "★" : "☆"}</span>
+                    ))}
+                  </div>
+                </div>
+                
+                <p className="text-gray-700 mb-4">{review.comment}</p>
+                
+                <div className="flex items-center text-sm">
+                  <ReviewVoteButtons 
+                    reviewId={review.id}
+                    helpfulCount={review.helpfulCount}
+                    notHelpfulCount={review.notHelpfulCount}
+                  />
+                </div>
+              </div>
+            ))}
+            
+          {serializedProduct.reviews.filter(review => review.status === 'approved').length === 0 && (
+            <div className="text-center py-10 bg-gray-50 rounded-lg">
+              <p className="text-gray-500 mb-4">No reviews yet for this product</p>
+              <ReviewButton 
+                productId={serializedProduct.id} 
+                productName={serializedProduct.title} 
+                label="Be the first to review this product"
+              />
+            </div>
+          )}
+        </div>
+        
+        {/* Show review pagination if there are many reviews */}
+        {serializedProduct.reviews.filter(review => review.status === 'approved').length > 5 && (
+          <div className="flex justify-center mt-8">
+            <nav className="inline-flex rounded-md shadow-sm" aria-label="Pagination">
+              <a href="#" className="px-4 py-2 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-l-md hover:bg-gray-50">
+                Previous
+              </a>
+              <a href="#" className="px-4 py-2 text-sm font-medium text-blue-600 border border-gray-300 bg-blue-50 hover:bg-blue-100">
+                1
+              </a>
+              <a href="#" className="px-4 py-2 text-sm font-medium text-gray-500 bg-white border border-gray-300 hover:bg-gray-50">
+                2
+              </a>
+              <a href="#" className="px-4 py-2 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-r-md hover:bg-gray-50">
+                Next
+              </a>
+            </nav>
+          </div>
+        )}
       </div>
       
       {relatedProducts.length > 0 && (

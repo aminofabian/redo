@@ -4,13 +4,14 @@ import { useState } from 'react';
 import ReviewModal from './ReviewModal';
 import { useSession } from 'next-auth/react';
 
-type ReviewButtonProps = {
+interface ReviewButtonProps {
   productId: number;
   productName: string;
+  label?: string;
   isFirstReview?: boolean;
-};
+}
 
-export default function ReviewButton({ productId, productName, isFirstReview = false }: ReviewButtonProps) {
+export default function ReviewButton({ productId, productName, label = "Write a Review", isFirstReview = false }: ReviewButtonProps) {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -61,7 +62,7 @@ export default function ReviewButton({ productId, productName, isFirstReview = f
         className="px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition-colors"
         onClick={handleButtonClick}
       >
-        {isFirstReview ? 'Be the first to review' : 'Write a Review'}
+        {isFirstReview ? 'Be the first to review' : label}
       </button>
 
       {error && <p className="text-red-500 mt-2">{error}</p>}
