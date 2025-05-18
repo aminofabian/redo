@@ -11,7 +11,7 @@ globalForPrisma.prisma = globalForPrisma.prisma || new PrismaClient();
 const prisma = globalForPrisma.prisma;
 
 // Handler for GET requests
-export async function GET(request) {
+export const GET = async (request) => {
   try {
     const session = await auth();
 
@@ -22,13 +22,12 @@ export async function GET(request) {
 
     const userId = session.user.id;
     
-    // Try to get user's personalized quick actions from the database
-    // First check if we have a UserSettings or UserPreferences table
-    const userSettings = await prisma.user.findUnique({
+    // Get basic user information
+    const user = await prisma.user.findUnique({
       where: { id: userId },
       select: {
-        settings: true,
-        preferredCategories: true
+        name: true,
+        role: true
       }
     });
     
@@ -42,9 +41,17 @@ export async function GET(request) {
         product: {
           select: {
             title: true,
-            type: true,
-            category: true,
-            downloadUrl: true
+            fileType: true,
+            downloadUrl: true,
+            categories: {
+              select: {
+                category: {
+                  select: {
+                    name: true
+                  }
+                }
+              }
+            }
           }
         }
       },
@@ -55,7 +62,9 @@ export async function GET(request) {
     });
 
     // Determine the user's most common product categories
-    const productCategories = recentPurchases.map(p => p.product.category).filter(Boolean);
+    const productCategories = recentPurchases.flatMap(p => 
+      p.product.categories?.map(c => c.category?.name) || []
+    ).filter(Boolean);
     const hasDownloadableContent = recentPurchases.some(p => p.product.downloadUrl);
     
     // Get pending orders (if any)

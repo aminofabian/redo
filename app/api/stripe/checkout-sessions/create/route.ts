@@ -31,7 +31,7 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
   apiVersion: "2025-03-31.basil",
 });
 
-export async function POST(request: Request) {
+export const POST = async (request: Request) => {
   try {
     const { cartItems,orderId } = await request.json();
     const returnUrl = "https://rnstudentresources.vercel.app"

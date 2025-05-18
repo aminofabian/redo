@@ -4,6 +4,70 @@ import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from "@/lib/prisma";
 import { getAuthSession } from "@/lib/getAuthSession";
 
+// Define types for order data structure
+// Import Decimal type from Prisma to handle currency values
+import { Decimal } from '@prisma/client/runtime/library';
+
+interface Product {
+  id: string | bigint | number;
+  title: string;
+  description?: string | null;
+  downloadLimit?: number | null;
+  downloadUrl?: string | null;
+  accessDuration?: number | null;
+  [key: string]: any; // Allow for additional properties from Prisma
+}
+
+interface OrderItem {
+  id: string | bigint | number;
+  price: number | bigint | Decimal;
+  quantity: number;
+  productId: string | bigint | number;
+  product: Product;
+  [key: string]: any; // Allow for additional properties from Prisma
+}
+
+interface Order {
+  id: string | bigint | number;
+  totalAmount: number | bigint | Decimal;
+  currency: string;
+  status: string;
+  paymentStatus: string;
+  orderItems: OrderItem[];
+  userId?: string | null;
+  transactionId?: string | null;
+  paymentIntentId?: string | null;
+  metadata?: any;
+  [key: string]: any; // Allow for additional properties from Prisma
+}
+
+interface TransactionResult {
+  updatedOrder: Order;
+  purchases: any[];
+}
+
+// Helper function to handle BigInt serialization
+function safeJSONStringify(obj: any): string {
+  return JSON.stringify(obj, (_, value) => {
+    if (typeof value === 'bigint') {
+      return value.toString();
+    }
+    return value;
+  });
+}
+
+// Helper for safe response with BigInt support
+function safeNextResponse(data: any, options: any = {}) {
+  const body = safeJSONStringify(data);
+  return new NextResponse(body, {
+    ...options,
+    headers: {
+      ...options.headers,
+      'content-type': 'application/json',
+    },
+  });
+}
+
 if (!process.env.STRIPE_SECRET_KEY) {
   throw new Error("STRIPE_SECRET_KEY is not defined in environment variables");
 }
@@ -13,13 +77,13 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
 });
 
 // POST is more appropriate for actions that change state
-export async function POST(request: NextRequest) {
+export const POST = async (request: NextRequest) => {
   try {
     const { searchParams } = new URL(request.url);
     const sessionId = searchParams.get('session_id');
     
     if (!sessionId) {
-      return NextResponse.json(
+      return safeNextResponse(
         { success: false, message: "Session ID is required" },
         { status: 400 }
       );
@@ -38,7 +102,7 @@ export async function POST(request: NextRequest) {
     });
 
     if (stripeSession.payment_status !== 'paid') {
-      return NextResponse.json(
+      return safeNextResponse(
         { success: false, message: "Payment not completed" },
         { status: 400 }
       );
@@ -49,7 +113,7 @@ export async function POST(request: NextRequest) {
     const orderId = stripeSession.metadata?.orderId;
     
     if (!orderId) {
-      return NextResponse.json(
+      return safeNextResponse(
         { success: false, message: "No order ID found in session metadata" },
         { status: 400 }
       );
@@ -60,9 +124,14 @@ export async function POST(request: NextRequest) {
     // Find the order in our database using the orderId from session metadata
     let order;
     try {
-      order = await prisma.order.findUnique({
+      // The orderId from Stripe metadata will be a string, but our database ID might be a BigInt
+      // Let's try both ways to be safe
+      order = await prisma.order.findFirst({
         where: {
-          id: orderId
+          OR: [
+            { id: orderId }, // Try as a string first
+            { id: String(BigInt(orderId)) } // Convert BigInt to string for Prisma compatibility
+          ]
         },
         include: {
           orderItems: {
@@ -76,7 +145,7 @@ export async function POST(request: NextRequest) {
       });
     } catch (findError) {
       console.error('Error finding order:', findError);
-      return NextResponse.json(
+      return safeNextResponse(
         { success: false, message: "Error finding order", details: findError instanceof Error ? findError.message : "Unknown error" },
         { status: 500 }
       );
@@ -85,7 +154,7 @@ export async function POST(request: NextRequest) {
     console.log("Order found:", order ? "Yes" : "No");
 
     if (!order) {
-      return NextResponse.json(
+      return safeNextResponse(
         { success: false, message: "Order not found" },
         { status: 404 }
       );
@@ -97,8 +166,13 @@ export async function POST(request: NextRequest) {
     if (!userId) {
       // If no userId from session, look it up separately to avoid the original error
       try {
-        const orderUser = await prisma.order.findUnique({
-          where: { id: orderId },
+        const orderUser = await prisma.order.findFirst({
+          where: {
+            OR: [
+              { id: orderId },
+              { id: orderId.toString() } // Convert to string instead of BigInt
+            ]
+          },
           select: { userId: true }
         });
         userId = orderUser?.userId || 'guest-user';
@@ -150,6 +224,8 @@ export async function POST(request: NextRequest) {
     try {
       // Begin a transaction to ensure all updates happen together
       const result = await prisma.$transaction(async (tx) => {
+        // Explicitly declare the type for the transaction result
+        let result: TransactionResult;
         // 1. Create the transaction record
         let transaction;
         try {
@@ -172,6 +248,7 @@ export async function POST(request: NextRequest) {
         }
 
       // 2. Update the order status with transaction ID and payment intent ID
+      // We need to include the orderItems with their products to satisfy our Order interface
       const updatedOrder = await tx.order.update({
         where: { id: order.id },
         data: {
@@ -187,7 +264,7 @@ export async function POST(request: NextRequest) {
             }
           }
         }
-      });
+      }) as unknown as Order; // Cast to our Order interface type
 
       // 3. Create purchase records for each product
       const purchases = [];
@@ -227,14 +304,24 @@ export async function POST(request: NextRequest) {
         });
       }
 
-      return { updatedOrder, purchases };
+      // Return an object that matches our TransactionResult interface
+      return { 
+        updatedOrder: {
+          ...updatedOrder,
+          // Ensure the order matches our interface by explicitly including orderItems
+          orderItems: updatedOrder.orderItems || []
+        } as Order, 
+        purchases 
+      };
     });
 
       // Format the response for the success page
+      // Use the defined Order interface to properly type the result
+      const updatedOrder = result.updatedOrder as Order;
       const orderDetails = {
-        id: result.updatedOrder.id,
-        totalAmount: Number(result.updatedOrder.totalAmount),
-        items: result.updatedOrder.orderItems.map(item => ({
+        id: typeof updatedOrder.id === 'bigint' ? updatedOrder.id.toString() : updatedOrder.id,
+        totalAmount: Number(updatedOrder.totalAmount),
+        items: updatedOrder.orderItems.map((item: OrderItem) => ({
           id: item.id,
           title: item.product.title,
           price: Number(item.price),
@@ -243,7 +330,7 @@ export async function POST(request: NextRequest) {
         }))
       };
 
-      return NextResponse.json({
+      return safeNextResponse({
         success: true,
         message: "Payment verified and order processed successfully",
         orderId: result.updatedOrder.id,
@@ -251,7 +338,7 @@ export async function POST(request: NextRequest) {
       });
     } catch (txError) {
       console.error("Error during transaction processing:", txError);
-      return NextResponse.json(
+      return safeNextResponse(
         { success: false, message: "Transaction processing failed", details: txError instanceof Error ? txError.message : "Unknown error" },
         { status: 500 }
       );
@@ -264,7 +351,7 @@ export async function POST(request: NextRequest) {
     const sessionIdForError = errorParams.get('session_id');
     
     // Send detailed error info to the frontend
-    return NextResponse.json(
+    return safeNextResponse(
       { 
         success: false, 
         message: "Failed to verify payment", 
@@ -274,11 +361,11 @@ export async function POST(request: NextRequest) {
       { status: 500 }
     );
   }
-}
+};
 
 // Keep GET endpoint for backward compatibility
-export async function GET(request: Request) {
-  return NextResponse.json(
+export const GET = async (request: Request) => {
+  return safeNextResponse(
     { success: false, message: "Please use POST method for payment verification" },
     { status: 405 }
   );

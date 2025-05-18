@@ -238,50 +238,72 @@ export function FilterSidebar() {
             />
           </div>
         </div>
-
-        {/* Filter Groups */}
-        {groups.map((group) => (
-          <div key={group.title}>
-            <h3 className="text-sm font-medium text-gray-900 mb-3">
-              {group.title}
-            </h3>
-            <div className="space-y-2">
-              {group.options.map((option) => (
-                <button
-                  key={option.value}
-                  className={cn(
-                    "flex items-center justify-between w-full px-2 py-1.5 text-sm rounded-md",
-                    "transition-colors duration-200",
-                    "hover:bg-gray-100"
-                  )}
-                  onClick={() => handleProductSelect(option)}
-                >
-                  <span className="text-gray-700">{option.label}</span>
-                  <span className="text-xs text-gray-500">{option.count}</span>
-                </button>
-              ))}
+        
+        {/* Filter Groups with loading state */}
+        {isLoading ? (
+          // Skeleton loading state
+          <div className="space-y-4">
+            {[...Array(3)].map((_, i) => (
+              <div key={i}>
+                <div className="h-4 w-24 bg-gray-200 rounded animate-pulse mb-3"></div>
+                <div className="space-y-2">
+                  {[...Array(3)].map((_, j) => (
+                    <div key={j} className="flex items-center justify-between w-full px-2 py-1.5">
+                      <div className="h-4 w-20 bg-gray-200 rounded animate-pulse"></div>
+                      <div className="h-3 w-6 bg-gray-200 rounded animate-pulse"></div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            ))}
+          </div>
+        ) : (
+          // Actual filter groups
+          <>
+            {groups.map((group) => (
+              <div key={group.title}>
+                <h3 className="text-sm font-medium text-gray-900 mb-3">
+                  {group.title}
+                </h3>
+                <div className="space-y-2">
+                  {group.options.map((option) => (
+                    <button
+                      key={option.value}
+                      className={cn(
+                        "flex items-center justify-between w-full px-2 py-1.5 text-sm rounded-md",
+                        "transition-colors duration-200",
+                        "hover:bg-gray-100"
+                      )}
+                      onClick={() => handleProductSelect(option)}
+                    >
+                      <span className="text-gray-700">{option.label}</span>
+                      <span className="text-xs text-gray-500">{option.count}</span>
+                    </button>
+                  ))}
+                </div>
+              </div>
+            ))}
+            
+            {/* Active Filters */}
+            <div className="pt-4 border-t">
+              <div className="flex items-center justify-between mb-3">
+                <h3 className="text-sm font-medium text-gray-900">Active Filters</h3>
+                <Button variant="ghost" size="sm" className="h-auto p-0 text-gray-500">
+                  Clear all
+                </Button>
+              </div>
+              <div className="flex flex-wrap gap-2">
+                <span className="inline-flex items-center gap-1 px-2 py-1 text-xs font-medium bg-gray-100 text-gray-700 rounded-md">
+                  Published
+                  <button className="ml-1 text-gray-500 hover:text-gray-700">
+                    <X className="w-3 h-3" />
+                  </button>
+                </span>
+                {/* Add more active filters */}
+              </div>
             </div>
-          </div>
-        ))}
-
-        {/* Active Filters */}
-        <div className="pt-4 border-t">
-          <div className="flex items-center justify-between mb-3">
-            <h3 className="text-sm font-medium text-gray-900">Active Filters</h3>
-            <Button variant="ghost" size="sm" className="h-auto p-0 text-gray-500">
-              Clear all
-            </Button>
-          </div>
-          <div className="flex flex-wrap gap-2">
-            <span className="inline-flex items-center gap-1 px-2 py-1 text-xs font-medium bg-gray-100 text-gray-700 rounded-md">
-              Published
-              <button className="ml-1 text-gray-500 hover:text-gray-700">
-                <X className="w-3 h-3" />
-              </button>
-            </span>
-            {/* Add more active filters */}
-          </div>
-        </div>
+          </>
+        )}
       </div>
     </div>
   );
