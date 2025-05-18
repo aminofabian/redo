@@ -103,73 +103,102 @@ const PayPalButtonWrapper = ({ clientId, onLoad }: { clientId: string, onLoad: (
   );
 };
 
-const PayPalCheckoutButton = ({ onReadyCallback, amount }: { onReadyCallback: () => void, amount: string }) => {
+const PayPalCheckoutButton = ({ onReadyCallback, amount, items }: { onReadyCallback: () => void, amount: string, items: CartItem[] }) => {
+  const [isCreatingOrder, setIsCreatingOrder] = useState(false);
+  const [orderError, setOrderError] = useState<string | null>(null);
   const safeAmount = Number(amount) <= 0 ? "1.00" : amount;
   const { clearCart } = useCart();
+  const router = useRouter();
   
   return (
     <PayPalButtons
       style={{ layout: "vertical" }}
-      createOrder={(data, actions) => {
-        console.log("Creating PayPal order with amount:", safeAmount);
-        return actions.order.create({
-          intent: "CAPTURE",
-          purchase_units: [
-            {
-              amount: {
-                value: safeAmount,
-                currency_code: "USD"
-              },
-              description: "Your purchase",
-            },
-          ],
-          application_context: {
-            shipping_preference: "NO_SHIPPING"
+      createOrder={async (data, actions) => {
+        try {
+          if (!items || items.length === 0) {
+            throw new Error('No items in cart');
           }
-        });
+          setIsCreatingOrder(true);
+          setOrderError(null);
+          console.log("Creating PayPal order with amount:", safeAmount);
+          const currentOrderId = localStorage.getItem('orderId');
+          if (!currentOrderId) {
+            throw new Error('Order ID not found - Please try refreshing the page');
+          }
+
+          // Create PayPal order with our backend first
+          const response = await fetch('/api/paypal/create-order', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              cartItems: items.map(item => ({
+                id: item.id,
+                title: item.title,
+                price: typeof item.price === 'string' ? parseFloat(item.price) : item.price,
+                quantity: item.quantity || 1
+              })),
+              orderId: currentOrderId,
+              totalAmount: safeAmount
+            })
+          });
+
+          const result = await response.json();
+          if (!result.id) {
+            throw new Error('Failed to create PayPal order');
+          }
+
+          return result.id;
+        } catch (error) {
+          setOrderError(error instanceof Error ? error.message : 'Failed to create order');
+          setIsCreatingOrder(false);
+          throw error;
+        } finally {
+          setIsCreatingOrder(false);
+        }
       }}
-      onApprove={(data, actions) => {
+      onApprove={async (data, actions) => {
         if (!actions.order) {
           console.error("Order actions not available");
           return Promise.reject("Order actions not available");
         }
       
-        return actions.order.capture().then(async (details) => {
+        try {
+          const details = await actions.order.capture();
           console.log("Payment successful", details);
       
           const currentOrderId = localStorage.getItem('orderId');
           if (!currentOrderId) {
-            console.error("Order ID is not available");
-            toast.error("Order ID not found. Please try again.");
-            return;
+            throw new Error("Order ID not found");
           }
       
-          try {
-            const res = await fetch("/api/paypal/capture-order", {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({
-                orderId: currentOrderId,
-                paypalOrderDetails: details
-              }),
-            });
-      
-            if (!res.ok) throw new Error("Failed to store transaction");
-            const responseData = await res.json();
-            console.log("Server response:", responseData);
-          } catch (err) {
-            console.error("Error sending PayPal capture to backend", err);
-            toast.error("Failed to store transaction. Please contact support.");
+          // Verify payment with our backend
+          const response = await fetch(`/api/paypal/verify-payment?paymentId=${data.orderID}`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            }
+          });
+
+          const result = await response.json();
+          if (!result.success) {
+            throw new Error(result.message || 'Payment verification failed');
           }
+
           clearCart();
-          localStorage.removeItem('orderId');          
-          toast.success(`Payment completed! Thank you ${details.payer?.name?.given_name || ''}!`);
-        });
+          localStorage.removeItem('orderId');
+          // Use window.location for a hard redirect
+          window.location.href = `/success?paymentId=${data.orderID}&provider=paypal`;
+        } catch (error) {
+          console.error('Payment verification error:', error);
+          toast.error('Payment verification failed. Please try again.');
+          return Promise.reject(error);
+        }
       }}
-      
-      onError={(err) => {
-        console.error("PayPal error:", err);
-        toast.error("Payment failed. Please try again.");
+      onError={(error: any) => {
+        console.error('PayPal error:', error);
+        toast.error('PayPal payment failed. Please try again.');
       }}
     />
   );
@@ -177,7 +206,7 @@ const PayPalCheckoutButton = ({ onReadyCallback, amount }: { onReadyCallback: ()
 
 const PayPalButtonContent = ({ onLoad }: { onLoad: () => void }) => {
   const [{ isPending, isResolved }] = usePayPalScriptReducer();
-  const { totalPrice } = useCart(); 
+  const { totalPrice, items } = useCart(); 
   
   useEffect(() => {
     if (isResolved) {
@@ -194,7 +223,7 @@ const PayPalButtonContent = ({ onLoad }: { onLoad: () => void }) => {
   }
   
   const formattedTotal = Number(totalPrice).toFixed(2);
-  return <PayPalCheckoutButton onReadyCallback={() => {}} amount={formattedTotal} />;
+  return <PayPalCheckoutButton onReadyCallback={() => {}} amount={formattedTotal} items={items} />;
 };
 
 function replaceBigInt(key: string, value: any) {
@@ -475,16 +504,18 @@ export function CartSidebar({ priceId, price, description }: props) {
       setPaymentGateways(data.gateways);
 
       // Create an order with properly formatted product IDs
-      const orderResponse = await fetch('/api/order', {
+      const orderResponse = await fetch('/api/orders', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          items: items.map(item => ({
+          orderItems: items.map(item => ({
             productId: item.id,
             quantity: item.quantity || 1,
             price: typeof item.price === 'string' ? parseFloat(item.price) : item.price
           })),
-          totalPrice: parseFloat(calculateFinalPrice())
+          totalAmount: parseFloat(calculateFinalPrice()),
+          email: session?.user?.email || guestEmail,
+          status: 'pending'
         })
       });
 
@@ -730,14 +761,22 @@ export function CartSidebar({ priceId, price, description }: props) {
             status: 'pending'
           });
           
-          orderId = orderResponse.data.id;
-          localStorage.setItem('orderId', orderId);
+          if (orderResponse.data.id) {
+            const newOrderId = orderResponse.data.id.toString();
+            localStorage.setItem('orderId', newOrderId);
+            orderId = newOrderId;
+          } else {
+            throw new Error('No order ID received from server');
+          }
           console.log('Order created successfully with ID:', orderId);
-        } catch (orderError) {
+        } catch (orderError: unknown) {
+          // Type guard for Axios error
+          if (axios.isAxiosError(orderError)) {
           console.error('Error creating order:', orderError);
           // Log the actual error message from the server if available
           if (orderError.response?.data) {
             console.error('Server error details:', orderError.response.data);
+          }
           }
           toast.error('Could not create order. Please try again.');
           throw orderError;
