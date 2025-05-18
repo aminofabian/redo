@@ -19,7 +19,8 @@ interface VerificationResponse {
       title: string
       price: number
       quantity: number
-      downloadAvailable?: boolean
+      downloadUrl?: string | null
+      fileType?: string
     }>
   }
 }
@@ -150,14 +151,16 @@ export default function SuccessContent() {
                   </div>
                   <div className="text-right">
                     <p className="text-base font-medium text-gray-900">${item.price.toFixed(2)}</p>
-                    {item.downloadAvailable && (
-                      <Link 
-                        href={`/dashboard/materials`} 
+                    {item.downloadUrl && (
+                      <a 
+                        href={item.downloadUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
                         className="flex items-center text-sm text-blue-600 hover:text-blue-800 mt-1"
                       >
                         <Download className="h-3 w-3 mr-1" />
-                        <span>Download</span>
-                      </Link>
+                        <span>Download {item.fileType}</span>
+                      </a>
                     )}
                   </div>
                 </div>

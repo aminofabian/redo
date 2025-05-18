@@ -297,7 +297,8 @@ async function verifyPayment(request: Request) {
           title: item.product.title,
           price: Number(item.price),
           quantity: item.quantity,
-          downloadAvailable: Boolean(item.product.downloadUrl)
+          downloadUrl: item.product.downloadUrl || null,
+          fileType: item.product.fileType || 'unknown'
         }))
       };
       
