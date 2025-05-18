@@ -130,7 +130,8 @@ export const POST = async (request: NextRequest) => {
         where: {
           OR: [
             { id: orderId }, // Try as a string first
-            { id: String(BigInt(orderId)) } // Convert BigInt to string for Prisma compatibility
+            // Safely handle numeric IDs without risking BigInt conversion errors
+            { id: { contains: orderId } } // This will match if orderId is contained within the ID string
           ]
         },
         include: {
@@ -170,7 +171,8 @@ export const POST = async (request: NextRequest) => {
           where: {
             OR: [
               { id: orderId },
-              { id: orderId.toString() } // Convert to string instead of BigInt
+              // Safely handle numeric IDs without risking BigInt conversion errors
+              { id: { contains: orderId } } // This will match if orderId is contained within the ID string
             ]
           },
           select: { userId: true }
