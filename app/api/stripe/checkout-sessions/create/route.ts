@@ -33,12 +33,23 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
 
 export const POST = async (request: Request) => {
   try {
-    const { cartItems,orderId } = await request.json();
-    const returnUrl = "https://rnstudentresources.vercel.app"
-
+    const requestData = await request.json();
+    const { cartItems, orderId } = requestData;
+    const returnUrl = "https://rnstudentresources.vercel.app";
+    
+    console.log("Checkout session request data:", JSON.stringify(requestData, null, 2));
+    
     if (!cartItems || !Array.isArray(cartItems)) {
-      return NextResponse.json(
+      return safeNextResponse(
         { error: "cartItems must be an array" },
+        { status: 400 }
+      );
+    }
+    
+    if (!orderId) {
+      console.error("No orderId provided in checkout session request");
+      return safeNextResponse(
+        { error: "orderId is required to create a checkout session" },
         { status: 400 }
       );
     }
@@ -91,9 +102,20 @@ export const POST = async (request: Request) => {
 
     // Always ensure orderId is safely converted to string if it's a BigInt
     // This prevents "Do not know how to serialize a BigInt" errors
-    const safeOrderId = typeof orderId === 'bigint' ? orderId.toString() : String(orderId || 'unknown');
+    const safeOrderId = typeof orderId === 'bigint' ? 
+      orderId.toString() : 
+      (typeof orderId === 'string' ? orderId : String(orderId));
     
     console.log(`Creating Stripe session with orderId: ${safeOrderId} (type: ${typeof orderId})`);
+    
+    // Double-check we have a valid order ID before proceeding
+    if (safeOrderId === 'undefined' || safeOrderId === 'null' || safeOrderId === 'unknown') {
+      console.error("Invalid orderId detected before Stripe session creation:", safeOrderId);
+      return safeNextResponse(
+        { error: "A valid orderId is required to create a checkout session" },
+        { status: 400 }
+      );
+    }
 
     const session = await stripe.checkout.sessions.create({
       payment_method_types: ["card"],
