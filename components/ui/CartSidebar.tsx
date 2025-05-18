@@ -699,49 +699,20 @@ export function CartSidebar({ priceId, price, description }: props) {
     // Now continue with your existing checkout flow
     handleProceedToPayment();
   };
-
+  
   const handleStripeCheckout = async () => {
-    setIsProcessingCheckout(true);
-
     try {
-      console.log("Initializing checkout with Stripe");
+      setIsProcessingCheckout(true);
       
-      // Format cart items properly for Stripe
-      const cartItems = items.map(item => ({
-        productId: item.id,
-        quantity: item.quantity || 1,
-        price: typeof item.price === 'string' ? parseFloat(item.price) : item.price,
-        title: item.title || 'Product'
-      }));
-      
-      // Create checkout session with properly formatted data
-      const response = await fetch('/api/stripe/checkout-sessions/create', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          cartItems,
-          orderId: orderId || 'unknown',
-          customerEmail: session?.user?.email || guestEmail,
-          totalAmount: parseFloat(calculateFinalPrice()),
-          hasPackageDiscount: !!currentPackage?.items?.length,
-          metadata: {
-            orderId: orderId || 'unknown'
-          }
-        })
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        console.error('Stripe checkout error details:', errorData);
-        throw new Error(`Failed to create checkout session: ${response.status}`);
-      }
-      
-      const { sessionId } = await response.json();
-      
-      // Redirect to Stripe checkout
       const stripe = await stripePromise;
       if (!stripe) {
-        throw new Error('Stripe not initialized');
+        throw new Error('Stripe failed to initialize');
+      }
+      
+      // Assume session ID is available from earlier API call
+      const sessionId = localStorage.getItem('stripeSessionId');
+      if (!sessionId) {
+        throw new Error('Stripe session ID not found');
       }
       
       const { error } = await stripe.redirectToCheckout({ sessionId });

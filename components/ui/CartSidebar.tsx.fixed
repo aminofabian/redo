@@ -1,0 +1,87 @@
+// This is the corrected handleStripeCheckout function to replace in CartSidebar.tsx
+  
+  const handleStripeCheckout = async () => {
+    setIsProcessingCheckout(true);
+    try {
+      // Ensure we have a valid orderId by creating an order if needed
+      let currentOrderId = orderId || localStorage.getItem('orderId');
+      
+      // If we don't have a valid orderId yet, create an order first
+      if (!currentOrderId) {
+        console.log('No order ID found, creating a new order first');
+        try {
+          const orderResponse = await fetch('/api/order', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              items: items.map(item => ({
+                productId: item.id,
+                quantity: item.quantity || 1,
+                price: typeof item.price === 'string' ? parseFloat(item.price) : item.price
+              })),
+              totalPrice: parseFloat(calculateFinalPrice())
+            })
+          });
+  
+          if (!orderResponse.ok) throw new Error('Failed to create order');
+          const orderData = await orderResponse.json();
+          currentOrderId = orderData.id;
+          setOrderId(currentOrderId);
+          localStorage.setItem('orderId', currentOrderId);
+          console.log('Successfully created new order:', currentOrderId);
+        } catch (orderError) {
+          console.error('Error creating order:', orderError);
+          throw new Error('Failed to create order for checkout');
+        }
+      }
+      
+      // Now format cart items for the checkout session
+      const cartItems = items.map(item => ({
+        productId: item.id,
+        quantity: item.quantity || 1,
+        price: typeof item.price === 'string' ? parseFloat(item.price) : item.price,
+        title: item.title || 'Product'
+      }));
+      
+      console.log('Creating Stripe checkout session with orderId:', currentOrderId);
+      
+      // Create checkout session with properly formatted data and valid orderId
+      const response = await fetch('/api/stripe/checkout-sessions/create', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          cartItems,
+          orderId: currentOrderId, // Always use the valid orderId
+          customerEmail: session?.user?.email || guestEmail,
+          totalAmount: parseFloat(calculateFinalPrice()),
+          hasPackageDiscount: !!currentPackage?.items?.length
+        })
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        console.error('Stripe checkout error details:', errorData);
+        throw new Error(`Failed to create checkout session: ${response.status}`);
+      }
+      
+      const { sessionId } = await response.json();
+      console.log('Stripe session created successfully:', sessionId);
+      
+      // Redirect to Stripe checkout
+      const stripe = await stripePromise;
+      if (!stripe) {
+        throw new Error('Stripe not initialized');
+      }
+      
+      const { error } = await stripe.redirectToCheckout({ sessionId });
+      
+      if (error) {
+        throw error;
+      }
+    } catch (error) {
+      console.error('Error in Stripe checkout:', error);
+      toast.error('Failed to initialize Stripe checkout. Please try again.');
+    } finally {
+      setIsProcessingCheckout(false);
+    }
+  };
