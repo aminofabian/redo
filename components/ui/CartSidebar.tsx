@@ -709,12 +709,63 @@ export function CartSidebar({ priceId, price, description }: props) {
         throw new Error('Stripe failed to initialize');
       }
       
-      // Assume session ID is available from earlier API call
-      const sessionId = localStorage.getItem('stripeSessionId');
+      // First, create an order or get existing order ID
+      let orderId = localStorage.getItem('orderId');
+      if (!orderId) {
+        // Create a temporary order ID if none exists
+        try {
+          // Transform cart items to the format the API expects
+          const orderItems = items.map(item => ({
+            productId: item.id.toString(), // Convert to string to ensure format consistency
+            quantity: item.quantity || 1,
+            // No need to include price as API will look it up
+          }));
+
+          console.log('Creating order with items:', JSON.stringify(orderItems));
+          
+          const orderResponse = await axios.post('/api/orders', {
+            orderItems, // This is the key - API expects orderItems, not items
+            totalAmount: calculateFinalPrice(),
+            email: guestEmail || session?.user?.email,
+            status: 'pending'
+          });
+          
+          orderId = orderResponse.data.id;
+          localStorage.setItem('orderId', orderId);
+          console.log('Order created successfully with ID:', orderId);
+        } catch (orderError) {
+          console.error('Error creating order:', orderError);
+          // Log the actual error message from the server if available
+          if (orderError.response?.data) {
+            console.error('Server error details:', orderError.response.data);
+          }
+          toast.error('Could not create order. Please try again.');
+          throw orderError;
+        }
+      }
+
+      // Create Stripe checkout session
+      console.log('Creating new Stripe checkout session with orderId:', orderId);
+      const response = await axios.post('/api/stripe/checkout-sessions/create', {
+        cartItems: items, // Changed 'items' to 'cartItems' to match API expectations
+        orderId: orderId,  // Added orderId which is required
+        totalAmount: calculateFinalPrice(),
+        email: guestEmail || session?.user?.email,
+        hasPackageDiscount: !!(currentPackage?.items?.length > 0),
+        packageSavings: currentPackage?.items?.length > 0 ? 
+          calculateSavings(currentPackage.items) : '0.00'
+      });
+      
+      // Store the sessionId in localStorage
+      const { sessionId } = response.data;
       if (!sessionId) {
-        throw new Error('Stripe session ID not found');
+        throw new Error('No session ID returned from Stripe API');
       }
       
+      localStorage.setItem('stripeSessionId', sessionId);
+      console.log('Stripe session ID stored:', sessionId);
+      
+      // Redirect to checkout
       const { error } = await stripe.redirectToCheckout({ sessionId });
       
       if (error) {

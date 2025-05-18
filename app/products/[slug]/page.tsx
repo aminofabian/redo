@@ -485,7 +485,8 @@ export default async function ProductPage({ params }: { params: { slug: string }
               const primaryImage = relatedProduct.images.find((img: { isPrimary: boolean; url: string }) => img.isPrimary) || relatedProduct.images[0];
               
               // Filter to only approved reviews before calculating average
-              const approvedReviews = relatedProduct.reviews.filter(review => review.status === 'approved');
+              // Add a null check to handle cases where reviews is undefined
+              const approvedReviews = (relatedProduct.reviews || []).filter(review => review.status === 'approved');
               const avgRating = approvedReviews.length > 0
                 ? (approvedReviews.reduce((sum: number, review: { rating: number }) => sum + review.rating, 0) / approvedReviews.length).toFixed(1)
                 : "0.0";

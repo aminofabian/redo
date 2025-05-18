@@ -6,7 +6,7 @@ import { Prisma } from '@prisma/client';
 
 type OrderItem = {
   id: string;
-  productId: bigint;
+  productId: bigint | number; // Accept both bigint and number to handle Prisma's BigInt IDs
   quantity: number;
   price: Prisma.Decimal | number;
   product: {
@@ -43,15 +43,15 @@ export async function POST(request: NextRequest) {
         return NextResponse.json({ error: 'Order items are required' }, { status: 400 });
       }
       
-      // Calculate total amount from order items
-      let totalAmount = 0;
+      // Calculate total amount from order items using Prisma.Decimal for precision
+      let totalAmount = new Prisma.Decimal(0);
       
       // Prepare order items with proper data
       const orderItems = await Promise.all(
         data.orderItems.map(async (item: { productId: string; quantity: number }) => {
           // Get product details to ensure price is accurate
           const product = await prisma.product.findUnique({
-            where: { id: BigInt(item.productId) },
+            where: { id: parseInt(item.productId) },
             select: { finalPrice: true }
           });
           
@@ -59,13 +59,14 @@ export async function POST(request: NextRequest) {
             throw new Error(`Product with ID ${item.productId} not found`);
           }
           
-          const itemTotal = Number(product.finalPrice) * item.quantity;
-          totalAmount += itemTotal;
+          // Keep decimal precision for calculations
+          const itemTotal = product.finalPrice.mul(new Prisma.Decimal(item.quantity));
+          totalAmount = totalAmount.add(itemTotal);
           
           return {
-            productId: BigInt(item.productId),
+            productId: parseInt(item.productId),
             quantity: item.quantity,
-            price: product.finalPrice
+            price: product.finalPrice // Keep original Prisma.Decimal for storage
           };
         })
       );
@@ -83,7 +84,7 @@ export async function POST(request: NextRequest) {
             metadata: data.metadata,
             orderItems: {
               create: orderItems.map(item => ({
-                productId: item.productId,
+                productId: item.productId, // Keep as BigInt for Prisma
                 quantity: item.quantity,
                 price: item.price
               }))
@@ -173,13 +174,13 @@ export async function GET(request: NextRequest) {
       });
       
       // Transform for easier frontend use
-      const formattedOrders = orders.map((order: OrderWithRelations) => ({
+      const formattedOrders = orders.map((order: any) => ({
         id: order.id,
         status: order.status,
         paymentStatus: order.paymentStatus,
         totalAmount: formatPrice(order.totalAmount),
         createdAt: formatDate(order.createdAt),
-        orderItems: order.orderItems.map(item => ({
+        orderItems: order.orderItems.map((item: any) => ({
           id: item.id,
           productId: item.productId.toString(), // Convert BigInt to string
           quantity: item.quantity,
