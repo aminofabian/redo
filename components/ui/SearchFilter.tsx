@@ -26,105 +26,197 @@ const SearchFilter: React.FC<SearchFilterProps> = ({ universities: propUniversit
   const fetchUniversities = async () => {
     try {
       setLoading(true);
+      console.log("Fetching universities...");
       
       // Fetch categories from the database
       const response = await fetch('/api/categories');
       if (!response.ok) throw new Error('Failed to fetch categories');
       const data = await response.json();
       
-      // Filter categories with path starting with "university/" and extract university names
-      const universitySet = new Set<string>();
-
-      // Recursive function to process categories and their children
-      const processCategories = (categories: any[]) => {
-        categories.forEach((category: any) => {
-          // Check if path starts with "university/"
-          if (category?.path && category.path.startsWith('university/')) {
-            // Split the path to get all segments
-            const pathSegments = category.path.split('/');
+      // Debug - Log all received categories to understand what data we have
+      console.log('All categories received:', data);
+      
+      // Extract all paths from categories for debugging
+      const allPaths: {name: string, path: string, pathA?: string}[] = [];
+      
+      // Helper function to extract all paths recursively
+      const extractAllPaths = (categories: any[]) => {
+        categories.forEach(cat => {
+          // Check for both path and pathA fields
+          if (cat?.path || cat?.pathA) {
+            allPaths.push({ 
+              name: cat.name || '', 
+              path: cat.path || '', 
+              pathA: cat.pathA || ''
+            });
             
-            // The university slug is either the second segment or, for paths like
-            // 'university/university-of-columbia/nice', we need to examine the structure
-            let universitySlug = '';
-            
-            // Basic case: university/{university-name}
-            if (pathSegments.length >= 2) {
-              universitySlug = pathSegments[1];
-              
-              // Special case: Handle paths with "university" in the second segment
-              // like 'university/university-of-columbia/nice'
-              if (universitySlug.startsWith('university-') && pathSegments.length >= 3) {
-                // For university of X patterns, combine the segments
-                if (universitySlug === 'university-of' && pathSegments.length >= 3) {
-                  universitySlug = `${universitySlug}-${pathSegments[2]}`;
-                }
-                // For university-X patterns, keep as is
-              }
-              
-              // Special case: Handle 'university/university-hawaii' or similar 
-              // patterns where the university name includes "university"
-              if (universitySlug.startsWith('university-')) {
-                // Keep as is, will be formatted properly below
-              }
-              
-              if (universitySlug) {
-                // Format the university name from the slug
-                let universityName = universitySlug
-                  .replace(/-/g, ' ') // Replace hyphens with spaces
-                  .replace(/\buniversity\s+of\b/i, 'University of') // Fix "university of" capitalization
-                  .replace(/\b(\w)/g, (l: string) => l.toUpperCase()); // Capitalize all words
-                
-                // Special formatting for universities that start with "University"
-                universityName = universityName.startsWith('University ') 
-                  ? universityName
-                  : (universityName.toLowerCase().includes('university') 
-                      ? universityName 
-                      : `${universityName} University`);
-                      
-                // Debug logging to help troubleshoot extraction issues
-                console.log(`Extracted university from path: ${category.path} -> ${universityName}`);
-                      
-                universitySet.add(universityName);
-              }
+            if (cat?.pathA) {
+              console.log(`Found category with pathA: ${cat.name || 'Unknown'}, PathA: ${cat.pathA}`);
+            }
+            if (cat?.path) {
+              console.log(`Found category with path: ${cat.name || 'Unknown'}, Path: ${cat.path}`);
             }
           }
           
-          // Process children recursively if they exist
-          if (category.children && category.children.length > 0) {
-            processCategories(category.children);
+          if (cat?.children && Array.isArray(cat.children) && cat.children.length > 0) {
+            extractAllPaths(cat.children);
           }
         });
       };
       
-      // Start processing from top-level categories
-      processCategories(data);
+      extractAllPaths(data);
+      console.log(`Found ${allPaths.length} categories with paths`);
       
-      // Convert Set to sorted array
-      const formattedUniversities = Array.from(universitySet).sort();
+      // Set to store unique university names
+      const universitySet = new Set<string>();
+
+      // 1. Extract from paths and pathA values containing "university"
+      allPaths.forEach(({ name, path, pathA }) => {
+        // Check both path and pathA fields for university information
+        const sourcePath = pathA && pathA.includes('university') ? pathA : path;
+        const sourceType = pathA && pathA.includes('university') ? 'pathA' : 'path';
+        
+        if (sourcePath && sourcePath.toLowerCase().includes('university')) {
+          console.log(`Processing university ${sourceType}: ${sourcePath}`);
+          
+          // Extract university name using multiple strategies
+          let universityName = '';
+          const segments = sourcePath.split('/');
+          
+          // Strategy 1: Direct extraction from path segments
+          if (segments[0] === 'university' && segments.length >= 2) {
+            universityName = segments[1];
+            console.log(`Strategy 1 extracted from ${sourceType}: ${universityName}`);
+          }
+          
+          // Strategy 2a: Handle "university-of-" pattern (these are high priority)
+          if (sourcePath.includes('university/university-of-')) {
+            const match = sourcePath.match(/university\/(university-of-[\w-]+)/);
+            if (match && match[1]) {
+              universityName = match[1];
+              console.log(`Strategy 2a extracted from ${sourceType}: ${universityName}`);
+            }
+          }
+          
+          // Strategy 2b: Handle "university-" pattern (like university-hawaii)
+          if (!universityName && sourcePath.includes('university/university-')) {
+            const match = sourcePath.match(/university\/(university-[\w-]+)/);
+            if (match && match[1]) {
+              universityName = match[1];
+              console.log(`Strategy 2b extracted from ${sourceType}: ${universityName}`);
+            }
+          }
+          
+          // Strategy 3: Generic extraction using path components
+          if (!universityName) {
+            // Extract potential university names from any part of the path
+            const universityKeywords = sourcePath.toLowerCase().match(/[a-z]+-?[a-z]+/g) || [];
+            
+            for (const keyword of universityKeywords) {
+              if (keyword.length > 3 && !['university', 'product', 'type', 'path'].includes(keyword)) {
+                universityName = keyword;
+                console.log(`Strategy 3 extracted university keyword from ${sourceType}: ${keyword}`);
+                break;
+              }
+            }
+          }
+          
+          // Strategy 4: Use category name if it contains "University"
+          if (!universityName && name && name.includes('University')) {
+            universityName = name;
+            console.log(`Strategy 4 extracted from name: ${universityName}`);
+          }
+          
+          // Format extracted university name
+          if (universityName) {
+            // Format slugs into proper names
+            if (universityName.includes('-')) {
+              universityName = universityName
+                .replace(/-/g, ' ')
+                .replace(/\buniversity\s+of\b/i, 'University of')
+                .replace(/\b(\w)/g, (char: string) => char.toUpperCase());
+            }
+            
+            // Add "University" suffix if needed
+            if (!universityName.toLowerCase().includes('university')) {
+              universityName = `${universityName} University`;
+            }
+            
+            console.log(`✅ Extracted: ${universityName} from ${sourceType} ${sourcePath}`);
+            universitySet.add(universityName);
+          }
+        }
+      });
+      
+      // 2. Extract from category names directly
+      allPaths.forEach(({ name }) => {
+        if (name && name.includes('University')) {
+          console.log(`Found university in name: ${name}`);
+          universitySet.add(name);
+        }
+      });
+      
+      // Log all extracted universities for debugging
+      console.log('Raw universities found from database:', Array.from(universitySet));
+      
+      // Filter out generic "University" entries and normalize names
+      const filteredUniversities = Array.from(universitySet).filter(uni => {
+        // Remove entries that are just "University" or too generic
+        if (!uni || uni.trim() === "University" || uni.trim() === "") {
+          console.log(`Filtering out generic entry: "${uni}"`);
+          return false;
+        }
+        
+        // Keep all other university names
+        return true;
+      });
+      
+      // Further normalize university names to remove duplicates with slight variations
+      // Create a map to group similar university names
+      const normalizedMap = new Map<string, string>();
+      
+      filteredUniversities.forEach(uni => {
+        // Create a normalized key by removing spaces, converting to lowercase
+        const normalizedKey = uni.toLowerCase()
+          .replace(/\s+/g, '')
+          .replace(/university/g, 'uni')
+          .replace(/of/g, '');
+        
+        // If we haven't seen this university before, add it
+        // If we have, keep the longer/more detailed name
+        if (!normalizedMap.has(normalizedKey) || uni.length > normalizedMap.get(normalizedKey)!.length) {
+          normalizedMap.set(normalizedKey, uni);
+        }
+      });
+      
+      // Convert to sorted array
+      const formattedUniversities = Array.from(normalizedMap.values()).sort();
+      console.log(`Final filtered list (${formattedUniversities.length} universities):`, formattedUniversities);
+      
       setUniversities(formattedUniversities);
     } catch (error) {
-      console.error('Error fetching universities from categories:', error);
-      // Fallback to empty array if there's an error
+      console.error('Error fetching universities:', error);
+      // Don't use any fallback - just set empty array to show the error state
       setUniversities([]);
     } finally {
       setLoading(false);
     }
   };
 
-  // Load universities from props if available, otherwise trigger fetch when filter is opened
+  // Load universities from props if available
   useEffect(() => {
-    if (propUniversities) {
+    if (propUniversities?.length) {
       setUniversities(propUniversities);
       setLoading(false);
     }
   }, [propUniversities]);
   
-  // Fetch universities when the filter is opened and we don't have any yet
+  // Fetch universities when filter is opened
   useEffect(() => {
-    if (showFilters && !propUniversities && universities.length === 0) {
+    if (showFilters && universities.length === 0) {
       fetchUniversities();
     }
-  }, [showFilters, propUniversities, universities.length]);
+  }, [showFilters, universities.length]);
 
   const handleUniversitySelect = (name: string) => {
     setSelectedUniversity(prev => prev === name ? null : name);
@@ -191,7 +283,7 @@ const SearchFilter: React.FC<SearchFilterProps> = ({ universities: propUniversit
               setShowFilters(!showFilters);
               
               // If opening the filter and we don't have universities yet, fetch them
-              if (!showFilters && !propUniversities && universities.length === 0) {
+              if (!showFilters && universities.length === 0) {
                 fetchUniversities();
               }
             }}
@@ -227,7 +319,7 @@ const SearchFilter: React.FC<SearchFilterProps> = ({ universities: propUniversit
                 </h3>
                 {loading ? (
                   <div className="text-center py-4 text-gray-500">Loading universities...</div>
-                ) : (
+                ) : universities.length > 0 ? (
                   <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
                     {universities.map((university, index) => (
                       <button
@@ -243,6 +335,10 @@ const SearchFilter: React.FC<SearchFilterProps> = ({ universities: propUniversit
                         {university}
                       </button>
                     ))}
+                  </div>
+                ) : (
+                  <div className="text-center py-4 text-gray-500">
+                    No universities found. Please try again later.
                   </div>
                 )}
               </div>
