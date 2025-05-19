@@ -159,7 +159,7 @@ export default function SuccessContent() {
                         className="flex items-center text-sm text-blue-600 hover:text-blue-800 mt-1"
                       >
                         <Download className="h-3 w-3 mr-1" />
-                        <span>Download {item.fileType}</span>
+                        <span>Download</span>
                       </a>
                     )}
                   </div>

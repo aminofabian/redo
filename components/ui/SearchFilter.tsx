@@ -22,45 +22,109 @@ const SearchFilter: React.FC<SearchFilterProps> = ({ universities: propUniversit
     searchParams.get("university")
   );
 
-  // Fetch universities from database only if not provided via props
-  useEffect(() => {
-    if (propUniversities) return;
-    
-    const fetchUniversities = async () => {
-      try {
-        const response = await fetch('/api/universities');
-        if (!response.ok) throw new Error('Failed to fetch universities');
-        const data = await response.json();
-        
-        // Format universities the same way as in products page
-        const formattedUniversities = data.map((uni: any) => {
-          if (!uni || !uni.level2) return null;
-          
-          // Format the university name from the slug in level2
-          const universitySlug = uni.level2;
-          let universityName = universitySlug
-            .replace(/-/g, ' ') // Replace hyphens with spaces
-            .replace(/\buniversity\s+of\b/i, 'University of') // Fix "university of" capitalization
-            .replace(/\b(\w)/g, (l: string) => l.toUpperCase()); // Capitalize all words
-          
-          // Special formatting for universities that start with "University"
-          return universityName.startsWith('University ') 
-            ? universityName
-            : (universityName.toLowerCase().includes('university') 
-                ? universityName 
-                : `${universityName} University`);
-        }).filter(Boolean).sort();
-        
-        setUniversities(formattedUniversities);
-      } catch (error) {
-        console.error('Error fetching universities:', error);
-      } finally {
-        setLoading(false);
-      }
-    };
+  // Function to fetch universities from the database
+  const fetchUniversities = async () => {
+    try {
+      setLoading(true);
+      
+      // Fetch categories from the database
+      const response = await fetch('/api/categories');
+      if (!response.ok) throw new Error('Failed to fetch categories');
+      const data = await response.json();
+      
+      // Filter categories with path starting with "university/" and extract university names
+      const universitySet = new Set<string>();
 
-    fetchUniversities();
+      // Recursive function to process categories and their children
+      const processCategories = (categories: any[]) => {
+        categories.forEach((category: any) => {
+          // Check if path starts with "university/"
+          if (category?.path && category.path.startsWith('university/')) {
+            // Split the path to get all segments
+            const pathSegments = category.path.split('/');
+            
+            // The university slug is either the second segment or, for paths like
+            // 'university/university-of-columbia/nice', we need to examine the structure
+            let universitySlug = '';
+            
+            // Basic case: university/{university-name}
+            if (pathSegments.length >= 2) {
+              universitySlug = pathSegments[1];
+              
+              // Special case: Handle paths with "university" in the second segment
+              // like 'university/university-of-columbia/nice'
+              if (universitySlug.startsWith('university-') && pathSegments.length >= 3) {
+                // For university of X patterns, combine the segments
+                if (universitySlug === 'university-of' && pathSegments.length >= 3) {
+                  universitySlug = `${universitySlug}-${pathSegments[2]}`;
+                }
+                // For university-X patterns, keep as is
+              }
+              
+              // Special case: Handle 'university/university-hawaii' or similar 
+              // patterns where the university name includes "university"
+              if (universitySlug.startsWith('university-')) {
+                // Keep as is, will be formatted properly below
+              }
+              
+              if (universitySlug) {
+                // Format the university name from the slug
+                let universityName = universitySlug
+                  .replace(/-/g, ' ') // Replace hyphens with spaces
+                  .replace(/\buniversity\s+of\b/i, 'University of') // Fix "university of" capitalization
+                  .replace(/\b(\w)/g, (l: string) => l.toUpperCase()); // Capitalize all words
+                
+                // Special formatting for universities that start with "University"
+                universityName = universityName.startsWith('University ') 
+                  ? universityName
+                  : (universityName.toLowerCase().includes('university') 
+                      ? universityName 
+                      : `${universityName} University`);
+                      
+                // Debug logging to help troubleshoot extraction issues
+                console.log(`Extracted university from path: ${category.path} -> ${universityName}`);
+                      
+                universitySet.add(universityName);
+              }
+            }
+          }
+          
+          // Process children recursively if they exist
+          if (category.children && category.children.length > 0) {
+            processCategories(category.children);
+          }
+        });
+      };
+      
+      // Start processing from top-level categories
+      processCategories(data);
+      
+      // Convert Set to sorted array
+      const formattedUniversities = Array.from(universitySet).sort();
+      setUniversities(formattedUniversities);
+    } catch (error) {
+      console.error('Error fetching universities from categories:', error);
+      // Fallback to empty array if there's an error
+      setUniversities([]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Load universities from props if available, otherwise trigger fetch when filter is opened
+  useEffect(() => {
+    if (propUniversities) {
+      setUniversities(propUniversities);
+      setLoading(false);
+    }
   }, [propUniversities]);
+  
+  // Fetch universities when the filter is opened and we don't have any yet
+  useEffect(() => {
+    if (showFilters && !propUniversities && universities.length === 0) {
+      fetchUniversities();
+    }
+  }, [showFilters, propUniversities, universities.length]);
 
   const handleUniversitySelect = (name: string) => {
     setSelectedUniversity(prev => prev === name ? null : name);
@@ -122,7 +186,15 @@ const SearchFilter: React.FC<SearchFilterProps> = ({ universities: propUniversit
             type="button"
             variant="outline"
             className={`border-2 border-[#5d8e9a] text-[#5d8e9a] px-6 h-14 text-base font-medium transition-all duration-300 ${showFilters ? 'bg-[#5d8e9a]/10' : 'hover:bg-[#5d8e9a]/5'}`}
-            onClick={() => setShowFilters(!showFilters)}
+            onClick={() => {
+              // Toggle filter visibility
+              setShowFilters(!showFilters);
+              
+              // If opening the filter and we don't have universities yet, fetch them
+              if (!showFilters && !propUniversities && universities.length === 0) {
+                fetchUniversities();
+              }
+            }}
           >
             <Filter className="w-5 h-5 mr-2" />
             Filter by University
