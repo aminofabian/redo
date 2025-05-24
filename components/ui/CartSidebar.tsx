@@ -1,7 +1,7 @@
 'use client';
 
 import { ShoppingBag, X, ChevronDown, ChevronRight, Loader2, Package } from "lucide-react";
-import { useCart } from "@/lib/CartContext";
+import { useCart, getDiscountRate, getDiscountPercentage } from "@/lib/CartContext";
 import { Button } from "@/components/ui/button";
 import { useState, useEffect } from "react";
 import axios from "axios";
@@ -241,33 +241,52 @@ const calculatePackageTotal = (items: CartItem[]): string => {
   }, 0).toFixed(2);
 };
 
-const calculateDiscountedPrice = (items: CartItem[]): string => {
+const calculateDiscountedPrice = (items: CartItem[], packageSize: number | null = null): string => {
   const total = calculatePackageTotal(items);
-  return (parseFloat(total) * 0.25).toFixed(2);
+  // Use the discount rate based on package size
+  const discountFactor = 1 - getDiscountRate(packageSize);
+  return (parseFloat(total) * discountFactor).toFixed(2);
 };
 
-const calculateSavings = (items: CartItem[]): string => {
+const calculateSavings = (items: CartItem[], packageSize: number | null = null): string => {
   const total = calculatePackageTotal(items);
-  return (parseFloat(total) * 0.75).toFixed(2);
+  // Use the discount rate based on package size
+  const discountRate = getDiscountRate(packageSize);
+  return (parseFloat(total) * discountRate).toFixed(2);
 };
 
 // Price calculation component
-const PriceCalculation = ({ currentPackage }: { currentPackage: Package }) => (
-  <div className="mt-3 space-y-1 border-t border-green-200 pt-2">
-    <div className="flex justify-between text-sm mt-2">
-      <span className="text-gray-600">Total Value:</span>
-      <span className="font-medium">${calculatePackageTotal(currentPackage.items || [])}</span>
+const PriceCalculation = ({ currentPackage }: { currentPackage: Package }) => {
+  // Get discount percentage for display
+  const discountPercentage = getDiscountPercentage(currentPackage.size);
+  
+  return (
+    <div className="mt-3 space-y-1 border-t border-green-200 pt-2">
+      <div className="flex justify-between items-center mb-1">
+        <span className="text-sm font-medium text-green-700">Bundle Discount:</span>
+        <span className="text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded font-bold">
+          {discountPercentage}% OFF
+        </span>
+      </div>
+      <div className="flex justify-between text-sm mt-2">
+        <span className="text-gray-600">Total Value:</span>
+        <span className="font-medium">${calculatePackageTotal(currentPackage.items || [])}</span>
+      </div>
+      <div className="flex justify-between text-sm">
+        <span className="text-gray-600">Discounted Price:</span>
+        <span className="font-medium text-green-700">
+          ${calculateDiscountedPrice(currentPackage.items || [], currentPackage.size)}
+        </span>
+      </div>
+      <div className="flex justify-between text-sm">
+        <span className="text-gray-600">You Save:</span>
+        <span className="font-medium text-green-800">
+          ${calculateSavings(currentPackage.items || [], currentPackage.size)}
+        </span>
+      </div>
     </div>
-    <div className="flex justify-between text-sm">
-      <span className="text-gray-600">Discounted Price:</span>
-      <span className="font-medium text-green-700">${calculateDiscountedPrice(currentPackage.items || [])}</span>
-    </div>
-    <div className="flex justify-between text-sm">
-      <span className="text-gray-600">You Save:</span>
-      <span className="font-medium text-green-800">${calculateSavings(currentPackage.items || [])}</span>
-    </div>
-  </div>
-);
+  );
+};
 
 // Package items display component
 const PackageItems = ({ currentPackage }: { currentPackage: Package }) => (
@@ -307,7 +326,7 @@ const PackageDisplay = ({ currentPackage }: { currentPackage: Package }) => {
           </span>
         </h3>
         <span className="bg-green-200 text-green-800 px-2 py-1 rounded-md text-xs font-bold relative overflow-hidden">
-          <span className="relative z-10">75% OFF</span>
+          <span className="relative z-10">15% OFF</span>
           <span className="absolute inset-0 bg-green-300 animate-pulse-slow opacity-50"></span>
         </span>
       </div>
@@ -342,7 +361,7 @@ const PackageStatus = ({ currentPackage }: { currentPackage: Package }) => (
 
 // Use these components in your main component
 export function CartSidebar({ priceId, price, description }: props) {
-  const { items, removeItem, totalItems, totalPrice, clearCart, currentPackage } = useCart();
+  const { items, removeItem, totalItems, totalPrice, clearCart, currentPackage, removeFromPackage } = useCart();
   const [expandedPackages, setExpandedPackages] = useState<number[]>([]);
   const [paymentGateways, setPaymentGateways] = useState<PaymentGateway[]>([]);
 
@@ -351,7 +370,16 @@ export function CartSidebar({ priceId, price, description }: props) {
   const [paypalClientId, setPaypalClientId] = useState<string | null>(null);
   const [isProcessingPayment, setIsProcessingPayment] = useState(false);
   const [orderId, setOrderId] = useState<string | null>(null);
-  localStorage.setItem('orderId', orderId || '');
+  
+  // Store orderId in localStorage only on the client side
+  useEffect(() => {
+    // Check if we're in the browser environment
+    if (typeof window !== 'undefined') {
+      if (orderId) {
+        localStorage.setItem('orderId', orderId);
+      }
+    }
+  }, [orderId]); // Run effect whenever orderId changes
 
   const [paypalOrderId, setPaypalOrderId] = useState<string | null>(null);
   const [totalPayout, setTotalPayout] = useState<string>('0.00');
@@ -662,7 +690,7 @@ export function CartSidebar({ priceId, price, description }: props) {
         : (item.price || 0);
       
       if (packageItemIds.has(item.id?.toString())) {
-        // This is a package item - apply 75% discount (only pay 25%)
+        // This is a package item - apply 15% discount (only pay 25%)
         packageItemsTotal += itemPrice;
       } else {
         // Regular item - full price
@@ -670,7 +698,7 @@ export function CartSidebar({ priceId, price, description }: props) {
       }
     });
     
-    // Apply 75% discount to package items
+    // Apply 15% discount to package items
     const discountedPackageTotal = packageItemsTotal * 0.25;
     
     // Final price is regular items + discounted package items
@@ -841,7 +869,7 @@ export function CartSidebar({ priceId, price, description }: props) {
           <Package className="h-10 w-10 mx-auto text-green-600 mb-2" />
           <h3 className="font-semibold text-green-800">Package Deal Selected!</h3>
           <p className="text-sm text-green-700 mb-3">
-            You've started a {currentPackage.size}-item package with 75% off.
+            You've started a {currentPackage.size}-item package with 15% off.
           </p>
           <div className="w-full bg-gray-200 rounded-full h-2.5 mb-4">
             <div
@@ -915,7 +943,7 @@ export function CartSidebar({ priceId, price, description }: props) {
                     </div>
                   ))}
                   <div className="text-xs text-green-600 font-medium pt-1">
-                    75% Package Savings Applied
+                    {getDiscountPercentage(item.packageSize ?? null)}% Package Savings Applied
                   </div>
                 </div>
               )}
@@ -924,28 +952,70 @@ export function CartSidebar({ priceId, price, description }: props) {
           
           {/* Then show a special section for package items if they're not already in the cart */}
           {currentPackage && currentPackage.items && currentPackage.items.length > 0 && (
-            <div className="mt-4 border-t border-green-200 pt-3">
-              <div className="flex items-center mb-2">
-                <Package className="h-4 w-4 mr-1 text-green-600" />
-                <span className="font-medium text-green-800">Package Items</span>
+            <div className="mt-4 border-t border-blue-200 pt-3 bg-gradient-to-r from-blue-50 to-indigo-50 p-4 rounded-lg shadow-sm">
+              <div className="flex items-center mb-3">
+                <div className="bg-gradient-to-r from-blue-500 to-indigo-600 p-1.5 rounded-md mr-2">
+                  <Package className="h-5 w-5 text-white" />
+                </div>
+                <span className="font-semibold text-indigo-800 text-lg">Bundle Items</span>
+                <span className="ml-auto bg-indigo-100 text-indigo-800 px-2 py-1 rounded-md text-xs font-bold">
+                  {currentPackage.items.length}/{currentPackage.size} Items
+                </span>
               </div>
               
-              {currentPackage.items.map((item, idx) => (
-                <div key={`package-${item.id || idx}`} className="flex justify-between items-center py-1 border-b border-gray-100">
-                  <div>
-                    <p className="text-sm">{item.title}</p>
-                    <div className="flex items-center">
-                      <span className="text-xs text-gray-500 line-through mr-1">${typeof item.price === 'string' ? parseFloat(item.price).toFixed(2) : item.price.toFixed(2)}</span>
-                      <span className="text-xs text-green-600 font-medium">
-                        ${typeof item.price === 'string' 
-                          ? (parseFloat(item.price) * 0.25).toFixed(2) 
-                          : (item.price * 0.25).toFixed(2)} (75% off)
-                      </span>
+              <div className="space-y-2 mb-2">
+                {currentPackage.items.map((item, idx) => (
+                  <div key={`package-${item.id || idx}`} className="flex justify-between items-center py-2 pl-2 pr-3 border-b border-blue-100 bg-white/60 rounded-md hover:bg-white/80 transition-colors">
+                    <div className="flex-1">
+                      <p className="font-medium text-indigo-900">{item.title}</p>
+                      <div className="flex items-center mt-1">
+                        <span className="text-sm text-gray-500 line-through mr-2">${typeof item.price === 'string' ? parseFloat(item.price).toFixed(2) : item.price.toFixed(2)}</span>
+                        <span className="text-sm text-indigo-600 font-semibold">
+                          ${typeof item.price === 'string' 
+                            ? (parseFloat(item.price) * 0.25).toFixed(2) 
+                            : (item.price * 0.85).toFixed(2)}
+                        </span>
+                        <span className="ml-1 bg-indigo-600 text-white text-xs px-1.5 py-0.5 rounded">
+                          15% OFF
+                        </span>
+                      </div>
                     </div>
+                    <button 
+                      onClick={() => {
+                        const itemId = typeof item.id === 'string' ? parseInt(item.id) : Number(item.id);
+                        removeFromPackage(itemId);
+                      }}
+                      className="text-gray-400 hover:text-red-500 p-1 rounded-full hover:bg-red-50 transition-colors"
+                    >
+                      <X size={16} />
+                    </button>
                   </div>
-                  <span className="text-xs px-2 py-1 bg-green-100 text-green-800 rounded-full">Bundle item</span>
+                ))}
+              </div>
+              
+              <div className="mt-3 p-2 bg-white rounded-md border border-blue-100 shadow-sm">
+                <div className="flex justify-between items-center text-sm font-medium text-gray-700 mb-1">
+                  <span>Original Price:</span>
+                  <span>${calculatePackageTotal(currentPackage.items)}</span>
                 </div>
-              ))}
+                <div className="flex justify-between items-center text-sm font-medium text-green-700">
+                  <span>Your Savings:</span>
+                  <span>-${calculateSavings(currentPackage.items)}</span>
+                </div>
+                <div className="flex justify-between items-center font-semibold text-indigo-800 mt-1 pt-1 border-t border-blue-100">
+                  <span>Bundle Total:</span>
+                  <span>${calculateDiscountedPrice(currentPackage.items)}</span>
+                </div>
+              </div>
+              
+              <div className="mt-3">
+                <Button 
+                  onClick={() => router.push('/products')}
+                  className="w-full bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 text-white font-medium"
+                >
+                  Add More to Bundle
+                </Button>
+              </div>
             </div>
           )}
         </div>
@@ -960,7 +1030,7 @@ export function CartSidebar({ priceId, price, description }: props) {
               Bundle Summary
             </h3>
             <span className="bg-green-200 text-green-800 px-2 py-1 rounded-md text-xs font-bold">
-              75% OFF
+              15% OFF
             </span>
           </div>
           
@@ -995,13 +1065,10 @@ export function CartSidebar({ priceId, price, description }: props) {
             </div>
           </div>
           
-          {/* Bundle-only checkout button */}
-          <Button 
-            onClick={() => handleBundleOnlyCheckout()}
-            className="w-full bg-green-600 hover:bg-green-700 text-white"
-          >
-            Checkout Bundle Only
-          </Button>
+          {/* Bundle info message instead of separate checkout */}
+          <div className="text-sm text-green-700 italic mt-1 text-center">
+            Your bundle savings will be applied at checkout
+          </div>
         </div>
       )}
 
@@ -1039,25 +1106,51 @@ export function CartSidebar({ priceId, price, description }: props) {
           </div>
           
           {/* Checkout buttons */}
-          <div className="grid grid-cols-1 gap-3 mt-4">
-            {/* Complete cart checkout button */}
-            <Button 
+          <div className="mt-6">
+            {/* Single stylish checkout button for everything */}
+            <button 
               onClick={() => handleProceedToPayment()}
-              className="w-full bg-indigo-600 text-white hover:bg-indigo-900"
+              disabled={isProcessingCheckout}
+              className={`w-full relative group overflow-hidden rounded-xl py-4 font-medium transition-all duration-300 
+              ${isProcessingCheckout 
+                ? 'bg-gray-400 cursor-not-allowed' 
+                : 'bg-gradient-to-r from-indigo-600 via-purple-600 to-blue-600 hover:shadow-lg hover:shadow-blue-500/30 hover:scale-[1.02] active:scale-[0.98]'
+              }`}
             >
-              Checkout Everything (${calculateFinalPrice()})
-            </Button>
+              {/* Background pattern animation */}
+              <div className="absolute inset-0 opacity-20">
+                <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cGF0aCBkPSJNMTAwIDBoLTJ2Mkgwdjk4aDk4djJIMTAwVjBoMi0yeiIgZmlsbD0iI2ZmZiIgZmlsbC1vcGFjaXR5PSIuMSIvPjwvc3ZnPg==')] bg-[length:24px_24px]" style={{ transform: 'rotate(45deg)' }}></div>
+              </div>
+              
+              {/* Left and right circles animation */}
+              <span className="absolute -left-20 -top-20 h-40 w-40 rounded-full bg-white/30 blur-xl group-hover:-translate-y-[150%] group-hover:animate-pulse transition-all duration-1000"></span>
+              <span className="absolute -right-20 -bottom-20 h-40 w-40 rounded-full bg-white/30 blur-xl group-hover:translate-y-[150%] group-hover:animate-pulse transition-all duration-1000"></span>
+              
+              {/* Button content */}
+              <div className="relative flex items-center justify-center text-white">
+                {isProcessingCheckout ? (
+                  <>
+                    <div className="absolute left-0 top-0 bottom-0 bg-gradient-to-r from-white/20 to-transparent w-[80%] animate-shimmer"></div>
+                    <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+                    <span className="font-medium">Processing payment...</span>
+                  </>
+                ) : (
+                  <>
+                    <ShoppingBag className="mr-2 h-5 w-5" />
+                    <span className="font-medium">Complete Checkout</span>
+                    <span className="ml-3 rounded-full bg-white/20 px-3 py-1 text-sm">${calculateFinalPrice()}</span>
+                  </>
+                )}
+              </div>
+            </button>
             
-            {/* Regular items only button - only show if there are non-package items */}
-            {items.some(item => !currentPackage?.items.some(pkg => pkg.id === item.id)) && (
-              <Button 
-                onClick={() => handleRegularItemsCheckout()}
-                variant="outline" 
-                className="w-full"
-              >
-                Checkout Regular Items Only
-              </Button>
-            )}
+            {/* Secure checkout message */}
+            <div className="mt-2 flex items-center justify-center text-xs text-gray-500">
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3 mr-1" viewBox="0 0 20 20" fill="currentColor">
+                <path fillRule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clipRule="evenodd" />
+              </svg>
+              Secure checkout with SSL encryption
+            </div>
           </div>
         </div>
       </div>

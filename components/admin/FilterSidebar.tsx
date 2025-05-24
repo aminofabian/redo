@@ -36,14 +36,6 @@ interface User {
 const filterGroups: Record<string, FilterGroup[]> = {
   Products: [
     {
-      title: "Type",
-      options: [
-        { label: "Study Guides", value: "study-guides", count: 8 },
-        { label: "Practice Tests", value: "practice-tests", count: 12 },
-        { label: "Video Courses", value: "video-courses", count: 4 },
-      ]
-    },
-    {
       title: "Status",
       options: [
         { label: "Published", value: "published", count: 18 },

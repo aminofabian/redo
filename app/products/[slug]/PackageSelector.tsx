@@ -108,7 +108,7 @@ export default function PackageSelector({ product }: PackageSelectorProps) {
   const handlePackageStart = (size: number) => {
     startPackage(size);
     toast.success(
-      `Started ${size}-item package. Add ${size} items to get 75% off!`,
+      `Started ${size}-item package. Add ${size} items to get 15% off!`,
       {
         action: {
           label: "Browse Items",
@@ -137,7 +137,7 @@ export default function PackageSelector({ product }: PackageSelectorProps) {
           <div className="absolute -right-10 -top-10 w-20 h-20 bg-green-600 rotate-45 z-0"></div>
           <span className="flex items-center z-10">
             <Package className="mr-2 h-5 w-5" />
-            <span className="font-semibold">BUNDLE DEAL - SAVE 75%</span>
+            <span className="font-semibold">BUNDLE DEAL - SAVE 15%</span>
           </span>
           <span className="z-10 bg-green-600 text-white px-3 py-1 rounded-full text-sm font-bold flex items-center">
             {showPackageOptions ? <Minus size={16} className="mr-1" /> : <Plus size={16} className="mr-1" />}
@@ -159,7 +159,7 @@ export default function PackageSelector({ product }: PackageSelectorProps) {
                 />
               </div>
               <div className="ml-auto text-xs rounded-lg">
-                <span className="font-semibold text-green-700 bg-green-100 px-2 py-1 rounded-full">75% OFF</span>
+                <span className="font-semibold text-green-700 bg-green-100 px-2 py-1 rounded-full">15% OFF</span>
               </div>
             </div>
             

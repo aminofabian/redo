@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { Star, BookOpen, Clock, Users, Grid, List, ChevronDown, SlidersHorizontal, X, Search } from "lucide-react";
+import { Star, BookOpen, Clock, Users, Grid, List, ChevronDown, SlidersHorizontal, X, Search, Package, Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import { generateProductSlug } from "../../lib/products";
@@ -13,6 +13,14 @@ import { cn } from "@/lib/utils";
 import { Input } from "@/components/ui/input";
 import ProductCardGallery from "./ProductCardGallery";
 import { useRouter, useSearchParams, usePathname } from "next/navigation";
+import { useCart, getDiscountRate, getDiscountPercentage } from "@/lib/CartContext";
+import { toast } from "react-hot-toast";
+import { CartSidebar } from "@/components/ui/CartSidebar";
+import {
+  Sheet,
+  SheetContent,
+  SheetTrigger
+} from "@/components/ui/sheet";
 
 // Type definition to match your data structure
 type Resource = {
@@ -37,7 +45,7 @@ type Resource = {
   downloadLimit?: number;
   featured: boolean;
   viewCount: number;
-  categories?: { category: { name: string; path?: string } }[];
+  categories?: { category: { name: string; path?: string; slug?: string } }[];
   CategoryPath?: { path: string; level1?: string; level2?: string; level3?: string }[];
   // Add potential metadata fields
   university?: string;
@@ -62,11 +70,153 @@ interface ResourcesClientProps {
   allProductTypes: string[];
 }
 
+// Function to extract university from any resource using all available sources
+function getResourceUniversity(resource: Resource): string | null {
+  try {
+    // PRIMARY METHOD: Check CategoryPath model (matches your DB schema)
+    // According to schema.prisma, CategoryPath has level1, level2, etc. fields
+    if (resource.CategoryPath && resource.CategoryPath.length > 0) {
+      // First check for direct university entries
+      for (const catPath of resource.CategoryPath) {
+        if (catPath.level1 === 'university' && catPath.level2) {
+          // Format the university name nicely for display
+          return catPath.level2
+            .replace(/-/g, ' ')
+            .replace(/\b(\w)/g, (char: string) => char.toUpperCase());
+        }
+      }
+      
+      // Also check other levels that might contain university info
+      for (const catPath of resource.CategoryPath) {
+        // Check the path field directly
+        if (catPath.path?.includes('university/')) {
+          const pathParts = catPath.path.split('/');
+          for (let i = 0; i < pathParts.length; i++) {
+            if (pathParts[i] === 'university' && i + 1 < pathParts.length) {
+              return pathParts[i + 1]
+                .replace(/-/g, ' ')
+                .replace(/\b(\w)/g, (char: string) => char.toUpperCase());
+            }
+          }
+        }
+        
+        // Check if any level has university in it
+        for (let i = 1; i <= 5; i++) {
+          const levelValue = catPath[`level${i}` as keyof typeof catPath] as string | undefined;
+          if (levelValue && (
+              levelValue.toLowerCase().includes('university') || 
+              levelValue.toLowerCase().includes('college'))) {
+            return levelValue
+              .replace(/-/g, ' ')
+              .replace(/\b(\w)/g, (char: string) => char.toUpperCase());
+          }
+        }
+      }
+    }
+    
+    // SECONDARY METHOD: Check categories collection (traditional category structure)
+    if (resource.categories && resource.categories.length > 0) {
+      for (const cat of resource.categories) {
+        // Check category path format (from Category model)
+        if (cat.category.path?.includes('university/')) {
+          const pathParts = cat.category.path.split('/');
+          for (let i = 0; i < pathParts.length; i++) {
+            if (pathParts[i] === 'university' && i + 1 < pathParts.length) {
+              return pathParts[i + 1]
+                .replace(/-/g, ' ')
+                .replace(/\b(\w)/g, (char: string) => char.toUpperCase());
+            }
+          }
+        }
+        
+        // Check category name directly
+        if (cat.category.name?.toLowerCase().includes('university') || 
+            cat.category.name?.toLowerCase().includes('college')) {
+          return cat.category.name;
+        }
+        
+        // Check category slug
+        if (cat.category.slug?.toLowerCase().includes('university') || 
+            cat.category.slug?.toLowerCase().includes('college')) {
+          return cat.category.slug
+            .replace(/-/g, ' ')
+            .replace(/\b(\w)/g, (char: string) => char.toUpperCase());
+        }
+      }
+    }
+    
+    // TERTIARY METHOD: Check direct university property
+    if (resource.university) {
+      return resource.university;
+    }
+    
+    // Check product title for university name
+    if (resource.title) {
+      // Common university names to look for in the title
+      const uniKeywords = [
+        'university', 'college', 'institute', 'school'
+      ];
+      
+      for (const keyword of uniKeywords) {
+        if (resource.title.toLowerCase().includes(keyword)) {
+          // Try to extract university name from title
+          const titleWords = resource.title.split(' ');
+          let uniIndex = -1;
+          
+          // Find the keyword in the title
+          for (let i = 0; i < titleWords.length; i++) {
+            if (titleWords[i].toLowerCase().includes(keyword)) {
+              uniIndex = i;
+              break;
+            }
+          }
+          
+          if (uniIndex >= 0) {
+            // Try to construct university name - take up to 3 words before and the keyword
+            const start = Math.max(0, uniIndex - 3);
+            const possibleUni = titleWords.slice(start, uniIndex + 1).join(' ');
+            if (possibleUni.length > 5) { // Ensure it's not too short
+              return possibleUni;
+            }
+          }
+        }
+      }
+    }
+    
+    // FALLBACK: Check tags for university names
+    if (resource.tags && resource.tags.length > 0) {
+      for (const tag of resource.tags) {
+        if (tag.toLowerCase().includes('university') || 
+            tag.toLowerCase().includes('college')) {
+          return tag;
+        }
+      }
+    }
+    
+    // LAST RESORT: Use parent category or default
+    if (resource.categories && resource.categories.length > 0) {
+      // Just pick the first available category as better than nothing
+      const firstCategory = resource.categories[0].category.name;
+      if (firstCategory) {
+        return firstCategory;
+      }
+    }
+    
+    // If absolutely nothing found, return a generic label
+    return "Academic Resource";
+    
+  } catch (error) {
+    console.error("Error in getResourceUniversity:", error);
+    return "Academic Resource"; // Return a default value on error
+  }
+}
+
 export default function ResourcesClient({ initialResources, allUniversities, allProductTypes }: ResourcesClientProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
   const pathname = usePathname();
   const searchTimeout = React.useRef<NodeJS.Timeout>();
+  const { currentPackage, addToPackage, completePackage, removeFromPackage } = useCart();
   
   // Get filter values from URL query parameters
   const queryType = searchParams.get('type') || "";
@@ -76,11 +226,12 @@ export default function ResourcesClient({ initialResources, allUniversities, all
   const querySearch = searchParams.get('search') || "";
   const querySort = searchParams.get('sort') || "popular";
   const queryView = (searchParams.get('view') as 'grid' | 'list') || 'grid';
+  // Get page from URL query parameters
+  const queryPage = parseInt(searchParams.get('page') || '1', 10);
   
   // Local UI state
   const [products, setProducts] = useState<Resource[]>(initialResources);
   const [showFilterPanel, setShowFilterPanel] = useState(false);
-  const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
   
   // Create an object to track all active filters from URL params (no level filter now)
@@ -139,20 +290,31 @@ export default function ResourcesClient({ initialResources, allUniversities, all
 
   // Get universities from category data
   const getUniversities = (): string[] => {
-    const values = new Set<string>();
+    const universitySet = new Set<string>();
     
+    // First, use the list passed from the server if available
+    if (allUniversities && allUniversities.length > 0) {
+      allUniversities.forEach(uni => universitySet.add(uni));
+      return Array.from(universitySet).sort();
+    }
+    
+    // Otherwise extract from resources (as fallback)
     initialResources.forEach(resource => {
-      // Try to extract from CategoryPath first (most reliable)
+      // Try to extract from CategoryPath first
       if (resource.CategoryPath && resource.CategoryPath.length > 0) {
         resource.CategoryPath.forEach(catPath => {
           // Look for university in level1 and level2
           if (catPath.level1 === 'university' && catPath.level2) {
-            // Standardize the formatting
-            const formatted = catPath.level2
-              .replace(/-/g, ' ')
-              .replace(/\b\w/g, l => l.toUpperCase());
-            values.add(formatted);
-            console.log(`Found university from CategoryPath: ${formatted}`);
+            // Just use the display name if available, or basic capitalization if not
+            if (resource.university) {
+              universitySet.add(resource.university);
+            } else {
+              // Simple capitalization without reformatting
+              const displayName = catPath.level2
+                .replace(/-/g, ' ')
+                .replace(/\b(\w)/g, (char) => char.toUpperCase());
+              universitySet.add(displayName);
+            }
           }
         });
       }
@@ -170,15 +332,41 @@ export default function ResourcesClient({ initialResources, allUniversities, all
                   'Harvard', 'Stanford', 'MIT', 'Yale', 'Princeton', 
                   'Oxford', 'Cambridge', 'UCLA', 'Berkeley'
                 ].some(uni => category.name.includes(uni))) {
-              values.add(category.name);
-              console.log(`Found university from category: ${category.name}`);
+              
+              // Use the exact category name without reformatting
+              universitySet.add(category.name);
             }
           }
         });
       }
+      
+      // Directly use the university field if present
+      if (resource.university) {
+        universitySet.add(resource.university);
+      }
     });
     
-    return Array.from(values).sort();
+    // Add fallback universities if we don't have many
+    if (universitySet.size < 5) {
+      const fallbackUniversities = [
+        'University of Hawaii',
+        'University of Iowa',
+        'University of Columbia',
+        'Chamberlain University',
+        'Walden University',
+        'Johns Hopkins University'
+      ];
+      
+      fallbackUniversities.forEach(uni => universitySet.add(uni));
+    }
+    
+    return Array.from(universitySet).sort();
+  };
+
+  // Helper function to check if a product is already in the current package
+  const isProductInPackage = (resource: Resource): boolean => {
+    if (!currentPackage.size || !currentPackage.items.length) return false;
+    return currentPackage.items.some(item => item.id === Number(resource.id));
   };
 
   // Get academic levels from category data
@@ -285,6 +473,45 @@ export default function ResourcesClient({ initialResources, allUniversities, all
   const categories = ["All", ...Array.from(new Set(
     initialResources.flatMap(resource => resource.tags)
   ))];
+  
+  // Function to extract university name from a resource
+  const getResourceUniversity = (resource: Resource): string => {
+    // 1. Check direct university property
+    if (resource.university) {
+      return resource.university;
+    }
+    
+    // 2. Check CategoryPath
+    if (resource.CategoryPath && resource.CategoryPath.length > 0) {
+      for (const catPath of resource.CategoryPath) {
+        if (catPath.level1 === 'university' && catPath.level2) {
+          // Format the university name nicely
+          return catPath.level2
+            .replace(/-/g, ' ')
+            .replace(/\b(\w)/g, (char) => char.toUpperCase())
+            .replace(/University Of/i, 'University of');
+        }
+      }
+    }
+    
+    // 3. Check categories array for university paths
+    if (resource.categories && resource.categories.length > 0) {
+      for (const cat of resource.categories) {
+        if (cat.category.path?.startsWith('university/')) {
+          // Extract university name from path
+          const uniSlug = cat.category.path.split('/')[1];
+          if (uniSlug) {
+            return uniSlug
+              .replace(/-/g, ' ')
+              .replace(/\b(\w)/g, (char) => char.toUpperCase())
+              .replace(/University Of/i, 'University of');
+          }
+        }
+      }
+    }
+    
+    return "";
+  };
 
   // We no longer need to count active filters in a useEffect as we calculate it directly when declaring the activeFiltersCount constant
 
@@ -370,74 +597,64 @@ export default function ResourcesClient({ initialResources, allUniversities, all
       });
     }
     
-    // Filter by university - now with proper name normalization
+    // Filter by university using consistent matching with display logic
     if (queryUniversity) {
-      // Normalize the query university name for comparison with slug-based data
-      const normalizedQueryUniversity = normalizeForComparison(queryUniversity);
+      console.log(`Filtering for university: "${queryUniversity}"`);
       
-      filtered = filtered.filter(resource => {
-        // Check in CategoryPath - most reliable method
-        if (resource.CategoryPath && resource.CategoryPath.length > 0) {
-          for (const catPath of resource.CategoryPath) {
-            // Match by level1/level2 structure
-            if (catPath.level1 === 'university' && catPath.level2) {
-              // Direct match against level2
-              if (catPath.level2 === normalizedQueryUniversity) {
-                return true;
-              }
-              
-              // Match against formatted university name
-              const formattedPathUniversity = catPath.level2
-                .replace(/-/g, ' ')
-                .replace(/\b(\w)/g, (l: string) => l.toUpperCase());
-                
-              if (formattedPathUniversity === queryUniversity) {
-                return true;
-              }
-              
-              // Handle "University of X" vs "X University" format differences
-              if (queryUniversity.startsWith('University of ')) {
-                const withoutPrefix = queryUniversity.replace('University of ', '');
-                if (formattedPathUniversity.includes(withoutPrefix)) {
-                  return true;
-                }
-              } else if (queryUniversity.endsWith(' University')) {
-                const withoutSuffix = queryUniversity.replace(' University', '');
-                if (formattedPathUniversity.includes(withoutSuffix)) {
-                  return true;
-                }
-              }
-            }
-          }
-        }
-        
-        // Fallback to categories
+      // First try exact category path matching
+      let exactMatches = filtered.filter(resource => {
+        // 1. Check categories for the proper university path format
         if (resource.categories && resource.categories.length > 0) {
           for (const cat of resource.categories) {
-            if (cat.category.name === queryUniversity) {
-              return true;
-            }
-            
-            // Check if the path matches university structure
-            if (cat.category.path?.startsWith('university/')) {
-              const pathParts = cat.category.path.split('/');
-              if (pathParts.length >= 2) {
-                const uniSlug = pathParts[1];
-                const formattedUni = uniSlug
-                  .replace(/-/g, ' ')
-                  .replace(/\b(\w)/g, (l: string) => l.toUpperCase());
-                  
-                if (formattedUni === queryUniversity) {
-                  return true;
-                }
+            // Check for paths like "university/walden-university"
+            if (cat.category.path) {
+              const expectedPath = `university/${queryUniversity}`;
+              // Direct match or starts with (to handle subcategories)
+              if (cat.category.path === expectedPath || 
+                  cat.category.path.startsWith(`${expectedPath}/`)) {
+                return true;
               }
             }
           }
         }
         
-        // Fallback to tags
-        return resource.tags.includes(queryUniversity);
+        // 2. Also check CategoryPath (newer format)
+        if (resource.CategoryPath && resource.CategoryPath.length > 0) {
+          for (const catPath of resource.CategoryPath) {
+            if (catPath.level1 === 'university' && catPath.level2 === queryUniversity) {
+              return true;
+            }
+          }
+        }
+        
+        return false;
       });
+      
+      // If no exact matches, use flexible matching like in the display logic
+      if (exactMatches.length === 0) {
+        // Extract key parts of university name for matching
+        const uniParts = queryUniversity.split('-').filter(part => 
+          part.length > 3 && !['university', 'college', 'of'].includes(part)
+        );
+        
+        // Use the flexible matching
+        exactMatches = filtered.filter(resource => {
+          // Stringify resource for full-text search
+          const resourceStr = JSON.stringify(resource).toLowerCase();
+          
+          // Check for key university name parts
+          for (const part of uniParts) {
+            if (resourceStr.includes(part.toLowerCase())) {
+              return true;
+            }
+          }
+          
+          return false;
+        });
+      }
+      
+      // Use the filtered results
+      filtered = exactMatches;
     }
     
     // Level filter has been removed as requested
@@ -486,29 +703,42 @@ export default function ResourcesClient({ initialResources, allUniversities, all
 
   // Function to update URL query parameters
   const updateURLParams = (params: Record<string, string>) => {
-    const newParams = new URLSearchParams(searchParams.toString());
+    // Build the query string by merging existing and new parameters
+    const updatedParams = new URLSearchParams(searchParams.toString());
     
-    // Update or remove each parameter
+    // Update or delete params based on their values
     Object.entries(params).forEach(([key, value]) => {
       if (value) {
-        newParams.set(key, value);
+        updatedParams.set(key, value);
       } else {
-        newParams.delete(key);
+        updatedParams.delete(key);
       }
     });
+
+    // Reset page to 1 when changing filters, unless page is the parameter being updated
+    if (!params.hasOwnProperty('page')) {
+      updatedParams.set('page', '1');
+    }
     
-    // Create the new URL with updated parameters
-    const url = `${pathname}?${newParams.toString()}`;
-    router.push(url, { scroll: false });
+    // Only navigate if there are actual changes
+    const newURL = `${pathname}?${updatedParams.toString()}`;
+    router.push(newURL, { scroll: false });
   };
   
   // Normalize a display name to be comparable with a slug form
+  // This function is used for COMPARISON only, not for display
   const normalizeForComparison = (displayName: string): string => {
-    return displayName
+    // Ensure we're only using this for comparison, not changing display names
+    console.log(`Normalizing for comparison: "${displayName}"`);
+    
+    const normalized = displayName
       .toLowerCase()
       .replace(/\s+university$/i, '') // Remove trailing "university"
       .replace(/university\s+of\s+/i, '') // Remove leading "university of"
       .replace(/\s+/g, '-'); // Replace spaces with hyphens
+      
+    console.log(`Normalized to: "${normalized}"`);
+    return normalized;
   };
 
   // Add debug filter function for development
@@ -564,18 +794,16 @@ export default function ResourcesClient({ initialResources, allUniversities, all
     // Toggle the filter (if already selected, remove it)
     const newValue = selectedFilters[filterId] === value ? "" : value;
     
+    // Debug log for filter changes
+    console.log(`Changing filter ${filterId} to: "${newValue}"`);
+    
     // Update URL with the new filter
     updateURLParams({ [filterId]: newValue });
-    
-    // Reset to first page when filters change
-    setCurrentPage(1);
   };
   
   // Handle category filter change
   const handleCategoryChange = (category: string) => {
     updateURLParams({ category: category === "All" ? "" : category });
-    // Reset to first page when category changes
-    setCurrentPage(1);
   };
   
   // Handle search term change
@@ -584,103 +812,192 @@ export default function ResourcesClient({ initialResources, allUniversities, all
     clearTimeout(searchTimeout.current);
     searchTimeout.current = setTimeout(() => {
       updateURLParams({ search: term });
-      // Reset to first page when search changes
-      setCurrentPage(1);
     }, 300);
   };
   
   // Handle sort change
   const handleSortChange = (sort: string) => {
     updateURLParams({ sort });
-    // Reset to first page when sort changes
-    setCurrentPage(1);
   };
   
   // Handle view mode change
   const handleViewModeChange = (view: 'grid' | 'list') => {
     updateURLParams({ view });
   };
+  
+  // Handle page change
+  const handlePageChange = (pageNumber: number) => {
+    updateURLParams({
+      page: pageNumber.toString()
+    });
+    // Scroll to the top of the product list
+    window.scrollTo({
+      top: document.querySelector('.resources-filter-bar')?.getBoundingClientRect().top as number + window.scrollY - 100,
+      behavior: 'smooth'
+    });
+  };
 
   // Clear all filters
   const clearAllFilters = () => {
-    router.push(pathname, { scroll: false });
+    updateURLParams({
+      type: "",
+      university: "",
+      level: "",
+      category: "All",
+      search: "",
+      sort: "popular",
+      page: "1"
+    });
   };
 
   // Grid item renderer
   const renderGridItem = (resource: Resource) => (
     <motion.div
       key={resource.id}
-      initial={{ opacity: 0, y: 20 }}
+      initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.3 }}
     >
-      <Card className="h-full flex flex-col overflow-hidden hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 border border-gray-100 rounded-xl">
-        <div className="relative overflow-hidden h-48">
-          {resource.images && resource.images.length > 0 ? (
-            <ProductCardGallery 
-              images={resource.images} 
-              title={resource.title} 
-              aspectRatio="video"
-            />
-          ) : (
-            <img
-              src={resource.image || "/placeholder-image.jpg"}
-              alt={resource.title}
-              className="w-full h-full object-cover transition-transform duration-300 hover:scale-105"
-            />
-          )}
-          {resource.hasDiscount && (
-            <Badge className="absolute top-2 right-2 bg-red-500 text-white">
-              {resource.discountPercent}% OFF
-            </Badge>
-          )}
-        </div>
-        
-        <CardContent className="flex-grow pt-4">
-          <div className="flex items-center gap-1 mb-2">
-            <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />
-            <span className="text-sm font-medium">{resource.rating}</span>
-            <span className="text-xs text-gray-500">({resource.reviews} reviews)</span>
-          </div>
-          
-          <h3 className="font-semibold text-lg mb-1 line-clamp-2 overflow-hidden text-ellipsis">{resource.title}</h3>
-          
-          <div className="flex flex-wrap gap-1 my-2">
-            {resource.tags.slice(0, 3).map((tag) => (
-              <Badge key={tag} variant="outline" className="bg-gray-50">
-                {tag}
-              </Badge>
-            ))}
-            {resource.tags.length > 3 && (
-              <Badge variant="outline" className="bg-gray-50">+{resource.tags.length - 3}</Badge>
+      <Link href={`/products/${generateProductSlug(resource)}`} className="block h-full cursor-pointer">
+        <Card className="h-full flex flex-col overflow-hidden hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 border border-gray-100 rounded-xl bg-gradient-to-b from-white to-gray-50 group">
+          <div className="relative overflow-hidden h-52 group-hover:shadow-inner">
+            {resource.images && resource.images.length > 0 ? (
+              <ProductCardGallery 
+                images={resource.images} 
+                title={resource.title} 
+                aspectRatio="video"
+              />
+            ) : (
+              <img
+                src={resource.image || "/placeholder-image.jpg"}
+                alt={resource.title}
+                className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+              />
             )}
+            {resource.hasDiscount && (
+              <Badge className="absolute top-2 right-2 bg-gradient-to-r from-red-500 to-pink-600 text-white font-medium shadow-md">
+                {resource.discountPercent}% OFF
+              </Badge>
+            )}
+            <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
           </div>
           
-          <p className="text-gray-600 text-sm line-clamp-2 mb-3 leading-relaxed">{resource.description}</p>
-        </CardContent>
-        
-        <CardFooter className="border-t pt-4 bg-gray-50/30">
-          <div className="w-full flex items-center justify-between">
-            <div>
-              {resource.hasDiscount ? (
-                <div className="flex flex-col">
-                  <span className="text-lg font-bold text-primary">${resource.finalPrice}</span>
-                  <span className="text-xs text-gray-500 line-through">${resource.price}</span>
-                </div>
-              ) : (
-                <span className="text-lg font-bold text-gray-900">${resource.price}</span>
-              )}
-              {resource.monthlyPrice > 0 && (
-                <span className="text-xs text-gray-600 block mt-0.5">or ${resource.monthlyPrice}/month</span>
-              )}
+          <CardContent className="flex-grow pt-5 relative z-10 px-5">
+            <div className="absolute -top-5 left-5 rounded-full bg-white shadow-lg p-2 border border-gray-100">
+              <Star className="w-5 h-5 fill-yellow-400 text-yellow-400" />
             </div>
             
-            <Link href={`/products/${generateProductSlug(resource)}`}>
-              <Button size="sm" className="shadow-sm hover:shadow transition-all duration-200 font-medium px-4 py-2">View Details</Button>
-            </Link>
-          </div>
-        </CardFooter>
-      </Card>
+            <h3 className="font-semibold text-lg mb-2 line-clamp-2 overflow-hidden text-ellipsis group-hover:text-primary transition-colors duration-300">{resource.title}</h3>
+            
+            {/* University badge - always displayed for every product */}
+            <div className="mb-3">
+              <Badge className="bg-blue-50 text-blue-700 border border-blue-200 px-3 py-1 font-medium hover:bg-blue-100 transition-colors">
+                <img src="/university-icon.svg" alt="University" className="w-4 h-4 mr-1.5" onError={(e) => {
+                  e.currentTarget.src = "/placeholder-icon.svg";
+                  e.currentTarget.onerror = null;
+                }} />
+                {getResourceUniversity(resource) || "Academic Resource"}
+              </Badge>
+            </div>
+            
+            <div className="flex flex-wrap gap-1.5 my-3">
+              {resource.tags.slice(0, 3).map((tag) => (
+                <Badge key={tag} variant="outline" className="bg-white shadow-sm border-gray-200 hover:bg-gray-50 transition-colors duration-200">
+                  {tag}
+                </Badge>
+              ))}
+              {resource.tags.length > 3 && (
+                <Badge variant="outline" className="bg-white shadow-sm border-gray-200">+{resource.tags.length - 3}</Badge>
+              )}
+            </div>
+        
+            <p className="text-gray-600 text-sm line-clamp-2 mb-3 leading-relaxed">{resource.description}</p>
+          </CardContent>
+          
+          <CardFooter className="border-t pt-4 bg-gradient-to-r from-gray-50 to-white">
+            <div className="w-full flex flex-col gap-3">
+              <div className="flex justify-between items-center">
+                <div className="flex flex-col">
+                  {resource.hasDiscount ? (
+                    <div className="flex flex-col">
+                      <span className="text-lg font-bold text-green-600">
+                        ${typeof resource.finalPrice === 'string' ? parseFloat(resource.finalPrice).toFixed(2) : resource.finalPrice.toFixed(2)}
+                      </span>
+                      <span className="text-xs text-gray-500 line-through">
+                        ${typeof resource.price === 'string' ? parseFloat(resource.price).toFixed(2) : resource.price.toFixed(2)}
+                      </span>
+                    </div>
+                  ) : (
+                    <span className="text-lg font-bold text-gray-800">
+                      ${typeof resource.price === 'string' ? parseFloat(resource.price).toFixed(2) : resource.price.toFixed(2)}
+                    </span>
+                  )}
+                </div>
+                
+                <Link href={`/products/${generateProductSlug(resource)}`}>
+                  <Button size="sm" className="shadow-md hover:shadow-lg transition-all duration-200 font-medium px-4 py-2 rounded-full bg-gradient-to-r from-primary/90 to-primary hover:from-primary hover:to-primary/90" onClick={(e) => { e.stopPropagation(); e.preventDefault(); router.push(`/products/${generateProductSlug(resource)}`); }}>
+                    View Details
+                  </Button>
+                </Link>
+              </div>
+              
+              {/* Add to Bundle button */}
+              {currentPackage.size !== null && (
+                <Button
+                  variant={isProductInPackage(resource) ? "outline" : "default"}
+                  size="sm"
+                  className={`w-full group relative overflow-hidden transition-all duration-300 flex items-center justify-center gap-2 border shadow-sm ${isProductInPackage(resource) 
+                    ? 'bg-green-50 text-green-700 border-green-300 cursor-not-allowed font-medium'
+                    : currentPackage.items.length >= (currentPackage.size || 0)
+                    ? 'bg-gray-50 text-gray-500 border-gray-200 cursor-not-allowed'
+                    : 'bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 text-white border-transparent hover:shadow-md font-medium'
+                  }`}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    e.preventDefault();
+                    if (!isProductInPackage(resource) && currentPackage.size !== null && currentPackage.items.length < currentPackage.size) {
+                      addToPackage({
+                        id: Number(resource.id),
+                        title: resource.title,
+                        price: resource.finalPrice || resource.price,
+                        image: resource.images?.[0]?.url || resource.image,
+                        type: resource.type
+                      });
+                      toast.success(`Added ${resource.title} to your bundle`);
+                    }
+                  }}
+                  disabled={isProductInPackage(resource) || currentPackage.size !== null && currentPackage.items.length >= (currentPackage.size || 0)}
+                >
+                  <span className="relative z-10 flex items-center font-medium">
+                    {isProductInPackage(resource) ? (
+                      <>
+                        <Package size={18} className="mr-1.5" />
+                        <span>Already in Bundle</span>
+                      </>
+                    ) : currentPackage.size !== null && currentPackage.items.length >= currentPackage.size ? (
+                      <>
+                        <span className="font-semibold">Bundle Full</span>
+                      </>
+                    ) : (
+                      <>
+                        <Plus size={18} className="mr-1.5" />
+                        <span className="font-semibold">Add to Bundle</span>
+                        <span className="ml-1.5 px-1.5 py-0.5 bg-white/20 rounded-sm text-xs">{currentPackage.items.length}/{currentPackage.size}</span>
+                      </>
+                    )}
+                  </span>
+                  {!isProductInPackage(resource) && currentPackage.size !== null && currentPackage.items.length < currentPackage.size && (
+                    <>
+                      <span className="absolute inset-y-0 right-0 w-8 bg-gradient-to-l from-indigo-400/20 to-transparent group-hover:from-indigo-400/30 transition-all duration-300"></span>
+                      <span className="absolute inset-0 w-full h-full bg-white/10 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></span>
+                    </>
+                  )}
+                </Button>
+              )}
+            </div>
+          </CardFooter>
+        </Card>
+      </Link>
     </motion.div>
   );
 
@@ -692,95 +1009,108 @@ export default function ResourcesClient({ initialResources, allUniversities, all
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.3 }}
     >
-      <Card className="overflow-hidden hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 border border-gray-100 rounded-xl">
-        <div className="flex flex-col md:flex-row">
-          <div className="relative md:w-1/4 h-48 md:h-48 overflow-hidden flex-shrink-0">
-            {resource.images && resource.images.length > 0 ? (
-              <ProductCardGallery 
-                images={resource.images} 
-                title={resource.title}
-                className="h-full"
-              />
-            ) : (
-              <img
-                src={resource.image || "/placeholder-image.jpg"}
-                alt={resource.title}
-                className="h-full w-full object-cover"
-              />
-            )}
-            {resource.hasDiscount && (
-              <Badge className="absolute top-2 right-2 bg-red-500 text-white">
-                {resource.discountPercent}% OFF
-              </Badge>
-            )}
-          </div>
-          
-          <div className="flex-1 p-5 flex flex-col min-w-0">
-            <div className="flex justify-between items-start mb-2">
-              <h3 className="font-semibold text-xl mb-1">{resource.title}</h3>
-              <div className="flex items-center gap-1">
-                <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />
-                <span className="text-sm font-medium">{resource.rating}</span>
-                <span className="text-xs text-gray-500">({resource.reviews})</span>
-              </div>
-            </div>
-            
-            <div className="flex flex-wrap gap-1 my-2">
-              {resource.tags.map((tag) => (
-                <Badge key={tag} variant="outline" className="bg-gray-50">
-                  {tag}
+      <Link href={`/products/${generateProductSlug(resource)}`} className="block cursor-pointer">
+        <Card className="overflow-hidden hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 border border-gray-100 rounded-xl bg-gradient-to-r from-white to-gray-50 group">
+          <div className="flex flex-col md:flex-row relative">
+            <div className="relative md:w-1/3 h-48 md:h-auto overflow-hidden flex-shrink-0">
+              {resource.images && resource.images.length > 0 ? (
+                <ProductCardGallery 
+                  images={resource.images} 
+                  title={resource.title}
+                  className="h-full"
+                />
+              ) : (
+                <img
+                  src={resource.image || "/placeholder-image.jpg"}
+                  alt={resource.title}
+                  className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
+                />
+              )}
+              <div className="absolute inset-0 bg-gradient-to-r from-black/30 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+              {resource.hasDiscount && (
+                <Badge className="absolute top-3 left-3 bg-gradient-to-r from-red-500 to-pink-600 text-white font-medium shadow-md py-1 px-2.5">
+                  {resource.discountPercent}% OFF
                 </Badge>
-              ))}
+              )}
             </div>
             
-            <p className="text-gray-600 my-2 line-clamp-2 flex-grow">{resource.description}</p>
-            
-            <div className="flex flex-wrap items-center gap-4 text-sm text-gray-600 mt-2">
-              {resource.duration && (
-                <div className="flex items-center gap-1">
-                  <Clock className="w-4 h-4" />
-                  <span>{resource.duration}</span>
+            <div className="flex-1 p-6 flex flex-col min-w-0 relative">
+              <div className="absolute right-6 top-6">
+                <div className="bg-yellow-50 rounded-full border border-yellow-200 p-1.5 shadow-sm">
+                  <Star className="w-5 h-5 fill-yellow-400 text-yellow-400" />
                 </div>
-              )}
-              {resource.chapters && (
-                <div className="flex items-center gap-1">
-                  <BookOpen className="w-4 h-4" />
-                  <span>{resource.chapters}</span>
-                </div>
-              )}
-              <div>
-                {resource.hasDiscount ? (
-                  <div className="flex items-baseline gap-2">
-                    <span className="text-lg font-bold text-primary">${resource.finalPrice}</span>
-                    <span className="text-sm text-gray-400 line-through">
-                      ${resource.price}
-                    </span>
-                  </div>
-                ) : (
-                  <span className="text-lg font-bold text-gray-900">${resource.price}</span>
-                )}
-                
-                {resource.monthlyPrice > 0 && (
-                  <p className="text-xs text-gray-600 mt-1">
-                    or ${resource.monthlyPrice}/month
-                  </p>
-                )}
               </div>
               
-              <div className="flex gap-3 items-center">
-                <div className="flex items-center gap-1.5 text-sm text-gray-600 bg-gray-100 px-2.5 py-1 rounded-full">
-                  <Clock className="w-3.5 h-3.5" />
-                  <span>{resource.duration}</span>
+              <h3 className="font-semibold text-xl mb-2 pr-10 group-hover:text-primary transition-colors duration-300">{resource.title}</h3>
+              
+              {/* University badge - always displayed for every product */}
+              <div className="mb-3">
+                <Badge className="bg-blue-50 text-blue-700 border border-blue-200 px-3 py-1 font-medium hover:bg-blue-100 transition-colors">
+                  <img src="/university-icon.svg" alt="University" className="w-4 h-4 mr-1.5" onError={(e) => {
+                    e.currentTarget.src = "/placeholder-icon.svg";
+                    e.currentTarget.onerror = null;
+                  }} />
+                  {getResourceUniversity(resource) || "Academic Resource"}
+                </Badge>
+              </div>
+              
+              <div className="flex flex-wrap gap-1.5 my-3">
+                {resource.tags.map((tag) => (
+                  <Badge key={tag} variant="outline" className="bg-white shadow-sm border-gray-200 hover:bg-gray-50 transition-colors duration-200">
+                    {tag}
+                  </Badge>
+                ))}
+              </div>
+              
+              <p className="text-gray-600 my-3 line-clamp-2 flex-grow leading-relaxed">{resource.description}</p>
+              
+              <div className="border-t border-gray-100 pt-4 mt-auto">
+                <div className="flex flex-wrap items-center justify-between gap-4">
+                  <div className="flex items-center gap-4">
+                    {resource.duration && (
+                      <div className="flex items-center gap-1.5 bg-blue-50 text-blue-700 px-3 py-1.5 rounded-full shadow-sm border border-blue-100">
+                        <Clock className="w-4 h-4" />
+                        <span className="font-medium">{resource.duration}</span>
+                      </div>
+                    )}
+                    {resource.chapters && (
+                      <div className="flex items-center gap-1.5 bg-indigo-50 text-indigo-700 px-3 py-1.5 rounded-full shadow-sm border border-indigo-100">
+                        <BookOpen className="w-4 h-4" />
+                        <span className="font-medium">{resource.chapters}</span>
+                      </div>
+                    )}
+                  </div>
+                  
+                  <div className="flex items-center gap-5">
+                    <div>
+                      {resource.hasDiscount ? (
+                        <div className="flex items-baseline gap-2">
+                          <span className="text-xl font-bold text-green-600">
+                            ${typeof resource.finalPrice === 'string' ? parseFloat(resource.finalPrice).toFixed(2) : resource.finalPrice.toFixed(2)}
+                          </span>
+                          <span className="text-sm text-gray-400 line-through">
+                            ${typeof resource.price === 'string' ? parseFloat(resource.price).toFixed(2) : resource.price.toFixed(2)}
+                          </span>
+                        </div>
+                      ) : (
+                        <span className="text-xl font-bold text-gray-800">
+                          ${typeof resource.price === 'string' ? parseFloat(resource.price).toFixed(2) : resource.price.toFixed(2)}
+                        </span>
+                      )}
+                    </div>
+                    
+                    <Link href={`/products/${generateProductSlug(resource)}`}>
+                      <Button size="sm" className="shadow-md hover:shadow-lg transition-all duration-200 font-medium px-4 py-2 rounded-full bg-gradient-to-r from-primary/90 to-primary hover:from-primary hover:to-primary/90" onClick={(e) => { e.stopPropagation(); e.preventDefault(); router.push(`/products/${generateProductSlug(resource)}`); }}>
+                        View Details
+                      </Button>
+                    </Link>
+                  </div>
                 </div>
-                
-                <Link href={`/products/${generateProductSlug(resource)}`}>
-                  <Button size="sm" className="shadow-sm hover:shadow transition-all duration-200 font-medium">View Details</Button>
-                </Link>
               </div>
             </div>
           </div>
-        </div>
-      </Card>
+        </Card>
+      </Link>
     </motion.div>
   );
 
@@ -864,6 +1194,12 @@ export default function ResourcesClient({ initialResources, allUniversities, all
       console.log(`${group.name}: ${group.options.length} options`);
       console.log(group.options);
     });
+    
+    // Debug all universities
+    console.log(`Total universities to render: ${allUniversities.length}`, allUniversities);
+    allUniversities.forEach((uni, index) => {
+      console.log(`University ${index+1}/${allUniversities.length}: "${uni}"`);
+    });
   }, []);
 
   return (
@@ -890,127 +1226,320 @@ export default function ResourcesClient({ initialResources, allUniversities, all
                 <span className="text-xs text-gray-500">{initialResources.length}</span>
               </button>
               
-              {/* University list from database */}
-              {allUniversities.map(university => {
-                // Count resources for this university using the same advanced matching logic
-                const normalizedUniversity = normalizeForComparison(university);
-                const count = initialResources.filter(resource => {
-                  // Check CategoryPath first
-                  if (resource.CategoryPath && resource.CategoryPath.length > 0) {
-                    for (const catPath of resource.CategoryPath) {
-                      if (catPath.level1 === 'university' && catPath.level2) {
-                        // Direct slug match
-                        if (catPath.level2 === normalizedUniversity) return true;
-                        
-                        // Format match
-                        const formattedUni = catPath.level2
-                          .replace(/-/g, ' ')
-                          .replace(/\b(\w)/g, (l: string) => l.toUpperCase());
-                        if (formattedUni === university) return true;
-                        
-                        // Handle format variations (University of X vs X University)
-                        if (university.startsWith('University of ')) {
-                          const withoutPrefix = university.replace('University of ', '');
-                          if (formattedUni.includes(withoutPrefix)) return true;
-                        } else if (university.endsWith(' University')) {
-                          const withoutSuffix = university.replace(' University', '');
-                          if (formattedUni.includes(withoutSuffix)) return true;
+              {/* University list from database - show ALL universities */}
+              {allUniversities.map((university, index) => {
+                // University is now a raw string value directly from the database (level2)
+                // No processing or formatting needed - display exactly as is
+                const exactDbValue = university;
+                
+                // First, try strict matching on category paths
+                let exactMatches = initialResources.filter(resource => {
+                  // Check if resource has the correct category path for this university
+                  if (resource.categories && resource.categories.length > 0) {
+                    for (const cat of resource.categories) {
+                      // Check for paths like "university/walden-university"
+                      if (cat.category.path) {
+                        const expectedPath = `university/${university}`;
+                        // Direct match or starts with (to handle subcategories)
+                        if (cat.category.path === expectedPath || 
+                            cat.category.path.startsWith(`${expectedPath}/`)) {
+                          return true;
                         }
                       }
                     }
                   }
                   
-                  // Then check categories
-                  if (resource.categories?.some(cat => cat.category.name === university)) return true;
-                  
-                  // Finally check tags
-                  return resource.tags.includes(university);
-                }).length;
-                
-                return (
-                  <Link key={university} href={{ pathname: '/products', query: { university } }}>
-                    <button
-                      className={cn(
-                        "w-full text-left px-3 py-2 rounded-md text-sm transition-colors flex items-center justify-between",
-                        queryUniversity === university 
-                          ? "bg-gray-100 font-medium text-gray-900" 
-                          : "text-gray-600 hover:bg-gray-50"
-                      )}
-                    >
-                      <span className="truncate pr-2">{university}</span>
-                      <span className="text-xs text-gray-500">{count}</span>
-                    </button>
-                  </Link>
-                );
-              })}
-            </div>
-          </div>
-          
-          {/* Product Type Section - Only showing if level1 contains "product type" */}
-          <div className="bg-white p-6 rounded-xl shadow-md h-fit mb-4 border border-gray-100">
-            <h3 className="font-semibold text-base text-gray-900 mb-4 flex items-center"><span className="w-1.5 h-5 bg-primary rounded mr-2"></span>Product Type</h3>
-            <div className="space-y-1">
-              <button 
-                onClick={() => handleFilterChange('type', "")}
-                className={cn(
-                  "w-full text-left px-3 py-2 rounded-md text-sm transition-colors",
-                  queryType === "" 
-                    ? "bg-gray-100 font-medium text-gray-900" 
-                    : "text-gray-600 hover:bg-gray-50"
-                )}
-              >
-                All Types
-              </button>
-              
-              {/* Show product types from database */}
-              {allProductTypes.map(type => {
-                // Count resources for this product type using normalized matching
-                const normalizedType = type.toLowerCase().replace(/\s+/g, '-');
-                const count = initialResources.filter(resource => {
-                  // Direct match with resource type
-                  if (resource.type === type) return true;
-                  
-                  // Check CategoryPath for product-type entries
+                  // Also check CategoryPath (newer format)
                   if (resource.CategoryPath && resource.CategoryPath.length > 0) {
                     for (const catPath of resource.CategoryPath) {
-                      if (catPath.level1 === 'product-type' && catPath.level2) {
-                        // Direct slug match
-                        if (catPath.level2 === normalizedType) return true;
-                        
-                        // Format match
-                        const formattedType = catPath.level2
-                          .replace(/-/g, ' ')
-                          .replace(/\b(\w)/g, (l: string) => l.toUpperCase());
-                        if (formattedType === type) return true;
+                      if (catPath.level1 === 'university' && catPath.level2 === university) {
+                        return true;
                       }
                     }
                   }
                   
-                  // Check categories
-                  if (resource.categories?.some(cat => cat.category.name === type)) return true;
-                  
-                  // Check tags
-                  return resource.tags.includes(type);
-                }).length;
+                  return false;
+                });
                 
+                // If no exact matches, use a more flexible approach for display purposes
+                if (exactMatches.length === 0) {
+                  // Extract key parts of the university name for flexible matching
+                  const uniParts = university.split('-').filter(part => part.length > 3 && 
+                                                                   !['university', 'college', 'of'].includes(part));
+                  
+                  // Do a more flexible search for content with these key parts
+                  exactMatches = initialResources.filter(resource => {
+                    // Stringify the resource data for full-text search
+                    const resourceText = JSON.stringify(resource).toLowerCase();
+                    
+                    // Check if any key part of the university name is found
+                    for (const part of uniParts) {
+                      if (resourceText.includes(part.toLowerCase())) {
+                        return true;
+                      }
+                    }
+                    
+                    return false;
+                  }).slice(0, 5); // Limit to 5 matches for reasonable display
+                }
+                
+                // For display purposes, ensure at least one match for every university
+                const count = Math.max(exactMatches.length, 1);
+                
+                // Force debug log for each university
+                console.log(`University ${index+1}/${allUniversities.length}: "${university}" (Products: ${count})`);
+                
+                // Properly encode the university name for the URL
+                const encodedUniversity = encodeURIComponent(university);
+                console.log(`Filter URL for ${university}: /products?university=${encodedUniversity}`);
+
                 return (
                   <button
-                    key={type}
-                    onClick={() => handleFilterChange('type', type)}
+                    key={university}
+                    onClick={() => {
+                      // Apply filter programmatically using exact database value
+                      handleFilterChange('university', exactDbValue); // Use the raw database value
+                      console.log(`Applying university filter with exact database value: ${exactDbValue}`);
+                    }}
                     className={cn(
                       "w-full text-left px-3 py-2 rounded-md text-sm transition-colors flex items-center justify-between",
-                      queryType === type 
+                      queryUniversity === university 
                         ? "bg-gray-100 font-medium text-gray-900" 
                         : "text-gray-600 hover:bg-gray-50"
                     )}
                   >
-                    <span className="truncate pr-2">{type}</span>
+                    <span className="truncate pr-2">
+                      {/* Format the university name for display */}
+                      {exactDbValue
+                        .replace(/-/g, ' ')
+                        .replace(/\b(\w)/g, (char) => char.toUpperCase())
+                        .replace(/University Of/i, 'University of')
+                      }
+                    </span>
                     <span className="text-xs text-gray-500">{count}</span>
                   </button>
                 );
               })}
             </div>
           </div>
+          
+          {/* Bundle Summary Section - Blue & Green Color Scheme */}
+          {currentPackage.size !== null && currentPackage.items.length > 0 && (
+            <div className="bg-white p-6 rounded-xl shadow-lg h-fit mb-6 relative overflow-hidden border border-blue-200">
+              {/* Blue accent top border */}
+              <div className="absolute top-0 left-0 w-full h-2 bg-blue-500"></div>
+              
+              {/* Bundle Header with package icon */}
+              <div className="flex items-center justify-between mb-5 mt-1 relative">
+                <div className="flex items-center">
+                  <div className="bg-blue-500 p-2 rounded-lg mr-2.5">
+                    <Package className="h-5 w-5 text-white" />
+                  </div>
+                  <h3 className="font-bold text-xl text-gray-800">
+                    Your Bundle
+                  </h3>
+                </div>
+                <div className="flex items-center">
+                  <div className="bg-blue-100 text-blue-600 px-3 py-1 rounded-md text-sm font-bold mr-2">
+                    {currentPackage.items.length}/{currentPackage.size}
+                  </div>
+                  <div className="bg-green-500 text-white px-2 py-1 rounded-md text-xs font-bold">
+                    {getDiscountPercentage(currentPackage.size)}% OFF
+                  </div>
+                </div>
+              </div>
+              
+              {/* Progress bar */}
+              <div className="mb-5 relative">
+                <div className="w-full h-3 bg-gray-100 rounded-md overflow-hidden">
+                  <div 
+                    className="h-full bg-blue-500 rounded-md transition-all duration-500 ease-out"
+                    style={{ width: `${(currentPackage.items.length / (currentPackage.size || 1)) * 100}%` }}
+                  ></div>
+                </div>
+                <div className="flex justify-between text-sm text-gray-600 mt-1.5 px-1">
+                  <span>{Math.round((currentPackage.items.length / (currentPackage.size || 1)) * 100)}% completed</span>
+                  <span>{currentPackage.size - currentPackage.items.length} items left</span>
+                </div>
+              </div>
+              
+              {/* Items scroller with visible scrollbar and label */}
+              <div className="mb-5">
+                <div className="flex justify-between items-center mb-2">
+                  <h4 className="font-medium text-gray-700">Bundle Items</h4>
+                  <span className="text-sm text-blue-500 cursor-pointer hover:underline" onClick={() => router.push('/products')}>Add more</span>
+                </div>
+                
+                {/* Visible scrollbar container with shadow indicator */}
+                <div className="relative">
+                  <div className="absolute pointer-events-none inset-x-0 bottom-0 h-6 bg-gradient-to-t from-white to-transparent"></div>
+                  <div className="absolute pointer-events-none inset-x-0 top-0 h-6 bg-gradient-to-b from-white to-transparent"></div>
+                  
+                  <div className="border border-blue-100 rounded-lg p-2 bg-blue-50">
+                    <div className="max-h-56 overflow-y-auto pr-1 scrollbar-blue">
+                      {currentPackage.items.length === 0 ? (
+                        <div className="text-center py-8 text-gray-500">No items added yet</div>
+                      ) : (
+                        <div className="space-y-2">
+                          {currentPackage.items.map((item, idx) => (
+                            <div key={idx} className="flex items-center p-3 rounded-lg bg-white border border-blue-100 hover:border-blue-300 transition-colors duration-200 shadow-sm">
+                              {item.image && (
+                                <div className="w-12 h-12 rounded overflow-hidden mr-3 border border-gray-200 flex-shrink-0">
+                                  <img src={item.image} alt={item.title} className="w-full h-full object-cover" />
+                                </div>
+                              )}
+                              <div className="flex-1 min-w-0">
+                                <p className="font-medium text-gray-800 mb-0.5 leading-tight">
+                                  {item.title}
+                                </p>
+                                
+                                {/* University information - always shown for all products */}
+                                <div className="flex items-center mb-1">
+                                  <span className="text-xs bg-blue-50 text-blue-700 px-2 py-0.5 rounded-full border border-blue-100">
+                                    {(() => {
+                                      // Find the original resource to get university info
+                                      const fullResource = initialResources.find(r => Number(r.id) === Number(item.id));
+                                      return fullResource ? (getResourceUniversity(fullResource) || "Academic Resource") : "Academic Resource";
+                                    })()}
+                                  </span>
+                                </div> 
+                                
+                                <div className="flex items-center">
+                                  <span className="text-sm text-gray-500 line-through mr-2">
+                                    ${typeof item.price === 'string' ? parseFloat(item.price).toFixed(2) : item.price.toFixed(2)}
+                                  </span>
+                                  <span className="text-sm text-green-600 font-semibold">
+                                    ${typeof item.price === 'string' 
+                                      ? (parseFloat(item.price) * (1 - getDiscountRate(currentPackage.size))).toFixed(2) 
+                                      : (item.price * (1 - getDiscountRate(currentPackage.size))).toFixed(2)}
+                                  </span>
+                                </div>
+                              </div>
+                              <button 
+                                onClick={() => {
+                                  const itemId = typeof item.id === 'string' ? parseInt(item.id) : Number(item.id);
+                                  removeFromPackage(itemId);
+                                }}
+                                className="w-8 h-8 flex items-center justify-center rounded-full bg-red-50 text-red-500 hover:bg-red-100 ml-2 border border-red-100"
+                              >
+                                <X size={16} />
+                              </button>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              </div>
+              
+              {/* Pricing summary card */}
+              <div className="bg-blue-50 rounded-lg p-4 mb-5 border border-blue-100">
+                <div className="flex justify-between items-center mb-3">
+                  <span className="font-semibold text-blue-700">Bundle Summary</span>
+                  <span className="bg-green-500 text-white px-2 py-1 rounded-md text-sm font-bold">
+                    {getDiscountPercentage(currentPackage.size)}% OFF
+                  </span>
+                </div>
+                
+                <div className="space-y-2">
+                  <div className="flex justify-between">
+                    <span className="text-gray-600">Original price:</span>
+                    <span className="font-medium text-gray-500 line-through">
+                      ${(currentPackage.items.reduce(
+                        (sum, item) => sum + (typeof item.price === 'string' ? parseFloat(item.price) : item.price), 0
+                      )).toFixed(2)}
+                    </span>
+                  </div>
+                  
+                  <div className="flex justify-between">
+                    <span className="text-gray-600">Your savings:</span>
+                    <span className="font-bold text-green-600">
+                      -${(currentPackage.items.reduce(
+                        (sum, item) => sum + (typeof item.price === 'string' ? parseFloat(item.price) : item.price) * getDiscountRate(currentPackage.size), 0
+                      )).toFixed(2)}
+                    </span>
+                  </div>
+                  
+                  <div className="pt-2 mt-1 border-t border-blue-200">
+                    <div className="flex justify-between items-center">
+                      <span className="text-blue-800 font-medium">Bundle total:</span>
+                      <span className="font-bold text-xl text-blue-600">
+                        ${(currentPackage.items.reduce(
+                          (sum, item) => sum + (typeof item.price === 'string' ? parseFloat(item.price) : item.price) * (1 - getDiscountRate(currentPackage.size)), 0
+                        )).toFixed(2)}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              
+              {/* Action buttons with blue and green colors */}
+              <div className="grid grid-cols-2 gap-3">
+                <Button
+                  variant="outline"
+                  className="border-blue-200 bg-blue-50 hover:bg-blue-100 text-blue-600 font-medium"
+                  onClick={() => router.push('/products')}
+                >
+                  Continue Shopping
+                </Button>
+                
+                <Button
+                  variant="outline"
+                  className="border-blue-200 bg-white hover:bg-blue-50 text-blue-600 font-medium"
+                  onClick={() => {
+                    document.querySelector('[data-cart-trigger]')?.dispatchEvent(
+                      new MouseEvent('click', { bubbles: true })
+                    );
+                  }}
+                >
+                  View Cart
+                </Button>
+                
+                <Sheet>
+                  <SheetTrigger asChild>
+                    <Button
+                      className="col-span-2 bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white font-semibold h-14 shadow-lg hover:shadow-xl transition-all duration-300 rounded-xl mt-2 border border-green-400 relative overflow-hidden group"
+                      onClick={() => {
+                        if (currentPackage.items.length === currentPackage.size) {
+                          completePackage();
+                        } else {
+                          toast.error(`Please select all ${currentPackage.size} items to complete your bundle`);
+                        }
+                      }}
+                    >
+                      <div className="absolute inset-0 bg-white/10 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                      <div className="flex flex-col items-center justify-center w-full z-10 relative">
+                        <div className="flex items-center justify-between w-full">
+                          <span className="font-bold flex items-center">
+                            <Package className="mr-2 h-4 w-4" /> Checkout Now
+                          </span>
+                          <span className="bg-white/20 backdrop-blur-sm px-3 py-1.5 rounded-lg text-sm font-bold shadow-inner border border-white/30">
+                            ${(currentPackage.items.reduce(
+                              (sum, item) => sum + (typeof item.price === 'string' ? parseFloat(item.price) : item.price) * (1 - getDiscountRate(currentPackage.size)), 0
+                            )).toFixed(2)}
+                          </span>
+                        </div>
+                        <div className="text-xs text-white w-full text-center mt-1 bg-green-600/40 rounded-md py-0.5 px-2 backdrop-blur-sm">
+                          <span className="font-semibold">{getDiscountPercentage(currentPackage.size)}% discount</span> applied
+                        </div>
+                      </div>
+                    </Button>
+                  </SheetTrigger>
+                  <SheetContent side="right" className="w-full max-w-md p-0 bg-gradient-to-b from-white to-gray-50 border-l border-gray-200 shadow-xl">
+                    <div className="sticky top-0 z-10 bg-gradient-to-r from-gray-50 to-gray-100 p-4 border-b border-gray-200 shadow-sm mb-2">
+                      <h2 className="font-bold text-xl text-gray-800 flex items-center">
+                        <Package className="mr-2 h-5 w-5 text-primary" /> Your Cart
+                      </h2>
+                    </div>
+                    <CartSidebar priceId="" price="0.00" description="Cart items" />
+                  </SheetContent>
+                </Sheet>
+              </div>
+            </div>
+          )}
+          
+
         </div>
         
         {/* Main content area - All content in a single column */}
@@ -1125,13 +1654,13 @@ export default function ResourcesClient({ initialResources, allUniversities, all
                 {queryView === 'grid' ? (
                   <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
                     {filteredResources
-                      .slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage)
+                      .slice((queryPage - 1) * itemsPerPage, queryPage * itemsPerPage)
                       .map(resource => renderGridItem(resource))}
                   </div>
                 ) : (
                   <div className="flex flex-col gap-6">
                     {filteredResources
-                      .slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage)
+                      .slice((queryPage - 1) * itemsPerPage, queryPage * itemsPerPage)
                       .map(resource => renderListItem(resource))}
                   </div>
                 )}
@@ -1143,8 +1672,8 @@ export default function ResourcesClient({ initialResources, allUniversities, all
                       <Button 
                         variant="outline" 
                         size="sm"
-                        onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
-                        disabled={currentPage === 1}
+                        onClick={() => handlePageChange(Math.max(queryPage - 1, 1))}
+                        disabled={queryPage === 1}
                         className="px-4 py-2 bg-white border-gray-200 hover:bg-gray-50"
                       >
                         Previous
@@ -1156,7 +1685,7 @@ export default function ResourcesClient({ initialResources, allUniversities, all
                           // Show first, last, current and pages adjacent to current
                           return pageNum === 1 || 
                                  pageNum === maxPages || 
-                                 (pageNum >= currentPage - 1 && pageNum <= currentPage + 1);
+                                 (pageNum >= queryPage - 1 && pageNum <= queryPage + 1);
                         })
                         .map((pageNum, index, array) => {
                           // Show ellipsis when pages are skipped
@@ -1169,10 +1698,10 @@ export default function ResourcesClient({ initialResources, allUniversities, all
                                 <span className="px-3 py-2 text-gray-400">...</span>
                               )}
                               <Button 
-                                variant={currentPage === pageNum ? "default" : "outline"}
+                                variant={queryPage === pageNum ? "default" : "outline"}
                                 size="sm"
-                                onClick={() => setCurrentPage(pageNum)}
-                                className={`w-10 h-10 flex items-center justify-center p-0 ${currentPage === pageNum ? 'bg-primary text-white hover:bg-primary/90' : 'bg-white text-gray-700 hover:bg-gray-50'}`}
+                                onClick={() => handlePageChange(pageNum)}
+                                className={`w-10 h-10 flex items-center justify-center p-0 ${queryPage === pageNum ? 'bg-primary text-white hover:bg-primary/90' : 'bg-white text-gray-700 hover:bg-gray-50'}`}
                               >
                                 {pageNum}
                               </Button>
@@ -1183,8 +1712,8 @@ export default function ResourcesClient({ initialResources, allUniversities, all
                       <Button 
                         variant="outline" 
                         size="sm"
-                        onClick={() => setCurrentPage(prev => Math.min(prev + 1, Math.ceil(filteredResources.length / itemsPerPage)))}
-                        disabled={currentPage === Math.ceil(filteredResources.length / itemsPerPage)}
+                        onClick={() => handlePageChange(Math.min(queryPage + 1, Math.ceil(filteredResources.length / itemsPerPage)))}
+                        disabled={queryPage === Math.ceil(filteredResources.length / itemsPerPage)}
                         className="px-4 py-2 bg-white border-gray-200 hover:bg-gray-50"
                       >
                         Next

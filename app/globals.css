@@ -1,6 +1,45 @@
 @tailwind base;
-  @tailwind components;
-  @tailwind utilities;
+@tailwind components;
+@tailwind utilities;
+
+/* Custom scrollbar for bundle section */
+.custom-scrollbar::-webkit-scrollbar {
+  width: 5px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 10px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.3);
+  border-radius: 10px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.5);
+}
+
+/* Blue scrollbar for bundle list */
+.scrollbar-blue::-webkit-scrollbar {
+  width: 8px;
+}
+
+.scrollbar-blue::-webkit-scrollbar-track {
+  background: rgba(239, 246, 255, 0.5);
+  border-radius: 6px;
+}
+
+.scrollbar-blue::-webkit-scrollbar-thumb {
+  background: rgba(59, 130, 246, 0.3);
+  border-radius: 6px;
+  border: 2px solid rgba(239, 246, 255, 0.5);
+}
+
+.scrollbar-blue::-webkit-scrollbar-thumb:hover {
+  background: rgba(59, 130, 246, 0.5);
+}
 
   html,
   body,

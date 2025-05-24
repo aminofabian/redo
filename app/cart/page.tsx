@@ -584,7 +584,7 @@ export default function CartPage() {
                           </div>
                         ))}
                         <div className="text-sm text-green-600 font-medium border-t pt-2">
-                          75% Package Savings Applied
+                          15% Package Savings Applied
                         </div>
                       </div>
                     )}

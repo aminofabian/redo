@@ -3,6 +3,23 @@
 import { createContext, useContext, useEffect, useState } from 'react';
 import { toast } from 'react-hot-toast';
 
+// Get discount rate based on package size (returns decimal, e.g., 0.10 for 10%)
+export const getDiscountRate = (size: number | null): number => {
+  if (!size) return 0;
+  
+  switch (size) {
+    case 3: return 0.10; // 10% discount for 3 items
+    case 5: return 0.15; // 15% discount for 5 items
+    case 10: return 0.20; // 20% discount for 10 items
+    default: return 0.10; // Default 10% discount for other sizes
+  }
+};
+
+// Get discount percentage for display (returns percentage, e.g., 10 for 10%)
+export const getDiscountPercentage = (size: number | null): number => {
+  return getDiscountRate(size) * 100;
+};
+
 // Helper function to handle BigInt serialization
 function safeJSONStringify(obj: any): string {
   return JSON.stringify(obj, (key, value) => 
@@ -52,6 +69,7 @@ interface CartContextType {
   };
   startPackage: (size: number) => void;
   addToPackage: (item: Omit<CartItem, 'quantity'>) => void;
+  removeFromPackage: (id: number) => void;
   completePackage: () => void;
   cancelPackage: () => void;
 }
@@ -151,21 +169,41 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
 
   const completePackage = () => {
     if (currentPackage.items.length === currentPackage.size) {
-      const totalPrice = currentPackage.items.reduce((sum, item) => sum + item.price, 0) * 0.25;
+      // Calculate the discounted price using the dynamic discount rate
+      const discountRate = getDiscountRate(currentPackage.size);
+      const originalTotal = currentPackage.items.reduce((sum, item) => sum + item.price, 0);
+      const discountedTotal = originalTotal * (1 - discountRate);
+      
+      // Get percentage for display
+      const discountPercentage = getDiscountPercentage(currentPackage.size);
+      
       addItem({
         id: Date.now(),
-        title: `Package Deal (${currentPackage.size} items)`,
-        price: totalPrice,
+        title: `Package Deal (${currentPackage.size} items - ${discountPercentage}% off)`,
+        price: discountedTotal,
         isPackage: true,
         packageSize: currentPackage.size,
         packageItems: currentPackage.items
       });
+      
+      toast.success(`Bundle complete! ${discountPercentage}% discount applied`);
       setCurrentPackage({ size: null, items: [] });
     }
   };
 
   const cancelPackage = () => {
     setCurrentPackage({ size: null, items: [] });
+  };
+
+  const removeFromPackage = (id: number) => {
+    setCurrentPackage(curr => ({
+      ...curr,
+      items: curr.items.filter(item => {
+        const itemId = typeof item.id === 'string' ? parseInt(item.id) : Number(item.id);
+        return itemId !== id;
+      })
+    }));
+    toast.success("Item removed from bundle");
   };
 
   return (
@@ -180,6 +218,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
       currentPackage,
       startPackage,
       addToPackage,
+      removeFromPackage,
       completePackage,
       cancelPackage
     }}>

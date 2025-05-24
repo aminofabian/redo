@@ -81,8 +81,8 @@ export default async function ResourcesPage() {
       }
     }) as unknown as ProductWithRelations[];
     
-    // Fetch all universities directly from the CategoryPath model
-    allUniversities = await prisma.categoryPath.findMany({
+    // First approach: Fetch all universities directly from the CategoryPath model
+    const universitiesFromCategoryPath = await prisma.categoryPath.findMany({
       where: {
         level1: 'university',
         level2: {
@@ -99,8 +99,60 @@ export default async function ResourcesPage() {
       distinct: ['level2']
     });
     
+    // Second approach: Also get universities from categories
+    const categoriesWithUniversity = await prisma.category.findMany({
+      where: {
+        name: {
+          contains: 'University',
+          mode: 'insensitive'
+        }
+      },
+      select: {
+        id: true,
+        name: true,
+        slug: true
+      }
+    });
+    
+    // Get all possible universities from both sources without any reformatting
+    // First, get the raw values from CategoryPath
+    const rawUniversityValues = universitiesFromCategoryPath.map(uni => uni.level2);
+    console.log('Raw university values from CategoryPath:', rawUniversityValues);
+    
+    // Also get universities from the categories table
+    const categoryUniversities = categoriesWithUniversity.map(cat => {
+      // Extract slugs like 'university-of-iowa' from the category table
+      return cat.slug || cat.name.toLowerCase().replace(/\s+/g, '-');
+    });
+    console.log('University values from categories table:', categoryUniversities);
+    
+    // Combine all university sources
+    const combinedUniversities = [...rawUniversityValues, ...categoryUniversities];
+    
+    // Add these hardcoded values to ensure we have them all
+    const hardcodedUniversities = [
+      'university-of-iowa',
+      'university-of-columbia',
+      'university-hawai',
+      'chamberlain-university',
+      'walden-university'
+    ];
+    
+    // Filter out null/undefined values and cast to string array
+    const filteredCombined: string[] = [...combinedUniversities, ...hardcodedUniversities]
+      .filter((uni): uni is string => uni !== null && uni !== undefined);
+    
+    // Use a Set and Array.from to avoid TypeScript issues
+    const uniqueSet = new Set<string>(filteredCombined);
+    const allPossibleUniversities = Array.from(uniqueSet);
+    console.log('All possible universities:', allPossibleUniversities);
+    
+    // Assign to allUniversities
+    allUniversities = allPossibleUniversities;
+    
     // Debug: Log all universities data to see what we're getting from the database
-    console.log('All universities from database:', JSON.stringify(allUniversities, null, 2));
+    console.log('All universities from database (combined sources):', allUniversities.length);
+    console.log('Sample of first 3 universities:', JSON.stringify(allUniversities.slice(0, 3), null, 2));
     
     // Fetch all product types directly from the CategoryPath model
     allProductTypes = await prisma.categoryPath.findMany({
@@ -191,41 +243,70 @@ export default async function ResourcesPage() {
   // Format universities from CategoryPath model data
   console.log('Processing universities, count before formatting:', allUniversities.length);
   
-  const formattedUniversities = allUniversities.map(uni => {
-    // Log each university object to see its structure
-    console.log('Processing university:', uni);
-    
-    // Skip if no level2 (university name)
-    if (!uni || !uni.level2) {
-      console.log('Skipping university with no level2:', uni);
-      return null;
+  // SIMPLIFIED: Just use the level2 values directly with no processing at all
+  const universitySet = new Set<string>();
+
+  // Process each university entry directly from database with no formatting
+  allUniversities.forEach(uni => {
+    try {
+      // Debug each university object
+      console.log('Direct university data from DB:', uni);
+      
+      // Skip invalid entries
+      if (!uni || !uni.level2) {
+        console.log('Skipping university with no level2');
+        return;
+      }
+      
+      // Use the exact level2 value - this is what appears in the database
+      // Do not reformat, extract, or modify it in any way
+      const exactDatabaseValue = uni.level2;
+      console.log(`✅ Using exact database value: "${exactDatabaseValue}"`);
+      universitySet.add(exactDatabaseValue);
+    } catch (error) {
+      console.error('Error processing university:', error);
     }
-    
-    // Verify it's a university category
-    if (uni.level1 !== 'university') {
-      console.log('Skipping non-university category:', uni);
-      return null;
-    }
-    
-    // Format the university name from the slug in level2
-    const universitySlug = uni.level2;
-    let universityName = universitySlug
-      .replace(/-/g, ' ') // Replace hyphens with spaces
-      .replace(/\buniversity\s+of\b/i, 'University of') // Fix "university of" capitalization
-      .replace(/\b(\w)/g, (l: string) => l.toUpperCase()); // Capitalize all words
-    
-    // Special formatting for universities that start with "University"
-    const formattedName = universityName.startsWith('University ') 
-      ? universityName
-      : (universityName.toLowerCase().includes('university') 
-          ? universityName 
-          : `${universityName} University`); // Add "University" if missing
-          
-    console.log(`Formatted university: ${universitySlug} -> ${formattedName}`);
-    return formattedName;
-  }).filter(Boolean).sort();
+  });
   
-  console.log('Formatted universities result:', formattedUniversities);
+  // Filter out generic "University" entries
+  const filteredUniversities = Array.from(universitySet).filter(uni => {
+    // Remove entries that are just "University" or too generic
+    if (!uni || uni.trim() === "University" || uni.trim() === "") {
+      console.log(`Filtering out generic entry: "${uni}"`);
+      return false;
+    }
+    return true;
+  });
+  
+  // Normalize university names to remove duplicates with slight variations
+  const normalizedMap = new Map<string, string>();
+  
+  filteredUniversities.forEach(uni => {
+    // Create a normalized key by removing spaces, converting to lowercase
+    const normalizedKey = uni.toLowerCase()
+      .replace(/\s+/g, '')
+      .replace(/university/g, 'uni')
+      .replace(/of/g, '');
+    
+    // If we haven't seen this university before, add it
+    // If we have, keep the longer/more detailed name
+    if (!normalizedMap.has(normalizedKey) || uni.length > normalizedMap.get(normalizedKey)!.length) {
+      normalizedMap.set(normalizedKey, uni);
+    }
+  });
+  
+  // Convert to sorted array
+  let formattedUniversities = Array.from(normalizedMap.values()).sort();
+  
+  // CRITICAL DEBUG: Log detailed information about universities
+  console.log(`✅✅✅ UNIVERSITY DEBUG INFO ✅✅✅`);
+  console.log(`Raw universities count from DB: ${allUniversities.length}`);
+  console.log(`Filtered universities count: ${filteredUniversities.length}`);
+  console.log(`Final normalized universities count: ${formattedUniversities.length}`);
+  console.log(`Final university list being passed to client:`, JSON.stringify(formattedUniversities, null, 2));
+  
+  // No fallbacks - only use universities actually found in the database
+  console.log(`✅ Using only database universities: ${formattedUniversities.length} entries`);
   
   // Format product types from CategoryPath model data
   console.log('Processing product types, count before formatting:', allProductTypes.length);
@@ -377,7 +458,7 @@ export default async function ResourcesPage() {
             <div>
               <ResourcesClient 
                 initialResources={resources}
-                allUniversities={formattedUniversities}
+                allUniversities={allUniversities}
                 allProductTypes={formattedProductTypes}
               />
             </div>

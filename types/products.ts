@@ -26,6 +26,13 @@ export type ProductReview = {
   updatedAt?: string | Date;
 };
 
+// Define CategoryPath type
+export type CategoryPathItem = {
+  level1: string;
+  level2?: string;
+  level3?: string;
+};
+
 export type SerializableProduct = {
   id: number;
   title: string;
@@ -46,6 +53,8 @@ export type SerializableProduct = {
   images: ProductImage[];
   categories: ProductCategory[];
   reviews: ProductReview[];
+  university?: string;
+  CategoryPath?: CategoryPathItem[];
 };
 
 export type Product = Omit<SerializableProduct, 'createdAt' | 'updatedAt' | 'price' | 'finalPrice' | 'discountAmount'> & {
