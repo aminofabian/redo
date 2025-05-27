@@ -49,6 +49,7 @@ model User {
   emailVerified      DateTime?
   name               String?
   role               String     @default("ADMIN")
+  bio                String?
   accounts           Account[]
   sessions           Session[]
   reviews            Review[]
@@ -56,6 +57,7 @@ model User {
   purchases          Purchase[]
   orders             Order[]
   downloads          Download[]
+  blogPosts          BlogPost[]
 
   @@map("users")
 }
@@ -237,14 +239,14 @@ model Review {
   comment         String?
   productId       Int
   userId          String?
-  userName        String?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
   helpfulCount    Int      @default(0)
   notHelpfulCount Int      @default(0)
   status          String   @default("pending")
-  isGuest         Boolean  @default(false)
+  userName        String?
   email           String?
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
+  isGuest         Boolean  @default(false)
   product         Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
   user            User?    @relation(fields: [userId], references: [id])
 
@@ -327,4 +329,22 @@ model Download {
   @@index([userId])
   @@index([productId])
   @@index([purchaseId])
+}
+
+model BlogPost {
+  id          String   @id @default(cuid())
+  title       String
+  slug        String   @unique
+  content     String   @db.Text
+  imageUrl    String?
+  published   Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  authorId    String
+  author      User     @relation(fields: [authorId], references: [id])
+  category    String?  
+
+  @@index([authorId])
+  @@index([slug])
+  @@index([published])
 }

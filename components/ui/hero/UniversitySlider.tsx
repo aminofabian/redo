@@ -4,6 +4,7 @@ import { motion } from "framer-motion";
 import Image from "next/image";
 import { GraduationCap } from "lucide-react";
 import React, { useRef, useEffect } from "react";
+import { useRouter } from "next/navigation";
 
 // University data type
 interface University {
@@ -17,8 +18,29 @@ interface UniversitySliderProps {
 }
 
 const UniversitySlider: React.FC<UniversitySliderProps> = ({ universities }) => {
+  const router = useRouter();
   // Reference for the slider container
   const sliderRef = useRef<HTMLDivElement>(null);
+  
+  // Handle university click to redirect to products page with filter
+  const handleUniversityClick = (university: University) => {
+    // Convert university name to slug format for URL if needed
+    const slug = convertToSlug(university.name);
+    // Redirect to products page with university filter
+    router.push(`/products?page=1&university=${encodeURIComponent(slug)}`);
+  };
+  
+  // Convert university name to slug format
+  const convertToSlug = (name: string): string => {
+    // If it already contains hyphens, assume it's already in slug format
+    if (name.includes('-')) return name.toLowerCase();
+    
+    // Format university names to database format (e.g., "University of X" → "university-of-x")
+    return name
+      .toLowerCase()
+      .replace(/\s+/g, '-') // Replace spaces with hyphens
+      .replace(/[^\w\-]+/g, ''); // Remove non-word chars except hyphens
+  };
   
   // Auto-scrolling animation effect for schools
   useEffect(() => {
@@ -97,6 +119,8 @@ const UniversitySlider: React.FC<UniversitySliderProps> = ({ universities }) => 
                 type: "spring",
                 stiffness: 150,
               }}
+              onClick={() => handleUniversityClick(university)}
+              aria-label={`View ${university.name} resources`}
             >
               <div className="absolute inset-0 bg-gradient-to-b from-[#5d8e9a]/0 to-[#5d8e9a]/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
               <div className="p-3 h-[90px] flex items-center justify-center bg-white">

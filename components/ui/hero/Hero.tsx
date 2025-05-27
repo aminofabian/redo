@@ -2,50 +2,101 @@
 
 import { motion } from "framer-motion";
 import React, { useState, useEffect } from "react";
-import { Sparkles } from "lucide-react";
+import { Sparkles, BookOpen, GraduationCap } from "lucide-react";
 import SearchFilter from "../SearchFilter";
 import Testimonials from "./Testimonials";
 import EnhancedStats from "./EnhancedStats";
 import TriggerSection from "./TriggerSection";
 import UniversitySlider from "./UniversitySlider";
+import { cn } from "@/lib/utils";
+import { useRouter } from "next/navigation";
+
+// No hardcoded universities - extract exclusively from the database
 
 const Hero = () => {
+  const router = useRouter();
   const [universities, setUniversities] = useState<string[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [loadingUniversities, setLoadingUniversities] = useState(true);
+  const [selectedUniversity, setSelectedUniversity] = useState<string>('');
+  const [searchQuery, setSearchQuery] = useState<string>('');
 
-  // Fetch universities from database
+  // Fetch universities exclusively from the database
   useEffect(() => {
     const fetchUniversities = async () => {
       try {
-        const response = await fetch('/api/universities');
-        if (!response.ok) throw new Error('Failed to fetch universities');
-        const data = await response.json();
+        // Fetch universities from multiple API endpoints for maximum coverage
+        const [uniResponse, categoriesResponse] = await Promise.all([
+          fetch('/api/universities'),
+          fetch('/api/categories')
+        ]);
         
-        // Format university names from the database data
-        const formattedUniversities = data.map((uni: any) => {
-          if (!uni || !uni.level2) return null;
-          
-          // Format the university name from the slug in level2
-          const universitySlug = uni.level2;
-          let universityName = universitySlug
-            .replace(/-/g, ' ') // Replace hyphens with spaces
-            .replace(/\buniversity\s+of\b/i, 'University of') // Fix capitalization
-            .replace(/\b(\w)/g, (l: string) => l.toUpperCase()); // Capitalize all words
-          
-          // Special formatting for universities that start with "University"
-          return universityName.startsWith('University ') 
-            ? universityName
-            : (universityName.toLowerCase().includes('university') 
-                ? universityName 
-                : `${universityName} University`);
-        }).filter(Boolean).sort();
+        if (!uniResponse.ok) throw new Error('Failed to fetch universities');
+        if (!categoriesResponse.ok) throw new Error('Failed to fetch categories');
         
+        const uniData = await uniResponse.json();
+        const categoriesData = await categoriesResponse.json();
+        
+        // Use a Set to store unique university values
+        const universitySet = new Set<string>();
+        
+        // 1. Process universities from CategoryPath - the primary source
+        uniData.forEach((uni: any) => {
+          if (uni && uni.level1 === 'university' && uni.level2) {
+            universitySet.add(uni.level2);
+          }
+        });
+        
+        // 2. Process universities from path patterns
+        uniData.forEach((uni: any) => {
+          if (uni && uni.path && uni.path.includes('university/')) {
+            const pathParts = uni.path.split('/');
+            for (let i = 0; i < pathParts.length; i++) {
+              if (pathParts[i] === 'university' && i + 1 < pathParts.length) {
+                universitySet.add(pathParts[i + 1]);
+              }
+            }
+          }
+        });
+        
+        // 3. Extract from categories that have university in their name or path
+        const extractUniversityFromCategories = (categories: any[]) => {
+          categories.forEach(cat => {
+            // Check if name contains university
+            if (cat.name && cat.name.toLowerCase().includes('university')) {
+              // Convert name to slug format
+              const slug = cat.slug || cat.name.toLowerCase().replace(/\s+/g, '-');
+              universitySet.add(slug);
+            }
+            
+            // Check path patterns
+            if (cat.path && cat.path.includes('university/')) {
+              const pathParts = cat.path.split('/');
+              for (let i = 0; i < pathParts.length; i++) {
+                if (pathParts[i] === 'university' && i + 1 < pathParts.length) {
+                  universitySet.add(pathParts[i + 1]);
+                }
+              }
+            }
+            
+            // Recursively process children
+            if (cat.children && Array.isArray(cat.children)) {
+              extractUniversityFromCategories(cat.children);
+            }
+          });
+        };
+        
+        extractUniversityFromCategories(categoriesData);
+        
+        // Convert to array and sort alphabetically - keep the exact database format
+        const formattedUniversities = Array.from(universitySet).sort();
+        
+        console.log(`Found ${formattedUniversities.length} universities from database`);
         setUniversities(formattedUniversities);
       } catch (error) {
         console.error('Error fetching universities:', error);
         setUniversities([]);
       } finally {
-        setLoading(false);
+        setLoadingUniversities(false);
       }
     };
 
@@ -62,17 +113,7 @@ const Hero = () => {
       
       {/* Main content with improved spacing */}
       <div className="max-w-7xl mx-auto px-4 py-16 md:py-20 w-full">
-        {/* University Slider area - keeping space for it */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.7 }}
-          className="mb-12 max-w-5xl mx-auto"
-        >
-          <div className="text-center">
-            {/* Content placeholder */}
-          </div>
-        </motion.div>
+        {/* University filter removed as requested */}
 
         <div className="text-center mb-16 sm:mb-20 relative">
           {/* Enhanced glow effect */}
@@ -124,7 +165,31 @@ const Hero = () => {
             <div className="absolute inset-0 bg-green-100 rounded-xl blur-xl -z-10 transform scale-105"></div>
             <div className="p-0.5 bg-yellow-200 rounded-xl">
               <div className="bg-white rounded-xl shadow-md">
-                <SearchFilter universities={universities} />
+                <SearchFilter 
+                  universities={universities} 
+                  selectedUniversity={selectedUniversity}
+                  initialSearchQuery={searchQuery}
+                  onUniversityChange={(university) => {
+                    setSelectedUniversity(university);
+                    // Redirect to products page with university filter and preserve search query
+                    if (university) {
+                      const params = new URLSearchParams();
+                      params.set('university', university);
+                      params.set('page', '1');
+                      if (searchQuery) params.set('q', searchQuery);
+                      router.push(`/products?${params.toString()}`);
+                    }
+                  }}
+                  onSearchChange={(query: string) => setSearchQuery(query)}
+                  onSearchSubmit={(query: string) => {
+                    // Redirect to products page with search query and university filter
+                    const params = new URLSearchParams();
+                    if (query) params.set('q', query);
+                    if (selectedUniversity) params.set('university', selectedUniversity);
+                    params.set('page', '1');
+                    router.push(`/products?${params.toString()}`);
+                  }}
+                />
               </div>
             </div>
           </motion.div>

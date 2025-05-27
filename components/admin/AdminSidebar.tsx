@@ -249,6 +249,10 @@ export default function AdminSidebar() {
       icon: FileText,
       href: "/admin/content",
       badge: "",
+      subItems: [
+        { title: "Blog Posts", href: "/admin/content/blog" },
+        { title: "Create Post", href: "/admin/content/blog/new" }
+      ]
     },
     {
       title: "Analytics",
@@ -445,9 +449,14 @@ export default function AdminSidebar() {
               onClick={() => {
                 setActiveMenu(item.title);
                 setSelectedItem(null);
-                // For direct navigation items like Dashboard, keep the navigation
+                
+                // Handle navigation based on menu item type
                 if (item.directNav) {
+                  // For direct navigation items like Dashboard
                   router.push(item.href);
+                } else if (item.title === "Content") {
+                  // For Content specifically, navigate to blog list
+                  router.push("/admin/content/blog");
                 }
               }}
               className={cn(

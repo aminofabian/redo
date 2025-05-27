@@ -8,19 +8,39 @@ import { useRouter, useSearchParams } from "next/navigation";
 
 interface SearchFilterProps {
   universities?: string[]; // Accept formatted university names
+  selectedUniversity?: string; // Currently selected university
+  initialSearchQuery?: string; // Initial search query value
+  onUniversityChange?: (university: string) => void; // Callback when university changes
+  onSearchChange?: (query: string) => void; // Callback when search query changes
+  onSearchSubmit?: (query: string) => void; // Callback when search is submitted
 }
 
-const SearchFilter: React.FC<SearchFilterProps> = ({ universities: propUniversities }) => {
+const SearchFilter: React.FC<SearchFilterProps> = ({ 
+  universities: propUniversities,
+  selectedUniversity: propSelectedUniversity,
+  initialSearchQuery,
+  onUniversityChange,
+  onSearchChange,
+  onSearchSubmit
+}) => {
   const router = useRouter();
   const searchParams = useSearchParams();
   
   const [universities, setUniversities] = useState<string[]>(propUniversities || []);
   const [loading, setLoading] = useState(!propUniversities);
-  const [searchQuery, setSearchQuery] = useState(searchParams.get("q") || "");
+  const [searchQuery, setSearchQuery] = useState(initialSearchQuery || searchParams.get("q") || "");
   const [showFilters, setShowFilters] = useState(false);
-  const [selectedUniversity, setSelectedUniversity] = useState<string | null>(
-    searchParams.get("university")
+  // Use the prop value if provided, otherwise use URL search param
+  const [selectedUniversity, setSelectedUniversity] = useState<string>(
+    propSelectedUniversity || searchParams.get("university") || ""
   );
+  
+  // Update local state when prop changes
+  useEffect(() => {
+    if (propSelectedUniversity !== undefined) {
+      setSelectedUniversity(propSelectedUniversity);
+    }
+  }, [propSelectedUniversity]);
 
   // Function to fetch universities from the database
   const fetchUniversities = async () => {
@@ -219,13 +239,24 @@ const SearchFilter: React.FC<SearchFilterProps> = ({ universities: propUniversit
   }, [showFilters, universities.length]);
 
   const handleUniversitySelect = (name: string) => {
-    setSelectedUniversity(prev => prev === name ? null : name);
+    setSelectedUniversity(name);
+    
+    // Call the parent component's handler if provided
+    if (onUniversityChange) {
+      onUniversityChange(name);
+    }
   };
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
     
-    // Build the query parameters for search
+    // If a custom submit handler is provided, use it
+    if (onSearchSubmit) {
+      onSearchSubmit(searchQuery);
+      return;
+    }
+    
+    // Otherwise use the default behavior
     const params = new URLSearchParams();
     if (searchQuery) params.set("q", searchQuery);
     if (selectedUniversity) params.set("university", selectedUniversity);
@@ -236,7 +267,13 @@ const SearchFilter: React.FC<SearchFilterProps> = ({ universities: propUniversit
 
   const clearSearch = () => {
     setSearchQuery("");
-    setSelectedUniversity(null);
+    setSelectedUniversity("");
+    
+    // Also notify parent component if handler provided
+    if (onUniversityChange) {
+      onUniversityChange("");
+    }
+    
     router.push("/");
   };
 
@@ -258,7 +295,13 @@ const SearchFilter: React.FC<SearchFilterProps> = ({ universities: propUniversit
             <input
               type="text"
               value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
+              onChange={(e) => {
+                setSearchQuery(e.target.value);
+                // Call the custom change handler if provided
+                if (onSearchChange) {
+                  onSearchChange(e.target.value);
+                }
+              }}
               className="bg-white border-2 border-gray-200 text-gray-900 text-base rounded-lg focus:ring-[#5d8e9a] focus:border-[#5d8e9a] block w-full pl-12 p-4 h-14 shadow-sm"
               placeholder="Search for study materials, practice tests..."
             />
