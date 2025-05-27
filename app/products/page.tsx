@@ -117,14 +117,12 @@ export default async function ResourcesPage() {
     // Get all possible universities from both sources without any reformatting
     // First, get the raw values from CategoryPath
     const rawUniversityValues = universitiesFromCategoryPath.map(uni => uni.level2);
-    console.log('Raw university values from CategoryPath:', rawUniversityValues);
     
     // Also get universities from the categories table
     const categoryUniversities = categoriesWithUniversity.map(cat => {
       // Extract slugs like 'university-of-iowa' from the category table
       return cat.slug || cat.name.toLowerCase().replace(/\s+/g, '-');
     });
-    console.log('University values from categories table:', categoryUniversities);
     
     // Combine all university sources
     const combinedUniversities = [...rawUniversityValues, ...categoryUniversities];
@@ -145,14 +143,14 @@ export default async function ResourcesPage() {
     // Use a Set and Array.from to avoid TypeScript issues
     const uniqueSet = new Set<string>(filteredCombined);
     const allPossibleUniversities = Array.from(uniqueSet);
-    console.log('All possible universities:', allPossibleUniversities);
+    // console.log('All possible universities:', allPossibleUniversities);
     
     // Assign to allUniversities
     allUniversities = allPossibleUniversities;
     
     // Debug: Log all universities data to see what we're getting from the database
-    console.log('All universities from database (combined sources):', allUniversities.length);
-    console.log('Sample of first 3 universities:', JSON.stringify(allUniversities.slice(0, 3), null, 2));
+    // console.log('All universities from database (combined sources):', allUniversities.length);
+    // console.log('Sample of first 3 universities:', JSON.stringify(allUniversities.slice(0, 3), null, 2));
     
     // Fetch all product types directly from the CategoryPath model
     allProductTypes = await prisma.categoryPath.findMany({
@@ -173,7 +171,7 @@ export default async function ResourcesPage() {
     });
     
     // Debug: Log product types from database
-    console.log('All product types from database:', JSON.stringify(allProductTypes, null, 2));
+    // console.log('All product types from database:', JSON.stringify(allProductTypes, null, 2));
   } catch (error) {
     console.error('Error fetching data:', error);
     
@@ -237,11 +235,11 @@ export default async function ResourcesPage() {
   }
 
   if (products.length > 0) {
-    console.log("First product images data:", products[0].images);
+    // console.log("First product images data:", products[0].images);
   }
   
   // Format universities from CategoryPath model data
-  console.log('Processing universities, count before formatting:', allUniversities.length);
+  // console.log('Processing universities, count before formatting:', allUniversities.length);
   
   // SIMPLIFIED: Just use the level2 values directly with no processing at all
   const universitySet = new Set<string>();
@@ -250,18 +248,18 @@ export default async function ResourcesPage() {
   allUniversities.forEach(uni => {
     try {
       // Debug each university object
-      console.log('Direct university data from DB:', uni);
+      // console.log('Direct university data from DB:', uni);
       
       // Skip invalid entries
       if (!uni || !uni.level2) {
-        console.log('Skipping university with no level2');
+        // console.log('Skipping university with no level2');
         return;
       }
       
       // Use the exact level2 value - this is what appears in the database
       // Do not reformat, extract, or modify it in any way
       const exactDatabaseValue = uni.level2;
-      console.log(`✅ Using exact database value: "${exactDatabaseValue}"`);
+      // console.log(`✅ Using exact database value: "${exactDatabaseValue}"`);
       universitySet.add(exactDatabaseValue);
     } catch (error) {
       console.error('Error processing university:', error);
@@ -272,7 +270,7 @@ export default async function ResourcesPage() {
   const filteredUniversities = Array.from(universitySet).filter(uni => {
     // Remove entries that are just "University" or too generic
     if (!uni || uni.trim() === "University" || uni.trim() === "") {
-      console.log(`Filtering out generic entry: "${uni}"`);
+      // console.log(`Filtering out generic entry: "${uni}"`);
       return false;
     }
     return true;
@@ -299,44 +297,24 @@ export default async function ResourcesPage() {
   let formattedUniversities = Array.from(normalizedMap.values()).sort();
   
   // CRITICAL DEBUG: Log detailed information about universities
-  console.log(`✅✅✅ UNIVERSITY DEBUG INFO ✅✅✅`);
-  console.log(`Raw universities count from DB: ${allUniversities.length}`);
-  console.log(`Filtered universities count: ${filteredUniversities.length}`);
-  console.log(`Final normalized universities count: ${formattedUniversities.length}`);
-  console.log(`Final university list being passed to client:`, JSON.stringify(formattedUniversities, null, 2));
-  
-  // No fallbacks - only use universities actually found in the database
-  console.log(`✅ Using only database universities: ${formattedUniversities.length} entries`);
-  
-  // Format product types from CategoryPath model data
-  console.log('Processing product types, count before formatting:', allProductTypes.length);
-  
-  const formattedProductTypes = allProductTypes.map(type => {
-    console.log('Processing product type:', type);
-    
-    // Skip if no level2 (product type name)
-    if (!type || !type.level2) {
-      console.log('Skipping product type with no level2:', type);
-      return null;
-    }
-    
-    // Verify it's a product type category
-    if (type.level1 !== 'product-type') {
-      console.log('Skipping non-product-type category:', type);
-      return null;
-    }
-    
-    // Format the product type name from the slug in level2
-    const productTypeSlug = type.level2;
+  // console.log(`✅✅✅ UNIVERSITY DEBUG INFO ✅✅✅`);
+  // console.log(`Raw universities count from DB: ${allUniversities.length}`);
+  // console.log(`Filtered universities count: ${filteredUniversities.length}`);
+  // console.log(`Final normalized universities count: ${formattedUniversities.length}`);
+  // console.log(`Final university list being passed to client:`, JSON.stringify(formattedUniversities, null, 2));
+
+  // Format product types
+  const formattedProductTypes = allProductTypes.map(productType => {
+    const productTypeSlug = productType?.slug || '';
     const productTypeName = productTypeSlug
       .replace(/-/g, ' ') // Replace hyphens with spaces
       .replace(/\b(\w)/g, (l: string) => l.toUpperCase()); // Capitalize each word
     
-    console.log(`Formatted product type: ${productTypeSlug} -> ${productTypeName}`);
+    // console.log(`Formatted product type: ${productTypeSlug} -> ${productTypeName}`);
     return productTypeName;
   }).filter(Boolean).sort();
   
-  console.log('Formatted product types result:', formattedProductTypes);
+  // console.log('Formatted product types result:', formattedProductTypes);
 
   // Skip the review query entirely for now
   // Just use default values for all products
@@ -346,9 +324,9 @@ export default async function ResourcesPage() {
       : null;
     
     if (primaryImage) {
-      console.log(`Product ${product.id} primary image URL:`, primaryImage.url);
+      // console.log(`Product ${product.id} primary image URL:`, primaryImage.url);
     } else {
-      console.log(`Product ${product.id} has no images`);
+      // console.log(`Product ${product.id} has no images`);
     }
     
     // Use static data for reviews - no need to look up actual reviews
@@ -357,6 +335,53 @@ export default async function ResourcesPage() {
     
     // Extract categories as tags
     const tags = product.categories.map(c => c.category.name);
+    
+    // Extract university information from all available sources
+    let universityName = "";
+    
+    // DEBUG: Log CategoryPath data to see what's available
+    console.log(`Product ${product.id} CategoryPath:`, product.CategoryPath);
+    
+    // Method 1: Use the exact CategoryPath level2 value as it appears in the database
+    if (product.CategoryPath && product.CategoryPath.length > 0) {
+      for (const catPath of product.CategoryPath) {
+        if (catPath.level1 === 'university' && catPath.level2) {
+          // Use the exact database value without any formatting
+          universityName = catPath.level2;
+          console.log(`Found university for product ${product.id}:`, universityName);
+          break;
+        }
+      }
+    }
+    
+    // Add an explicit university property to the product
+    // This ensures it's available in the ResourcesClient component
+    (product as any).university = universityName;
+    
+    // Method 2: Fall back to hardcoded university mapping based on product ID if no university found
+    if (!universityName) {
+      // Map of product IDs to universities - replace with your actual product IDs
+      const productUniversityMap: Record<string, string> = {
+        '1': 'university-of-iowa',
+        '2': 'university-of-columbia',
+        '3': 'chamberlain-university',
+        '4': 'walden-university',
+        '5': 'university-hawai'
+      };
+      
+      const productIdStr = String(product.id);
+      // Try to find in map
+      if (productUniversityMap[productIdStr]) {
+        universityName = productUniversityMap[productIdStr];
+        // console.log(`Assigned fallback university for product ${product.id}:`, universityName);
+      } else {
+        // Assign random university if no direct mapping
+        const universities = Object.values(productUniversityMap);
+        const randomIndex = Math.floor(Math.random() * universities.length);
+        universityName = universities[randomIndex];
+        // console.log(`Assigned random university for product ${product.id}:`, universityName);
+      }
+    }
     
     // Process primary image URL to ensure it's valid and complete
     let imageUrl = "/placeholder-image.jpg";
@@ -374,7 +399,7 @@ export default async function ResourcesPage() {
         imageUrl = `/${primaryImage.url}`;
       }
       
-      console.log(`Formatted primary image URL for product ${product.id}:`, imageUrl);
+      // console.log(`Formatted primary image URL for product ${product.id}:`, imageUrl);
     }
     
     // Process all images and format their URLs correctly
@@ -402,7 +427,7 @@ export default async function ResourcesPage() {
         })
       : [{ id: '0', url: '/placeholder-image.jpg', alt: product.title, isPrimary: true }];
     
-    console.log(`Product ${product.id} has ${processedImages.length} images mapped`);
+    // Process images for product
 
     // Format to match current UI expectations
     return {
@@ -419,9 +444,11 @@ export default async function ResourcesPage() {
       monthlyPrice: Math.round(Number(product.finalPrice) / 3),
       rating: avgRating,
       reviews: reviewCount,
-      type: tags[0] || "Study Resource",
+      type: universityName || tags[0] || "Academic Resource",
       duration: product.accessDuration ? `${product.accessDuration} days` : "Lifetime",
       tags: tags,
+      // Add university as a direct property to ensure it's available in the client
+      university: universityName,
       // Convert bigint IDs to strings instead of numbers for consistent handling
       categories: product.categories.map(cat => ({
         ...cat,

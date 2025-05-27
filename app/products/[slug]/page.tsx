@@ -222,8 +222,9 @@ export default async function ProductPage({ params }: { params: { slug: string }
               <div className="mb-4">
                 <div className="inline-flex items-center px-4 py-2 bg-blue-50 text-blue-700 rounded-full border border-blue-200">
                   <img src="/university-icon.svg" alt="University" className="w-5 h-5 mr-2" onError={(e) => {
-                    e.currentTarget.src = "/placeholder-icon.svg";
+                    // Prevent cascading failures by setting onerror to null first
                     e.currentTarget.onerror = null;
+                    e.currentTarget.src = "/placeholder-icon.svg";
                   }} />
                   <span className="font-medium">
                     {serializedProduct.university || (

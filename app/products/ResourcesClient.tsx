@@ -292,69 +292,41 @@ export default function ResourcesClient({ initialResources, allUniversities, all
   const getUniversities = (): string[] => {
     const universitySet = new Set<string>();
     
-    // First, use the list passed from the server if available
+    // First, use the list passed from the server if available - these are already in raw database format
     if (allUniversities && allUniversities.length > 0) {
+      // Use the exact values from the server without any formatting
       allUniversities.forEach(uni => universitySet.add(uni));
       return Array.from(universitySet).sort();
     }
     
     // Otherwise extract from resources (as fallback)
     initialResources.forEach(resource => {
-      // Try to extract from CategoryPath first
+      // Try to extract from CategoryPath first - use exact database values
       if (resource.CategoryPath && resource.CategoryPath.length > 0) {
         resource.CategoryPath.forEach(catPath => {
           // Look for university in level1 and level2
           if (catPath.level1 === 'university' && catPath.level2) {
-            // Just use the display name if available, or basic capitalization if not
-            if (resource.university) {
-              universitySet.add(resource.university);
-            } else {
-              // Simple capitalization without reformatting
-              const displayName = catPath.level2
-                .replace(/-/g, ' ')
-                .replace(/\b(\w)/g, (char) => char.toUpperCase());
-              universitySet.add(displayName);
-            }
+            // Use the exact database value without formatting
+            universitySet.add(catPath.level2);
           }
         });
       }
       
-      // Then check regular categories
-      if (resource.categories && resource.categories.length > 0) {
-        resource.categories.forEach(categoryRelation => {
-          if (categoryRelation && categoryRelation.category) {
-            const category = categoryRelation.category;
-            
-            // Check if category name contains university keywords
-            if (category.name.includes('University') || 
-                category.name.includes('College') || 
-                [
-                  'Harvard', 'Stanford', 'MIT', 'Yale', 'Princeton', 
-                  'Oxford', 'Cambridge', 'UCLA', 'Berkeley'
-                ].some(uni => category.name.includes(uni))) {
-              
-              // Use the exact category name without reformatting
-              universitySet.add(category.name);
-            }
-          }
-        });
-      }
-      
-      // Directly use the university field if present
+      // Directly use the university field if present - this is the preferred method
+      // since it comes directly from our page.tsx processing
       if (resource.university) {
         universitySet.add(resource.university);
       }
     });
     
-    // Add fallback universities if we don't have many
+    // Add fallback universities if we don't have many - use hyphenated versions to match database format
     if (universitySet.size < 5) {
       const fallbackUniversities = [
-        'University of Hawaii',
-        'University of Iowa',
-        'University of Columbia',
-        'Chamberlain University',
-        'Walden University',
-        'Johns Hopkins University'
+        'university-of-hawaii',
+        'university-of-iowa',
+        'university-of-columbia',
+        'chamberlain-university',
+        'walden-university'
       ];
       
       fallbackUniversities.forEach(uni => universitySet.add(uni));
@@ -481,30 +453,24 @@ export default function ResourcesClient({ initialResources, allUniversities, all
       return resource.university;
     }
     
-    // 2. Check CategoryPath
+    // 2. Check CategoryPath - use exact database values without formatting
     if (resource.CategoryPath && resource.CategoryPath.length > 0) {
       for (const catPath of resource.CategoryPath) {
         if (catPath.level1 === 'university' && catPath.level2) {
-          // Format the university name nicely
-          return catPath.level2
-            .replace(/-/g, ' ')
-            .replace(/\b(\w)/g, (char) => char.toUpperCase())
-            .replace(/University Of/i, 'University of');
+          // Return the exact database value without any formatting
+          return catPath.level2;
         }
       }
     }
     
-    // 3. Check categories array for university paths
+    // 3. Check categories array for university paths - use exact values
     if (resource.categories && resource.categories.length > 0) {
       for (const cat of resource.categories) {
         if (cat.category.path?.startsWith('university/')) {
-          // Extract university name from path
+          // Extract exact university name from path
           const uniSlug = cat.category.path.split('/')[1];
           if (uniSlug) {
-            return uniSlug
-              .replace(/-/g, ' ')
-              .replace(/\b(\w)/g, (char) => char.toUpperCase())
-              .replace(/University Of/i, 'University of');
+            return uniSlug;
           }
         }
       }
@@ -597,28 +563,18 @@ export default function ResourcesClient({ initialResources, allUniversities, all
       });
     }
     
-    // Filter by university using consistent matching with display logic
+    // Filter by university using direct database value matching
     if (queryUniversity) {
       console.log(`Filtering for university: "${queryUniversity}"`);
       
-      // First try exact category path matching
-      let exactMatches = filtered.filter(resource => {
-        // 1. Check categories for the proper university path format
-        if (resource.categories && resource.categories.length > 0) {
-          for (const cat of resource.categories) {
-            // Check for paths like "university/walden-university"
-            if (cat.category.path) {
-              const expectedPath = `university/${queryUniversity}`;
-              // Direct match or starts with (to handle subcategories)
-              if (cat.category.path === expectedPath || 
-                  cat.category.path.startsWith(`${expectedPath}/`)) {
-                return true;
-              }
-            }
-          }
+      // Use strict matching with the exact database values
+      filtered = filtered.filter(resource => {
+        // 1. Direct match against the university property we explicitly added
+        if (resource.university === queryUniversity) {
+          return true;
         }
         
-        // 2. Also check CategoryPath (newer format)
+        // 2. Check CategoryPath entries which contain the raw database values
         if (resource.CategoryPath && resource.CategoryPath.length > 0) {
           for (const catPath of resource.CategoryPath) {
             if (catPath.level1 === 'university' && catPath.level2 === queryUniversity) {
@@ -627,34 +583,16 @@ export default function ResourcesClient({ initialResources, allUniversities, all
           }
         }
         
+        // 3. Check if type matches (since we're setting the type to university in some cases)
+        if (resource.type === queryUniversity) {
+          return true;
+        }
+        
         return false;
       });
       
-      // If no exact matches, use flexible matching like in the display logic
-      if (exactMatches.length === 0) {
-        // Extract key parts of university name for matching
-        const uniParts = queryUniversity.split('-').filter(part => 
-          part.length > 3 && !['university', 'college', 'of'].includes(part)
-        );
-        
-        // Use the flexible matching
-        exactMatches = filtered.filter(resource => {
-          // Stringify resource for full-text search
-          const resourceStr = JSON.stringify(resource).toLowerCase();
-          
-          // Check for key university name parts
-          for (const part of uniParts) {
-            if (resourceStr.includes(part.toLowerCase())) {
-              return true;
-            }
-          }
-          
-          return false;
-        });
-      }
-      
-      // Use the filtered results
-      filtered = exactMatches;
+      // Log how many resources matched this university
+      console.log(`Found ${filtered.length} resources for university: ${queryUniversity}`);
     }
     
     // Level filter has been removed as requested
@@ -686,9 +624,16 @@ export default function ResourcesClient({ initialResources, allUniversities, all
 
   // Apply filters when URL parameters change
   useEffect(() => {
+    // Use a more stable dependency by converting searchParams to string
+    const paramsString = searchParams.toString();
     const filtered = applyFilters();
     setProducts(filtered);
-  }, [searchParams, initialResources]);
+    
+    // Add cleanup function to prevent state updates after unmount
+    return () => {
+      clearTimeout(searchTimeout.current);
+    };
+  }, [searchParams.toString(), initialResources]);
 
   // Get filtered resources directly
   const filteredResources = products;
@@ -701,35 +646,67 @@ export default function ResourcesClient({ initialResources, allUniversities, all
     { value: "price-high", label: "Price: High to Low" },
   ];
 
-  // Function to update URL query parameters
+  // Store the last URL update timestamp to prevent rapid successive updates
+  const lastURLUpdateRef = React.useRef<number>(0);
+  const pendingURLUpdateRef = React.useRef<NodeJS.Timeout | null>(null);
+  
+  // Function to update URL query parameters with debouncing
   const updateURLParams = (params: Record<string, string>) => {
-    // Build the query string by merging existing and new parameters
-    const updatedParams = new URLSearchParams(searchParams.toString());
-    
-    // Update or delete params based on their values
-    Object.entries(params).forEach(([key, value]) => {
-      if (value) {
-        updatedParams.set(key, value);
-      } else {
-        updatedParams.delete(key);
-      }
-    });
-
-    // Reset page to 1 when changing filters, unless page is the parameter being updated
-    if (!params.hasOwnProperty('page')) {
-      updatedParams.set('page', '1');
+    // Clear any pending update
+    if (pendingURLUpdateRef.current) {
+      clearTimeout(pendingURLUpdateRef.current);
+      pendingURLUpdateRef.current = null;
     }
     
-    // Only navigate if there are actual changes
-    const newURL = `${pathname}?${updatedParams.toString()}`;
-    router.push(newURL, { scroll: false });
+    // Schedule the update with a delay to prevent rapid successive updates
+    pendingURLUpdateRef.current = setTimeout(() => {
+      // Build the query string by merging existing and new parameters
+      const updatedParams = new URLSearchParams(searchParams.toString());
+      
+      // Check if there are actual changes before updating
+      let hasChanges = false;
+      
+      // Update or delete params based on their values
+      Object.entries(params).forEach(([key, value]) => {
+        const currentValue = updatedParams.get(key);
+        
+        if (value) {
+          // Only mark as changed if the value is different
+          if (currentValue !== value) {
+            updatedParams.set(key, value);
+            hasChanges = true;
+          }
+        } else if (currentValue !== null) {
+          // Only mark as changed if we're removing an existing param
+          updatedParams.delete(key);
+          hasChanges = true;
+        }
+      });
+  
+      // Reset page to 1 when changing filters, unless page is the parameter being updated
+      if (!params.hasOwnProperty('page') && hasChanges) {
+        const currentPage = updatedParams.get('page');
+        if (currentPage !== '1') {
+          updatedParams.set('page', '1');
+          hasChanges = true;
+        }
+      }
+      
+      // Only navigate if there are actual changes and enough time has passed (250ms)
+      const now = Date.now();
+      if (hasChanges && now - lastURLUpdateRef.current > 250) {
+        const newURL = `${pathname}?${updatedParams.toString()}`;
+        router.push(newURL, { scroll: false });
+        lastURLUpdateRef.current = now;
+      }
+    }, 250); // Add a 250ms debounce delay
   };
   
   // Normalize a display name to be comparable with a slug form
   // This function is used for COMPARISON only, not for display
   const normalizeForComparison = (displayName: string): string => {
     // Ensure we're only using this for comparison, not changing display names
-    console.log(`Normalizing for comparison: "${displayName}"`);
+    // console.log(`Normalizing for comparison: "${displayName}"`);
     
     const normalized = displayName
       .toLowerCase()
@@ -737,13 +714,13 @@ export default function ResourcesClient({ initialResources, allUniversities, all
       .replace(/university\s+of\s+/i, '') // Remove leading "university of"
       .replace(/\s+/g, '-'); // Replace spaces with hyphens
       
-    console.log(`Normalized to: "${normalized}"`);
+    // console.log(`Normalized to: "${normalized}"`);
     return normalized;
   };
 
   // Add debug filter function for development
   const debugFilter = (filterId: FilterKey, value: string) => {
-    console.log(`Debugging filter: ${filterId} = ${value}`);
+    // console.log(`Debugging filter: ${filterId} = ${value}`);
     
     // Find how many resources would match this filter
     let matchCount = 0;
@@ -782,11 +759,11 @@ export default function ResourcesClient({ initialResources, allUniversities, all
       
       if (matches) {
         matchCount++;
-        console.log(`- Matching resource: ${resource.title}`);
+        // console.log(`- Matching resource: ${resource.title}`);
       }
     });
     
-    console.log(`Total matches for ${filterId}=${value}: ${matchCount}/${initialResources.length}`);
+    // console.log(`Total matches for ${filterId}=${value}: ${matchCount}/${initialResources.length}`);
   };
 
   // Update filter handlers to use URL parameters
@@ -795,7 +772,7 @@ export default function ResourcesClient({ initialResources, allUniversities, all
     const newValue = selectedFilters[filterId] === value ? "" : value;
     
     // Debug log for filter changes
-    console.log(`Changing filter ${filterId} to: "${newValue}"`);
+    // console.log(`Changing filter ${filterId} to: "${newValue}"`);
     
     // Update URL with the new filter
     updateURLParams({ [filterId]: newValue });
@@ -893,8 +870,9 @@ export default function ResourcesClient({ initialResources, allUniversities, all
             <div className="mb-3">
               <Badge className="bg-blue-50 text-blue-700 border border-blue-200 px-3 py-1 font-medium hover:bg-blue-100 transition-colors">
                 <img src="/university-icon.svg" alt="University" className="w-4 h-4 mr-1.5" onError={(e) => {
-                  e.currentTarget.src = "/placeholder-icon.svg";
+                  // Prevent cascading failures by setting onerror to null first
                   e.currentTarget.onerror = null;
+                  e.currentTarget.src = "/placeholder-icon.svg";
                 }} />
                 {getResourceUniversity(resource) || "Academic Resource"}
               </Badge>
@@ -1047,8 +1025,9 @@ export default function ResourcesClient({ initialResources, allUniversities, all
               <div className="mb-3">
                 <Badge className="bg-blue-50 text-blue-700 border border-blue-200 px-3 py-1 font-medium hover:bg-blue-100 transition-colors">
                   <img src="/university-icon.svg" alt="University" className="w-4 h-4 mr-1.5" onError={(e) => {
-                    e.currentTarget.src = "/placeholder-icon.svg";
+                    // Prevent cascading failures by setting onerror to null first
                     e.currentTarget.onerror = null;
+                    e.currentTarget.src = "/placeholder-icon.svg";
                   }} />
                   {getResourceUniversity(resource) || "Academic Resource"}
                 </Badge>
@@ -1176,29 +1155,29 @@ export default function ResourcesClient({ initialResources, allUniversities, all
   // Add this after constructing the filterGroups
   useEffect(() => {
     // Check the first few resources to see their structure
-    console.log("Sample resource data:");
+    // console.log("Sample resource data:");
     if (initialResources.length > 0) {
       const sample = initialResources[0];
-      console.log({
-        id: sample.id,
-        title: sample.title,
-        tags: sample.tags,
-        categories: sample.categories,
-        CategoryPath: sample.CategoryPath
-      });
+      // console.log({
+      //   id: sample.id,
+      //   title: sample.title,
+      //   tags: sample.tags,
+      //   categories: sample.categories,
+      //   CategoryPath: sample.CategoryPath
+      // });
     }
     
     // Log the extracted filters
-    console.log("Filter options found:");
+    // console.log("Filter options found:");
     filterGroups.forEach(group => {
-      console.log(`${group.name}: ${group.options.length} options`);
-      console.log(group.options);
+      // console.log(`${group.name}: ${group.options.length} options`);
+      // console.log(group.options);
     });
     
     // Debug all universities
-    console.log(`Total universities to render: ${allUniversities.length}`, allUniversities);
+    // console.log(`Total universities to render: ${allUniversities.length}`, allUniversities);
     allUniversities.forEach((uni, index) => {
-      console.log(`University ${index+1}/${allUniversities.length}: "${uni}"`);
+      // console.log(`University ${index+1}/${allUniversities.length}: "${uni}"`);
     });
   }, []);
 
@@ -1226,30 +1205,16 @@ export default function ResourcesClient({ initialResources, allUniversities, all
                 <span className="text-xs text-gray-500">{initialResources.length}</span>
               </button>
               
-              {/* University list from database - show ALL universities */}
+              {/* University list from database - show ALL universities with exact DB values */}
               {allUniversities.map((university, index) => {
-                // University is now a raw string value directly from the database (level2)
-                // No processing or formatting needed - display exactly as is
-                const exactDbValue = university;
-                
-                // First, try strict matching on category paths
-                let exactMatches = initialResources.filter(resource => {
-                  // Check if resource has the correct category path for this university
-                  if (resource.categories && resource.categories.length > 0) {
-                    for (const cat of resource.categories) {
-                      // Check for paths like "university/walden-university"
-                      if (cat.category.path) {
-                        const expectedPath = `university/${university}`;
-                        // Direct match or starts with (to handle subcategories)
-                        if (cat.category.path === expectedPath || 
-                            cat.category.path.startsWith(`${expectedPath}/`)) {
-                          return true;
-                        }
-                      }
-                    }
+                // Calculate the count of resources for this university using exact database matching
+                const resourceCount = initialResources.filter(resource => {
+                  // 1. Check direct university property match (most reliable)
+                  if (resource.university === university) {
+                    return true;
                   }
                   
-                  // Also check CategoryPath (newer format)
+                  // 2. Check CategoryPath entries which have raw database values
                   if (resource.CategoryPath && resource.CategoryPath.length > 0) {
                     for (const catPath of resource.CategoryPath) {
                       if (catPath.level1 === 'university' && catPath.level2 === university) {
@@ -1258,49 +1223,29 @@ export default function ResourcesClient({ initialResources, allUniversities, all
                     }
                   }
                   
-                  return false;
-                });
-                
-                // If no exact matches, use a more flexible approach for display purposes
-                if (exactMatches.length === 0) {
-                  // Extract key parts of the university name for flexible matching
-                  const uniParts = university.split('-').filter(part => part.length > 3 && 
-                                                                   !['university', 'college', 'of'].includes(part));
+                  // 3. Check if type field contains university (added this in our page.tsx)
+                  if (resource.type === university) {
+                    return true;
+                  }
                   
-                  // Do a more flexible search for content with these key parts
-                  exactMatches = initialResources.filter(resource => {
-                    // Stringify the resource data for full-text search
-                    const resourceText = JSON.stringify(resource).toLowerCase();
-                    
-                    // Check if any key part of the university name is found
-                    for (const part of uniParts) {
-                      if (resourceText.includes(part.toLowerCase())) {
-                        return true;
-                      }
-                    }
-                    
-                    return false;
-                  }).slice(0, 5); // Limit to 5 matches for reasonable display
+                  return false;
+                }).length;
+                
+                // Format university name for display only (don't change the value used for filtering)
+                const displayName = university
+                  .replace(/-/g, ' ')
+                  .replace(/\b(\w)/g, (char) => char.toUpperCase());
+                  
+                // Skip universities with no resources unless explicitly requested
+                if (resourceCount === 0 && university !== queryUniversity) {
+                  return null;
                 }
                 
-                // For display purposes, ensure at least one match for every university
-                const count = Math.max(exactMatches.length, 1);
-                
-                // Force debug log for each university
-                console.log(`University ${index+1}/${allUniversities.length}: "${university}" (Products: ${count})`);
-                
-                // Properly encode the university name for the URL
-                const encodedUniversity = encodeURIComponent(university);
-                console.log(`Filter URL for ${university}: /products?university=${encodedUniversity}`);
-
+                // Only show the button for universities with resources or the currently selected one
                 return (
                   <button
                     key={university}
-                    onClick={() => {
-                      // Apply filter programmatically using exact database value
-                      handleFilterChange('university', exactDbValue); // Use the raw database value
-                      console.log(`Applying university filter with exact database value: ${exactDbValue}`);
-                    }}
+                    onClick={() => handleFilterChange('university', university)}
                     className={cn(
                       "w-full text-left px-3 py-2 rounded-md text-sm transition-colors flex items-center justify-between",
                       queryUniversity === university 
@@ -1310,13 +1255,13 @@ export default function ResourcesClient({ initialResources, allUniversities, all
                   >
                     <span className="truncate pr-2">
                       {/* Format the university name for display */}
-                      {exactDbValue
+                      {university
                         .replace(/-/g, ' ')
                         .replace(/\b(\w)/g, (char) => char.toUpperCase())
                         .replace(/University Of/i, 'University of')
                       }
                     </span>
-                    <span className="text-xs text-gray-500">{count}</span>
+                    <span className="text-xs text-gray-500">{resourceCount}</span>
                   </button>
                 );
               })}
