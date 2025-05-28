@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useEditor, EditorContent, Editor } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
 import Underline from "@tiptap/extension-underline";
@@ -70,21 +70,21 @@ export default function BlogPostEditor({ existingPost }: { existingPost?: BlogPo
   const [isSaving, setIsSaving] = useState(false);
   const [imageUrl, setImageUrl] = useState("");
   const [isUploadingImage, setIsUploadingImage] = useState(false);
+  const [isInsertingImage, setIsInsertingImage] = useState(false);
+
+  // Create a ref for the hidden file input
+  const inlineImageInputRef = useRef<HTMLInputElement>(null);
 
   const editor = useEditor({
     extensions: [
-      StarterKit,
+      StarterKit.configure({
+        heading: false, // Disable the default heading from StarterKit
+      }),
       Underline,
-      Image.extend({
-        addAttributes() {
-          return {
-            src: {},
-            alt: { default: null },
-            title: { default: null },
-            width: { default: '100%' },
-            height: { default: 'auto' },
-            style: { default: 'max-width: 100%; height: auto;' },
-          };
+      Image.configure({
+        allowBase64: true,
+        HTMLAttributes: {
+          class: 'editor-image',
         },
       }),
       Link.configure({
@@ -291,55 +291,205 @@ export default function BlogPostEditor({ existingPost }: { existingPost?: BlogPo
     }
   };
   
+  // Function to trigger image upload with size options
+  const triggerImageUpload = () => {
+    console.log('Image button clicked');
+    console.log('Editor exists:', !!editor);
+    console.log('Input ref exists:', !!inlineImageInputRef.current);
+    
+    // Ask user for image placement preference
+    const placement = window.confirm(
+      'Click OK for inline image (small, within text) or Cancel for block image (full width, on its own line)'
+    );
+    
+    // Store the preference for use in the file handler
+    if (inlineImageInputRef.current) {
+      inlineImageInputRef.current.dataset.placement = placement ? 'inline' : 'block';
+    }
+    
+    inlineImageInputRef.current?.click();
+  };
+
   // Handle inline image upload from file input
   const handleInlineImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    console.log('File input changed');
     const files = e.target.files;
+    console.log('Files selected:', files?.length || 0);
+    console.log('Files array:', files);
+    
     if (!files || files.length === 0) return;
+    
+    // Store files in a separate array before resetting the input
+    const fileArray = Array.from(files);
+    console.log('File array created:', fileArray.length);
+    
+    // Set loading state
+    setIsInsertingImage(true);
+    
+    // Get the placement preference
+    const placement = e.target.dataset.placement || 'block';
+    console.log('Image placement:', placement);
     
     // Reset the input value to allow selecting the same file again
     e.target.value = '';
     
-    if (!editor) return;
+    if (!editor) {
+      console.error('Editor not available');
+      setIsInsertingImage(false);
+      return;
+    }
+    
+    console.log('Processing files...');
+    console.log('About to start for loop, fileArray.length:', fileArray.length);
+    
+    let processedFiles = 0;
+    const totalFiles = fileArray.length;
     
     // Process each selected file
-    for (let i = 0; i < files.length; i++) {
-      const file = files[i];
+    for (let i = 0; i < fileArray.length; i++) {
+      console.log('Loop iteration:', i);
+      const file = fileArray[i];
+      console.log('File object:', file);
+      
+      if (!file) {
+        console.error('File is null or undefined at index:', i);
+        processedFiles++;
+        if (processedFiles === totalFiles) {
+          setIsInsertingImage(false);
+        }
+        continue;
+      }
+      
+      console.log('Processing file:', file.name, 'Type:', file.type, 'Size:', file.size);
       
       // Check if file is an image
       if (!file.type.startsWith('image/')) {
+        console.error('File is not an image:', file.name);
         alert(`File "${file.name}" is not an image.`);
+        processedFiles++;
+        if (processedFiles === totalFiles) {
+          setIsInsertingImage(false);
+        }
         continue;
       }
       
       // Check file size (5MB limit)
       if (file.size > 5 * 1024 * 1024) {
+        console.error('File too large:', file.name);
         alert(`Image "${file.name}" is too large. Maximum size is 5MB.`);
+        processedFiles++;
+        if (processedFiles === totalFiles) {
+          setIsInsertingImage(false);
+        }
         continue;
       }
+      
+      console.log('File passed validation, reading...');
       
       // Read the file as a data URL
       const reader = new FileReader();
       
       reader.onload = (readerEvent) => {
-        if (!editor || !readerEvent.target?.result) return;
+        console.log('File read successfully for:', file.name);
         
-        // Insert the image at the current cursor position
-        editor.chain()
-          .focus()
-          .setImage({ 
-            src: readerEvent.target.result as string,
-            alt: file.name,
-            title: file.name
-          })
-          .run();
+        if (!editor) {
+          console.error('Editor not available when trying to insert image');
+          processedFiles++;
+          if (processedFiles === totalFiles) {
+            setIsInsertingImage(false);
+          }
+          return;
+        }
+        
+        if (!readerEvent.target?.result) {
+          console.error('No result from file reader');
+          processedFiles++;
+          if (processedFiles === totalFiles) {
+            setIsInsertingImage(false);
+          }
+          return;
+        }
+        
+        console.log('Inserting image into editor...');
+        console.log('Editor state:', editor.state);
+        console.log('Can insert image:', editor.can().setImage({
+          src: 'test',
+          alt: 'test'
+        }));
+        
+        try {
+          // Try multiple approaches to insert the image
+          let result = false;
+          
+          // Method 1: Using setImage command (most reliable)
+          result = editor.chain()
+            .focus()
+            .setImage({ 
+              src: readerEvent.target.result as string,
+              alt: file.name,
+              title: file.name
+            })
+            .run();
+            
+          console.log('setImage result:', result);
+          
+          // If setImage failed, try insertContent
+          if (!result) {
+            console.log('setImage failed, trying insertContent...');
+            result = editor.chain()
+              .focus()
+              .insertContent(`<img src="${readerEvent.target.result}" alt="${file.name}" title="${file.name}" style="${placement === 'inline' ? 'display: inline; max-height: 2rem; width: auto; vertical-align: middle; margin: 0 0.25rem;' : 'display: block; max-width: 100%; height: auto; margin: 0.5rem auto;'}" />`)
+              .run();
+              
+            console.log('insertContent result:', result);
+          }
+          
+          // If both failed, try basic HTML insertion
+          if (!result) {
+            console.log('Both methods failed, trying basic insertion...');
+            
+            // Insert simple text first to test
+            result = editor.chain()
+              .focus()
+              .insertContent('🖼️ Image inserted: ' + file.name)
+              .run();
+              
+            console.log('Basic insertion result:', result);
+          }
+          
+          if (!result) {
+            console.error('All insertion methods failed');
+            alert('Failed to insert image. Please try again.');
+          } else {
+            console.log('Image inserted successfully!');
+          }
+        } catch (error) {
+          console.error('Error inserting image:', error);
+          const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+          alert('Error inserting image: ' + errorMessage);
+        }
+        
+        // Increment processed files count and hide loader if all done
+        processedFiles++;
+        if (processedFiles === totalFiles) {
+          setIsInsertingImage(false);
+        }
       };
       
-      reader.onerror = () => {
-        console.error('Error reading file:', file.name);
+      reader.onerror = (error) => {
+        console.error('Error reading file:', file.name, error);
+        processedFiles++;
+        if (processedFiles === totalFiles) {
+          setIsInsertingImage(false);
+        }
       };
       
+      console.log('About to call readAsDataURL for:', file.name);
       reader.readAsDataURL(file);
+      console.log('readAsDataURL called for:', file.name);
     }
+    
+    console.log('For loop completed');
   };
 
   const addLink = () => {
@@ -763,27 +913,41 @@ export default function BlogPostEditor({ existingPost }: { existingPost?: BlogPo
                 <LinkIcon className="h-4 w-4" />
               </Button>
               
-              <div className="relative">
-                <Button 
-                  variant="ghost" 
-                  size="sm" 
-                  className={cn("h-8 px-2 relative")}
-                >
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                onClick={triggerImageUpload}
+                disabled={isInsertingImage}
+                className={cn("h-8 px-2 relative", isInsertingImage && "opacity-50")}
+                title="Insert image"
+              >
+                {isInsertingImage ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : (
                   <ImageIcon className="h-4 w-4" />
-                  <input 
-                    type="file" 
-                    accept="image/*" 
-                    onChange={handleInlineImageUpload}
-                    className="absolute inset-0 opacity-0 cursor-pointer" 
-                  />
-                </Button>
-                {isUploadingImage && (
-                  <div className="absolute top-full mt-1 text-xs text-blue-500">
-                    Uploading...
-                  </div>
                 )}
-              </div>
+              </Button>
             </div>
+            
+            {/* Loading indicator overlay */}
+            {isInsertingImage && (
+              <div className="absolute top-full left-0 mt-1 bg-blue-50 text-blue-600 px-2 py-1 rounded text-xs font-medium shadow-sm border border-blue-200 whitespace-nowrap z-10">
+                <div className="flex items-center gap-1">
+                  <Loader2 className="h-3 w-3 animate-spin" />
+                  Processing image...
+                </div>
+              </div>
+            )}
+            
+            {/* Hidden file input for inline images */}
+            <input 
+              ref={inlineImageInputRef}
+              type="file" 
+              accept="image/*" 
+              multiple
+              onChange={handleInlineImageUpload}
+              className="hidden" 
+            />
             
             <div className="h-6 border-l mx-0.5"></div>
             
@@ -856,6 +1020,20 @@ export default function BlogPostEditor({ existingPost }: { existingPost?: BlogPo
                 .ProseMirror h1, .ProseMirror h2, .ProseMirror h3 {
                   margin-top: 32px;
                   margin-bottom: 16px;
+                }
+                .ProseMirror .editor-image {
+                  max-width: 100%;
+                  height: auto;
+                  border-radius: 0.375rem;
+                  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);
+                  margin: 0.5rem 0;
+                  display: block;
+                }
+                .ProseMirror img {
+                  max-width: 100% !important;
+                  height: auto !important;
+                  border-radius: 0.375rem !important;
+                  margin: 0.5rem 0 !important;
                 }
               `}</style>
               <EditorContent 
